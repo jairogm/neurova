@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@clerk/nextjs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,19 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Loader2 } from "lucide-react";
-import { User as SupabaseUser } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/constants/countries";
-import { TherapistProfile } from "@/lib/types";
-import { getTherapistProfile } from "@/lib/supabase/getTherapistProfile";
-import { updateTherapistProfile } from "@/lib/supabase/updateTherapistProfile";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [profile, setProfile] = useState<Partial<TherapistProfile>>({
+  const { user: clerkUser } = useUser();
+
+  // Fetch current therapist profile from Convex
+  const therapistProfile = useQuery(api.users.getCurrentUser);
+  const isLoading = therapistProfile === undefined;
+
+  const [profile, setProfile] = useState({
     full_name: "",
     email: "",
     phone: "",
@@ -35,106 +37,64 @@ export default function ProfilePage() {
     years_of_experience: 0,
     bio: "",
     office_address: "",
+    country_code: COUNTRIES[0],
     emergency_contact: {
       name: "",
       phone: "",
       relationship: "",
-      country_code: COUNTRIES[0], // Default to first country (US)
+      country_code: COUNTRIES[0],
     },
   });
-
-  const supabase = createClient();
-  const queryClient = useQueryClient();
-
-  // Query for therapist profile
-  const { data: therapistProfile, isLoading, error } = useQuery<TherapistProfile | null>({
-    queryKey: ["therapist-profile"],
-    queryFn: getTherapistProfile,
-    retry: false,
-  });
-
-  // Mutation for updating profile with optimistic updates
-  const updateProfileMutation = useMutation({
-    mutationFn: updateTherapistProfile,
-    onMutate: async (newProfileData) => {
-      // Cancel any outgoing refetches so they don't overwrite our optimistic update
-      await queryClient.cancelQueries({ queryKey: ["therapist-profile"] });
-
-      // Snapshot the previous value
-      const previousProfile = queryClient.getQueryData<TherapistProfile>(["therapist-profile"]);
-
-      // Optimistically update to the new value
-      queryClient.setQueryData<TherapistProfile>(["therapist-profile"], (old) => ({
-        ...old!,
-        ...newProfileData,
-      }));
-
-      // Return a context object with the snapshotted value
-      return { previousProfile };
-    },
-    onSuccess: (updatedProfile) => {
-      // Update the cache with server response
-      queryClient.setQueryData(["therapist-profile"], updatedProfile);
-      toast.success("Profile updated successfully!");
-    },
-    onError: (error, newProfileData, context) => {
-      // If the mutation fails, use the context to roll back
-      if (context?.previousProfile) {
-        queryClient.setQueryData(["therapist-profile"], context.previousProfile);
-      }
-      console.error("Error updating profile:", error);
-      toast.error("Failed to update profile. Please try again.");
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: ["therapist-profile"] });
-    },
-  });
-
-  // Get auth user and sync with profile data
-  useEffect(() => {
-    const loadUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-      }
-    };
-
-    loadUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          setUser(session.user);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
 
   // Sync therapist profile data with local state when it loads
   useEffect(() => {
     if (therapistProfile) {
-      setProfile(therapistProfile);
-    } else if (user && !isLoading) {
-      // No profile exists yet, set defaults from auth user
+      setProfile({
+        full_name: therapistProfile.full_name || "",
+        email: therapistProfile.email || "",
+        phone: therapistProfile.phone || "",
+        specialization: therapistProfile.specialization || "",
+        license_number: therapistProfile.license_number || "",
+        years_of_experience: therapistProfile.years_of_experience || 0,
+        bio: therapistProfile.bio || "",
+        office_address: therapistProfile.office_address || "",
+        country_code: therapistProfile.country_code
+          ? JSON.parse(therapistProfile.country_code)
+          : COUNTRIES[0],
+        emergency_contact: therapistProfile.emergency_contact
+          ? JSON.parse(therapistProfile.emergency_contact)
+          : {
+            name: "",
+            phone: "",
+            relationship: "",
+            country_code: COUNTRIES[0],
+          },
+      });
+    } else if (clerkUser && !isLoading) {
+      // No profile exists yet, set defaults from Clerk user
       setProfile(prev => ({
         ...prev,
-        full_name: user.user_metadata?.full_name || user.email || "",
-        email: user.email || "",
+        full_name: clerkUser.fullName || clerkUser.primaryEmailAddress?.emailAddress || "",
+        email: clerkUser.primaryEmailAddress?.emailAddress || "",
       }));
     }
-  }, [therapistProfile, user, isLoading]);
+  }, [therapistProfile, clerkUser, isLoading]);
 
   const handleSave = async () => {
-    updateProfileMutation.mutate(profile);
+    try {
+      // TODO: Create a Convex mutation to update therapist profile
+      toast.info("Profile update functionality will be implemented with Convex mutation");
+      console.log("Profile to save:", profile);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update profile: " + message);
+    }
   };
 
-  const getUserInitials = (user: SupabaseUser | null) => {
-    if (!user?.user_metadata?.full_name && !user?.email) return "U";
+  const getUserInitials = () => {
+    if (!clerkUser?.fullName && !clerkUser?.primaryEmailAddress?.emailAddress) return "U";
 
-    const name = user.user_metadata?.full_name || user.email || "";
+    const name = clerkUser.fullName || clerkUser.primaryEmailAddress?.emailAddress || "";
     const parts = name.split(" ");
 
     if (parts.length >= 2) {
@@ -154,35 +114,17 @@ export default function ProfilePage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <p className="text-red-600 mb-4">Failed to load profile</p>
-            <Button
-              onClick={() => queryClient.invalidateQueries({ queryKey: ["therapist-profile"] })}
-              variant="outline"
-            >
-              Try Again
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
             <AvatarImage
-              src={user?.user_metadata?.avatar_url}
+              src={clerkUser?.imageUrl}
               alt={profile.full_name || "Profile"}
             />
             <AvatarFallback className="text-lg">
-              {getUserInitials(user)}
+              {getUserInitials()}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -208,7 +150,7 @@ export default function ProfilePage() {
                 <Label htmlFor="full_name">Full Name *</Label>
                 <Input
                   id="full_name"
-                  value={profile.full_name || ""}
+                  value={profile.full_name}
                   onChange={(e) => setProfile(prev => ({ ...prev, full_name: e.target.value }))}
                   placeholder="Enter your full name"
                 />
@@ -218,7 +160,7 @@ export default function ProfilePage() {
                 <Input
                   id="email"
                   type="email"
-                  value={profile.email || ""}
+                  value={profile.email}
                   disabled
                   className="bg-gray-50 dark:bg-gray-800"
                 />
@@ -230,7 +172,7 @@ export default function ProfilePage() {
                     value={profile.country_code?.iso || ""}
                     onValueChange={(value) => {
                       const country = COUNTRIES.find(c => c.iso === value);
-                      setProfile(prev => ({ ...prev, country_code: country }));
+                      setProfile(prev => ({ ...prev, country_code: country || COUNTRIES[0] }));
                     }}
                   >
                     <SelectTrigger className="w-32">
@@ -257,7 +199,7 @@ export default function ProfilePage() {
                   </Select>
                   <Input
                     id="phone"
-                    value={profile.phone || ""}
+                    value={profile.phone}
                     onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
                     placeholder="Phone number"
                     className="flex-1"
@@ -268,7 +210,7 @@ export default function ProfilePage() {
                 <Label htmlFor="specialization">Specialization</Label>
                 <Input
                   id="specialization"
-                  value={profile.specialization || ""}
+                  value={profile.specialization}
                   onChange={(e) => setProfile(prev => ({ ...prev, specialization: e.target.value }))}
                   placeholder="e.g., Clinical Psychology, Cognitive Behavioral Therapy"
                 />
@@ -277,7 +219,7 @@ export default function ProfilePage() {
                 <Label htmlFor="license_number">License Number</Label>
                 <Input
                   id="license_number"
-                  value={profile.license_number || ""}
+                  value={profile.license_number}
                   onChange={(e) => setProfile(prev => ({ ...prev, license_number: e.target.value }))}
                   placeholder="Professional license number"
                 />
@@ -288,7 +230,7 @@ export default function ProfilePage() {
                   id="years_of_experience"
                   type="number"
                   min="0"
-                  value={profile.years_of_experience || ""}
+                  value={profile.years_of_experience}
                   onChange={(e) => setProfile(prev => ({
                     ...prev,
                     years_of_experience: parseInt(e.target.value) || 0
@@ -301,7 +243,7 @@ export default function ProfilePage() {
               <Label htmlFor="bio">Professional Bio</Label>
               <Textarea
                 id="bio"
-                value={profile.bio || ""}
+                value={profile.bio}
                 onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
                 placeholder="Share your professional background, approach, and areas of expertise..."
                 rows={4}
@@ -319,7 +261,7 @@ export default function ProfilePage() {
               <Label htmlFor="office_address">Office Address</Label>
               <Textarea
                 id="office_address"
-                value={profile.office_address || ""}
+                value={profile.office_address}
                 onChange={(e) => setProfile(prev => ({ ...prev, office_address: e.target.value }))}
                 placeholder="Your practice address..."
                 rows={3}
@@ -342,7 +284,7 @@ export default function ProfilePage() {
                   onChange={(e) => setProfile(prev => ({
                     ...prev,
                     emergency_contact: {
-                      ...prev.emergency_contact!,
+                      ...prev.emergency_contact,
                       name: e.target.value
                     }
                   }))}
@@ -357,7 +299,7 @@ export default function ProfilePage() {
                   onChange={(e) => setProfile(prev => ({
                     ...prev,
                     emergency_contact: {
-                      ...prev.emergency_contact!,
+                      ...prev.emergency_contact,
                       relationship: e.target.value
                     }
                   }))}
@@ -375,8 +317,8 @@ export default function ProfilePage() {
                     setProfile(prev => ({
                       ...prev,
                       emergency_contact: {
-                        ...prev.emergency_contact!,
-                        country_code: country!
+                        ...prev.emergency_contact,
+                        country_code: country || COUNTRIES[0]
                       }
                     }));
                   }}
@@ -409,7 +351,7 @@ export default function ProfilePage() {
                   onChange={(e) => setProfile(prev => ({
                     ...prev,
                     emergency_contact: {
-                      ...prev.emergency_contact!,
+                      ...prev.emergency_contact,
                       phone: e.target.value
                     }
                   }))}
@@ -424,17 +366,9 @@ export default function ProfilePage() {
         <div className="flex justify-end space-x-4">
           <Button
             onClick={handleSave}
-            disabled={updateProfileMutation.isPending}
             className="min-w-32"
           >
-            {updateProfileMutation.isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
+            Save Changes
           </Button>
         </div>
       </div>
