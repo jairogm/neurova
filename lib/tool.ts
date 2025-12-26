@@ -3,9 +3,8 @@ import Image from "@editorjs/image";
 import Warning from "@editorjs/warning";
 import Delimiter from "@editorjs/delimiter";
 import Header from "@editorjs/header";
-// @ts-ignore
 import Underline from "@editorjs/underline";
-// @ts-ignore
+// @ts-expect-error - Package lacks proper type definitions
 import AlignmentTune from "editorjs-text-alignment-blocktune";
 
 // Type assertion needed due to incompatible type definitions in @editorjs/header
@@ -36,4 +35,6 @@ export const EDITOR_TOOLS = {
       }
     },
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any;
+

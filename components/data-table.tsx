@@ -24,10 +24,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Patient } from "@/lib/types";
-// import { AddPatient } from "./modals/AddPatient";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -59,8 +56,6 @@ export function DataTable<TData, TValue>({
       columnFilters,
     },
   });
-
-  const router = useRouter();
 
   return (
     <div>

@@ -16,8 +16,8 @@ type Props = {
   id: string;
   name: string;
   country_code: Country;
-  phone_number: string;
-  email: string;
+  phone_number?: string;
+  email?: string;
   profile_img?: string;
   gender?: string;
   date_of_birth?: string;
@@ -51,8 +51,9 @@ export const PatientInfoCard = (props: Props) => {
       };
       await updatePatient({ id: props.id, updates });
       toast.success("Patient updated successfully");
-    } catch (error: any) {
-      toast.error("Failed to update patient: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update patient: " + message);
     }
   };
 

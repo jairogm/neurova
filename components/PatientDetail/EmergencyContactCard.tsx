@@ -27,8 +27,9 @@ export const EmergencyContactCard = ({ emergency_contact, patientId }: Props) =>
         updates: { emergency_contact: JSON.stringify(updated) }
       });
       toast.success("Emergency contact updated successfully");
-    } catch (error: any) {
-      toast.error("Failed to update emergency contact: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update patient: " + message);
     }
   };
 

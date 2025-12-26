@@ -32,8 +32,8 @@ import { COUNTRIES, Country } from "@/lib/constants/countries";
 type PatientData = {
   name: string;
   country_code: Country;
-  phone_number: string;
-  email: string;
+  phone_number?: string;
+  email?: string;
   gender?: string;
   date_of_birth?: string;
   language?: string;
@@ -189,9 +189,8 @@ export function EditPatientModal({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full justify-start text-left font-normal ${
-                      !dob ? "text-muted-foreground" : ""
-                    }`}
+                    className={`w-full justify-start text-left font-normal ${!dob ? "text-muted-foreground" : ""
+                      }`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {dob ? format(dob, "PPP") : <span>Pick a date</span>}

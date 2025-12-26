@@ -9,27 +9,28 @@ interface ViewRecordModalProps {
   note: {
     title?: string;
     date?: string;
-    content?: any;
+    content?: unknown;
     description?: string;
   };
 }
 
 export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalProps) {
   const renderContent = () => {
-    if (!note.content || !note.content.blocks) {
+    if (!note.content || !(note.content as { blocks?: unknown[] }).blocks) {
       return <p className="text-gray-500">No content available</p>;
     }
 
-    return note.content.blocks.map((block: any, index: number) => {
-      switch (block.type) {
+    return (note.content as { blocks: unknown[] }).blocks.map((block: unknown, index: number) => {
+      const typedBlock = block as { type: string; data: { level?: number; text?: string; style?: string; items?: string[] } };
+      switch (typedBlock.type) {
         case "header":
-          const level = block.data.level;
+          const level = typedBlock.data.level;
           const HeaderTag = `h${level}`;
           return (
             <div
               key={index}
               className="font-bold mb-2"
-              dangerouslySetInnerHTML={{ __html: `<${HeaderTag}>${block.data.text}</${HeaderTag}>` }}
+              dangerouslySetInnerHTML={{ __html: `<${HeaderTag}>${typedBlock.data.text}</${HeaderTag}>` }}
             />
           );
         case "paragraph":
@@ -37,14 +38,14 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
             <p
               key={index}
               className="mb-3"
-              dangerouslySetInnerHTML={{ __html: block.data.text }}
+              dangerouslySetInnerHTML={{ __html: typedBlock.data.text || "" }}
             />
           );
         case "list":
-          const ListTag = block.data.style === "ordered" ? "ol" : "ul";
+          const ListTag = typedBlock.data.style === "ordered" ? "ol" : "ul";
           return (
             <ListTag key={index} className="list-disc list-inside mb-3">
-              {block.data.items.map((item: string, i: number) => (
+              {(typedBlock.data.items || []).map((item: string, i: number) => (
                 <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
               ))}
             </ListTag>

@@ -27,11 +27,11 @@ export async function getUpcomingAppointments(): Promise<CalendarEvent[]> {
   return [];
 }
 
-export async function createAppointment(data: any): Promise<any> {
+export async function createAppointment(_data: unknown): Promise<unknown> {
   console.warn("createAppointment is disabled.");
   throw new Error("Calendar integration disabled");
 }
 
-export async function cancelAppointment(id: string, type: any): Promise<void> {
+export async function cancelAppointment(_id: string, _type: unknown): Promise<void> {
   console.warn("cancelAppointment is disabled.");
 }

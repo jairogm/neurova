@@ -111,7 +111,7 @@ export default function ProfilePage() {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase.auth]);
 
   // Sync therapist profile data with local state when it loads
   useEffect(() => {
@@ -133,14 +133,14 @@ export default function ProfilePage() {
 
   const getUserInitials = (user: SupabaseUser | null) => {
     if (!user?.user_metadata?.full_name && !user?.email) return "U";
-    
+
     const name = user.user_metadata?.full_name || user.email || "";
     const parts = name.split(" ");
-    
+
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
-    
+
     return name.substring(0, 2).toUpperCase();
   };
 
@@ -160,7 +160,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <p className="text-red-600 mb-4">Failed to load profile</p>
-            <Button 
+            <Button
               onClick={() => queryClient.invalidateQueries({ queryKey: ["therapist-profile"] })}
               variant="outline"
             >
@@ -177,8 +177,8 @@ export default function ProfilePage() {
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
           <Avatar className="h-20 w-20">
-            <AvatarImage 
-              src={user?.user_metadata?.avatar_url} 
+            <AvatarImage
+              src={user?.user_metadata?.avatar_url}
               alt={profile.full_name || "Profile"}
             />
             <AvatarFallback className="text-lg">
@@ -289,9 +289,9 @@ export default function ProfilePage() {
                   type="number"
                   min="0"
                   value={profile.years_of_experience || ""}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
-                    years_of_experience: parseInt(e.target.value) || 0 
+                  onChange={(e) => setProfile(prev => ({
+                    ...prev,
+                    years_of_experience: parseInt(e.target.value) || 0
                   }))}
                   placeholder="Years of experience"
                 />
@@ -339,8 +339,8 @@ export default function ProfilePage() {
                 <Input
                   id="emergency_contact_name"
                   value={profile.emergency_contact?.name || ""}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setProfile(prev => ({
+                    ...prev,
                     emergency_contact: {
                       ...prev.emergency_contact!,
                       name: e.target.value
@@ -354,8 +354,8 @@ export default function ProfilePage() {
                 <Input
                   id="emergency_contact_relationship"
                   value={profile.emergency_contact?.relationship || ""}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setProfile(prev => ({
+                    ...prev,
                     emergency_contact: {
                       ...prev.emergency_contact!,
                       relationship: e.target.value
@@ -372,8 +372,8 @@ export default function ProfilePage() {
                   value={profile.emergency_contact?.country_code?.iso || ""}
                   onValueChange={(value) => {
                     const country = COUNTRIES.find(c => c.iso === value);
-                    setProfile(prev => ({ 
-                      ...prev, 
+                    setProfile(prev => ({
+                      ...prev,
                       emergency_contact: {
                         ...prev.emergency_contact!,
                         country_code: country!
@@ -406,8 +406,8 @@ export default function ProfilePage() {
                 <Input
                   id="emergency_contact_phone"
                   value={profile.emergency_contact?.phone || ""}
-                  onChange={(e) => setProfile(prev => ({ 
-                    ...prev, 
+                  onChange={(e) => setProfile(prev => ({
+                    ...prev,
                     emergency_contact: {
                       ...prev.emergency_contact!,
                       phone: e.target.value

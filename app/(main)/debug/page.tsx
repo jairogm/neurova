@@ -15,8 +15,8 @@ export default function DebugPage() {
       : "skip"
   );
   const syncUser = useMutation(api.users.syncUser);
-  const [syncResult, setSyncResult] = useState<any>(null);
-  const [syncError, setSyncError] = useState<any>(null);
+  const [syncResult, setSyncResult] = useState<unknown>(null);
+  const [syncError, setSyncError] = useState<unknown>(null);
 
   const handleManualSync = async () => {
     try {
@@ -40,20 +40,20 @@ export default function DebugPage() {
         </Button>
       </div>
 
-      {syncResult && (
+      {Boolean(syncResult) && (
         <div className="border border-green-500 p-4 rounded mb-4">
           <h2 className="font-bold text-green-600">Sync Result:</h2>
           <pre className="text-xs overflow-auto">
-            {JSON.stringify(syncResult, null, 2)}
+            {JSON.stringify(syncResult as Record<string, unknown>, null, 2)}
           </pre>
         </div>
       )}
 
-      {syncError && (
+      {Boolean(syncError) && (
         <div className="border border-red-500 p-4 rounded mb-4">
           <h2 className="font-bold text-red-600">Sync Error:</h2>
           <pre className="text-xs overflow-auto">
-            {JSON.stringify(syncError, null, 2)}
+            {JSON.stringify(syncError as Record<string, unknown>, null, 2)}
           </pre>
         </div>
       )}

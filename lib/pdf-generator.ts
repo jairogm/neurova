@@ -5,7 +5,7 @@ interface MedicalNote {
   title?: string;
   date?: string;
   description?: string;
-  content?: any;
+  content?: unknown;
 }
 
 interface Patient {
@@ -140,7 +140,7 @@ export const generatePatientMedicalHistoryPDF = (
     doc.setTextColor(...grayRGB);
     doc.text("No medical records found.", 18, yPos);
   } else {
-    notes.forEach((note, index) => {
+    notes.forEach((note) => {
       // Check if we need a new page
       if (yPos > 250) {
         doc.addPage();
@@ -208,7 +208,7 @@ export const generatePatientMedicalHistoryPDF = (
     
     // Add watermark
     doc.saveGraphicsState();
-    // @ts-ignore - jsPDF GState typing issue
+    // @ts-expect-error - jsPDF GState typing issue
     doc.setGState(new doc.GState({ opacity: 0.1 }));
     doc.setFontSize(50);
     doc.setFont("helvetica", "bold");

@@ -66,8 +66,9 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
       setTitle("");
       setDate(new Date());
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error("Failed to create record: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to create record: " + message);
     }
   };
 

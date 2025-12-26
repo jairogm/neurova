@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { Country, COUNTRIES } from "@/lib/constants/countries";
+import { COUNTRIES } from "@/lib/constants/countries";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ViewPatientModalProps {
@@ -47,7 +47,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
 
   const handleSave = async () => {
     try {
-      const updates: any = {
+      const updates: Record<string, unknown> = {
         name,
         email,
         phone_number: phone,
@@ -69,8 +69,9 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
       toast.success("Patient updated successfully");
       setEditMode(false);
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error("Failed to update patient: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update patient: " + message);
     }
   };
 

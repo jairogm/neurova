@@ -34,7 +34,7 @@ interface MedicalNote {
   title?: string;
   date?: string;
   description?: string;
-  content?: any;
+  content?: unknown;
 }
 
 interface MedicalNotesTableProps {
@@ -73,8 +73,9 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
       await deleteNote({ id: noteToDelete });
       toast.success("Record deleted successfully");
       setNoteToDelete(null);
-    } catch (error: any) {
-      toast.error("Failed to delete record: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to delete record: " + message);
     }
   };
 

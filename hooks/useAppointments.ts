@@ -17,7 +17,7 @@ export function useAppointments() {
 
   // Mutation for creating appointments
   const createAppointmentMutation = useMutation({
-    mutationFn: createAppointment,
+    mutationFn: createAppointment as (data: unknown) => Promise<CalendarEvent>,
     onSuccess: (newAppointment: CalendarEvent) => {
       // Add the new appointment to the existing cache
       queryClient.setQueryData(['upcoming-appointments'], (oldData: CalendarEvent[] = []) => {

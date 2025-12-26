@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useRef, useEffect } from "react";
-import EditorJS from "@editorjs/editorjs";
+import EditorJS, { OutputData } from "@editorjs/editorjs";
 import { EDITOR_TOOLS } from "@/lib/tool";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -21,13 +21,13 @@ interface EditRecordModalProps {
     id: string;
     title?: string;
     date?: string;
-    content?: any;
+    content?: unknown;
     description?: string;
   };
   patientId: string;
 }
 
-export function EditRecordModal({ open, onOpenChange, note, patientId }: EditRecordModalProps) {
+export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalProps) {
   const [title, setTitle] = useState(note.title || "");
   const [date, setDate] = useState<Date>(note.date ? new Date(note.date) : new Date());
   const editorRef = useRef<EditorJS | null>(null);
@@ -39,7 +39,7 @@ export function EditRecordModal({ open, onOpenChange, note, patientId }: EditRec
         holder: "edit-record-editor",
         tools: EDITOR_TOOLS,
         placeholder: "Start writing your notes...",
-        data: note.content || { time: new Date().getTime(), blocks: [] },
+        data: (note.content as OutputData) || { time: new Date().getTime(), blocks: [] },
       });
     }
 
@@ -71,8 +71,9 @@ export function EditRecordModal({ open, onOpenChange, note, patientId }: EditRec
 
       toast.success("Record updated successfully");
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error("Failed to update record: " + error.message);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update record: " + message);
     }
   };
 

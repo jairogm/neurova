@@ -159,9 +159,10 @@ export const Editor = ({
       }
 
       setHasChanges(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       toast.error("Error saving session", {
-        description: error.message || "Please try again.",
+        description: message || "Please try again.",
       });
     }
   };
@@ -173,9 +174,10 @@ export const Editor = ({
       await deleteNote({ id: noteId });
       toast.success("Session deleted successfully!");
       handleNewSession(); // Clear editor after delete
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
       toast.error("Error deleting session", {
-        description: error.message || "Please try again.",
+        description: message || "Please try again.",
       });
     }
   };
