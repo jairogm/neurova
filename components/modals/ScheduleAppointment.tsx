@@ -20,12 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+
+
 import { Switch } from "@/components/ui/switch";
 import { CalendarIcon, Clock, Users, Plus } from "lucide-react";
 import { format } from "date-fns";
@@ -306,30 +302,19 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
             {/* Date Selection */}
             <div className="space-y-2">
               <Label>Date *</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !selectedDate && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, "PPP") : "Select date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    disabled={(date) =>
-                      date < new Date(new Date().setHours(0, 0, 0, 0))
-                    }
-                  />
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="date"
+                value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedDate(new Date(e.target.value));
+                  } else {
+                    setSelectedDate(undefined);
+                  }
+                }}
+                min={format(new Date(), "yyyy-MM-dd")}
+                className="w-full"
+              />
             </div>
 
             {/* Time Selection */}

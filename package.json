@@ -39,6 +39,7 @@
     "dotenv": "^17.2.3",
     "editorjs-text-alignment-blocktune": "^1.0.3",
     "framer-motion": "^12.23.12",
+    "googleapis": "^169.0.0",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.511.0",
