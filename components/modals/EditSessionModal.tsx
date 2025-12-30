@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -30,7 +31,6 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { updateSession } from "@/lib/supabase/sessions";
 import { Session, SessionStatus, PaymentStatus } from "@/lib/types";
 
 interface EditSessionModalProps {
@@ -44,12 +44,14 @@ export function EditSessionModal({
   open,
   onOpenChange,
 }: EditSessionModalProps) {
-  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [time, setTime] = useState("");
   const [duration, setDuration] = useState("");
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>("scheduled");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateSession = useMutation(api.sessions.update);
 
   // Load session data when modal opens
   useEffect(() => {
@@ -57,41 +59,49 @@ export function EditSessionModal({
       const date = new Date(session.scheduled_date);
       setSelectedDate(date);
       setTime(format(date, "HH:mm"));
-      setDuration(session.duration.toString());
-      setSessionStatus(session.session_status);
-      setPaymentStatus(session.payment_status);
+      setDuration(session.duration?.toString() || "60");
+      setSessionStatus(session.session_status || "scheduled");
+      setPaymentStatus(session.payment_status || "pending");
     }
   }, [open, session]);
 
-  const updateMutation = useMutation({
-    mutationFn: () => {
-      if (!selectedDate) throw new Error("Please select a date");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    if (!session.id) {
+      toast.error("Session ID is missing");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
 
       // Combine date and time
       const [hours, minutes] = time.split(":").map(Number);
       const scheduledDate = new Date(selectedDate);
       scheduledDate.setHours(hours, minutes, 0, 0);
 
-      return updateSession(session.id, {
+      await updateSession({
+        id: session.id,
         scheduled_date: scheduledDate.toISOString(),
         duration: parseInt(duration),
         session_status: sessionStatus,
         payment_status: paymentStatus,
       });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions", session.patient_id] });
+
       toast.success("Session updated successfully");
       onOpenChange(false);
-    },
-    onError: (error) => {
-      toast.error("Failed to update session: " + error.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update session: " + message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -199,8 +209,8 @@ export function EditSessionModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Updating..." : "Update Session"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Updating..." : "Update Session"}
             </Button>
           </DialogFooter>
         </form>

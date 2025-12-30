@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 
 import {
@@ -21,7 +22,6 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { updatePaymentStatus } from "@/lib/supabase/sessions";
 import { Session, PaymentStatus } from "@/lib/types";
 
 interface UpdatePaymentModalProps {
@@ -35,36 +35,41 @@ export function UpdatePaymentModal({
   open,
   onOpenChange,
 }: UpdatePaymentModalProps) {
-  const queryClient = useQueryClient();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updatePayment = useMutation(api.sessions.updatePayment);
 
   // Load session data when modal opens
   useEffect(() => {
-    if (open && session) {
+    if (open && session && session.payment_status) {
       setPaymentStatus(session.payment_status);
     }
   }, [open, session]);
 
-  const updateMutation = useMutation({
-    mutationFn: () => {
-      return updatePaymentStatus(
-        session.id,
-        paymentStatus
-      );
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions", session.patient_id] });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!session.id) {
+      toast.error("Session ID is missing");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await updatePayment({
+        id: session.id,
+        payment_status: paymentStatus,
+      });
+
       toast.success("Payment updated successfully");
       onOpenChange(false);
-    },
-    onError: (error) => {
-      toast.error("Failed to update payment: " + error.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    updateMutation.mutate();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update payment: " + message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -102,8 +107,8 @@ export function UpdatePaymentModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending ? "Updating..." : "Update Payment"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Updating..." : "Update Payment"}
             </Button>
           </DialogFooter>
         </form>

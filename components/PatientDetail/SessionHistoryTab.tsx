@@ -1,9 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { sessionColumns } from "@/lib/sessionColumns";
-import { getSessionsByPatientId } from "@/lib/supabase/sessions";
 import { DataTable } from "../data-table";
 
 interface SessionHistoryTabProps {
@@ -11,10 +10,8 @@ interface SessionHistoryTabProps {
 }
 
 export function SessionHistoryTab({ patientId }: SessionHistoryTabProps) {
-  const { data: sessions = [], isLoading } = useQuery({
-    queryKey: ["sessions", patientId],
-    queryFn: () => getSessionsByPatientId(patientId),
-  });
+  const sessions = useQuery(api.sessions.listByPatient, { patientId });
+  const isLoading = sessions === undefined;
 
   if (isLoading) {
     return (
@@ -33,7 +30,7 @@ export function SessionHistoryTab({ patientId }: SessionHistoryTabProps) {
         </p>
       </div>
 
-      {sessions.length === 0 ? (
+      {!sessions || sessions.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 border rounded-lg border-dashed">
           <p className="text-muted-foreground">No sessions recorded yet</p>
           <p className="text-sm text-muted-foreground mt-2">
@@ -41,7 +38,7 @@ export function SessionHistoryTab({ patientId }: SessionHistoryTabProps) {
           </p>
         </div>
       ) : (
-        <DataTable columns={sessionColumns} data={sessions} />
+        <DataTable columns={sessionColumns} data={sessions as any} />
       )}
     </div>
   );

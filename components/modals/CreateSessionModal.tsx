@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -30,7 +31,6 @@ import {
   PopoverContent,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { createSession } from "@/lib/supabase/sessions";
 import { SessionStatus, PaymentStatus } from "@/lib/types";
 
 interface CreateSessionModalProps {
@@ -44,40 +44,14 @@ export function CreateSessionModal({
   open,
   onOpenChange,
 }: CreateSessionModalProps) {
-  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [time, setTime] = useState("09:00");
   const [duration, setDuration] = useState("60");
   const [sessionStatus, setSessionStatus] = useState<SessionStatus>("scheduled");
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const createMutation = useMutation({
-    mutationFn: () => {
-      if (!selectedDate) throw new Error("Please select a date");
-
-      // Combine date and time
-      const [hours, minutes] = time.split(":").map(Number);
-      const scheduledDate = new Date(selectedDate);
-      scheduledDate.setHours(hours, minutes, 0, 0);
-
-      return createSession({
-        patient_id: patientId,
-        scheduled_date: scheduledDate.toISOString(),
-        duration: parseInt(duration),
-        session_status: sessionStatus,
-        payment_status: paymentStatus,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions", patientId] });
-      toast.success("Session created successfully");
-      onOpenChange(false);
-      resetForm();
-    },
-    onError: (error) => {
-      toast.error("Failed to create session: " + error.message);
-    },
-  });
+  const createSession = useMutation(api.sessions.create);
 
   const resetForm = () => {
     setSelectedDate(undefined);
@@ -87,9 +61,39 @@ export function CreateSessionModal({
     setPaymentStatus("pending");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate();
+
+    if (!selectedDate) {
+      toast.error("Please select a date");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      // Combine date and time
+      const [hours, minutes] = time.split(":").map(Number);
+      const scheduledDate = new Date(selectedDate);
+      scheduledDate.setHours(hours, minutes, 0, 0);
+
+      await createSession({
+        patient_id: patientId,
+        scheduled_date: scheduledDate.toISOString(),
+        duration: parseInt(duration),
+        session_status: sessionStatus,
+        payment_status: paymentStatus,
+      });
+
+      toast.success("Session created successfully");
+      onOpenChange(false);
+      resetForm();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to create session: " + message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -197,8 +201,8 @@ export function CreateSessionModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Creating..." : "Create Session"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Creating..." : "Create Session"}
             </Button>
           </DialogFooter>
         </form>

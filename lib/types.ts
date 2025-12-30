@@ -88,13 +88,13 @@ export type SessionStatus = "scheduled" | "completed" | "cancelled" | "reschedul
 export type PaymentStatus = "pending" | "paid" | "partially_paid" | "refunded";
 
 export type Session = {
-  id: string;
+  id?: string;
   patient_id: string;
   event_id?: string; // Google Calendar event ID
   scheduled_date: string; // ISO timestamp
-  duration: number; // duration in minutes
-  session_status: SessionStatus;
-  payment_status: PaymentStatus;
+  duration?: number; // duration in minutes
+  session_status?: SessionStatus;
+  payment_status?: PaymentStatus;
   payment_amount?: number; // payment amount in dollars
   notes?: string; // session notes
   created_at?: string;
