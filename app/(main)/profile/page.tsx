@@ -15,14 +15,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Loader2 } from "lucide-react";
+import { User, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/constants/countries";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function ProfilePage() {
   const { user: clerkUser } = useUser();
+  const router = useRouter();
 
   // Fetch current therapist profile from Convex
   const therapistProfile = useQuery(api.users.getCurrentUser);
@@ -363,7 +376,56 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-between items-center">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="gap-2">
+                <Trash2 className="h-4 w-4" />
+                Delete Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete your account
+                  and remove all your data including:
+                  <ul className="list-disc pl-6 mt-2 space-y-1">
+                    <li>All patient records</li>
+                    <li>All session history</li>
+                    <li>All medical history notes</li>
+                    <li>Your therapist profile</li>
+                  </ul>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/account/delete', {
+                        method: 'DELETE',
+                      });
+
+                      if (!response.ok) {
+                        throw new Error('Failed to delete account');
+                      }
+
+                      toast.success('Account deleted successfully');
+                      router.push('/');
+                    } catch (error) {
+                      console.error('Error deleting account:', error);
+                      toast.error('Failed to delete account');
+                    }
+                  }}
+                  className="bg-destructive hover:bg-destructive/90"
+                >
+                  Delete Account
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           <Button
             onClick={handleSave}
             className="min-w-32"

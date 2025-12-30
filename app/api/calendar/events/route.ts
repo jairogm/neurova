@@ -35,21 +35,30 @@ async function getCalendarClient(userId: string) {
 }
 
 // Find or create the Neurova Appointments calendar
-async function getOrCreateNeurovaCalendar(calendar: any) {
+async function getOrCreateNeurovaCalendar(calendar: any, userId: string) {
   try {
-    // List all calendars
-    const calendarList = await calendar.calendarList.list();
-    
-    // Find Neurova calendar
-    const neurovaCalendar = calendarList.data.items?.find(
-      (cal: any) => cal.summary === CALENDAR_NAME
-    );
+    // First, check if we have the calendar ID stored in Convex
+    const response = await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}/api/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userId}`,
+      },
+      body: JSON.stringify({
+        path: 'calendar:getCalendarId',
+        args: {},
+      }),
+    });
 
-    if (neurovaCalendar) {
-      return neurovaCalendar.id;
+    if (response.ok) {
+      const data = await response.json();
+      if (data.value) {
+        // We have a stored calendar ID, use it
+        return data.value;
+      }
     }
 
-    // Create new calendar
+    // No stored ID, try to create a new calendar
     const newCalendar = await calendar.calendars.insert({
       requestBody: {
         summary: CALENDAR_NAME,
@@ -58,7 +67,22 @@ async function getOrCreateNeurovaCalendar(calendar: any) {
       },
     });
 
-    return newCalendar.data.id;
+    const calendarId = newCalendar.data.id;
+
+    // Store the calendar ID in Convex for future use
+    await fetch(`${process.env.NEXT_PUBLIC_CONVEX_URL}/api/mutation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userId}`,
+      },
+      body: JSON.stringify({
+        path: 'calendar:setCalendarId',
+        args: { calendarId },
+      }),
+    });
+
+    return calendarId;
   } catch (error) {
     console.error('Error getting/creating calendar:', error);
     throw error;
@@ -74,7 +98,7 @@ export async function GET(req: NextRequest) {
     }
 
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
 
     // Get events from now onwards
     const response = await calendar.events.list({
@@ -107,7 +131,7 @@ export async function POST(req: NextRequest) {
     const { summary, description, start, end, attendees } = body;
 
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
 
     // Create event
     const event = await calendar.events.insert({
@@ -165,7 +189,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
 
     // Delete event
     await calendar.events.delete({
