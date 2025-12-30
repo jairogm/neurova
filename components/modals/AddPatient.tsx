@@ -14,8 +14,8 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Button } from "../ui/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addPatient } from "@/lib/supabase/addPatient";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { patientSchema } from "@/lib/schemas/patient";
 import { COUNTRIES, Country } from "@/lib/constants/countries";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ interface AddPatientProps {
 export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddPatientProps) => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [internalOpen, setInternalOpen] = useState(false);
-  
+
   // Use controlled open state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
@@ -39,30 +39,11 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
     phone_number: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const queryClient = useQueryClient();
+  const createPatient = useMutation(api.patients.create);
 
-  const mutation = useMutation({
-    mutationFn: (data: {
-      name: string;
-      email: string;
-      country_code: Country;
-      phone_number: string;
-    }) => addPatient(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["patients"] });
-      setForm({ name: "", email: "", phone_number: "" });
-      setSelectedCountry(COUNTRIES[0]);
-      setOpen(false);
-      toast.success("Patient created successfully");
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: any) => {
-      console.error(error.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
@@ -81,7 +62,26 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
       setErrors(newErrors);
       return;
     }
-    mutation.mutate(result.data);
+
+    try {
+      setIsSubmitting(true);
+      await createPatient({
+        name: result.data.name,
+        email: result.data.email,
+        phone_number: result.data.phone_number,
+        country_code: JSON.stringify(result.data.country_code),
+      });
+
+      setForm({ name: "", email: "", phone_number: "" });
+      setSelectedCountry(COUNTRIES[0]);
+      setOpen(false);
+      toast.success("Patient created successfully");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to create patient: " + message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -174,8 +174,8 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Adding..." : "Add Patient"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Adding..." : "Add Patient"}
             </Button>
           </DialogFooter>
         </form>

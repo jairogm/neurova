@@ -135,3 +135,48 @@ export const update = mutation({
     return await ctx.db.get(patient._id);
   },
 });
+
+export const create = mutation({
+  args: {
+    name: v.string(),
+    email: v.optional(v.string()),
+    phone_number: v.optional(v.string()),
+    country_code: v.optional(v.string()), // JSON string
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get the therapist
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .first();
+
+    if (!therapist) {
+      throw new Error("Therapist profile not found");
+    }
+
+    // Use the legacy ID if available, otherwise use _id
+    const therapistId = therapist.id ?? therapist._id;
+
+    // Generate a UUID for the patient (for compatibility with migrated data)
+    const patientId = crypto.randomUUID();
+
+    // Create the patient
+    const newPatientId = await ctx.db.insert("patients", {
+      id: patientId,
+      name: args.name,
+      email: args.email,
+      phone_number: args.phone_number,
+      country_code: args.country_code,
+      therapist_id: therapistId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    return await ctx.db.get(newPatientId);
+  },
+});
