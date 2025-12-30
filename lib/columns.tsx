@@ -182,7 +182,7 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     id: "actions",
-    header: "Actions",
+    // header: "Actions",
     cell: ({ row }) => {
       const patient = row.original;
       return <ActionsCell patient={patient} />;

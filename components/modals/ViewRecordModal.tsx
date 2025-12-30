@@ -29,7 +29,7 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
           return (
             <div
               key={index}
-              className="font-bold mb-2"
+              className="font-bold mb-2 break-words"
               dangerouslySetInnerHTML={{ __html: `<${HeaderTag}>${typedBlock.data.text}</${HeaderTag}>` }}
             />
           );
@@ -37,16 +37,16 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
           return (
             <p
               key={index}
-              className="mb-3"
+              className="mb-3 break-words"
               dangerouslySetInnerHTML={{ __html: typedBlock.data.text || "" }}
             />
           );
         case "list":
           const ListTag = typedBlock.data.style === "ordered" ? "ol" : "ul";
           return (
-            <ListTag key={index} className="list-disc list-inside mb-3">
+            <ListTag key={index} className="list-disc list-inside mb-3 break-words">
               {(typedBlock.data.items || []).map((item: string, i: number) => (
-                <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
+                <li key={i} className="break-words" dangerouslySetInnerHTML={{ __html: item }} />
               ))}
             </ListTag>
           );
@@ -60,7 +60,7 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{note.title || "Untitled Record"}</DialogTitle>
+          <DialogTitle className="break-words">{note.title || "Untitled Record"}</DialogTitle>
           {note.date && (
             <p className="text-sm text-gray-500">
               {format(new Date(note.date), "MMMM dd, yyyy")}
@@ -68,7 +68,7 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
           )}
         </DialogHeader>
 
-        <div className="prose max-w-none">
+        <div className="prose max-w-none break-words">
           {renderContent()}
         </div>
       </DialogContent>
