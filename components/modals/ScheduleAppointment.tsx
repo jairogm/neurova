@@ -307,7 +307,8 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
                 value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
                 onChange={(e) => {
                   if (e.target.value) {
-                    setSelectedDate(new Date(e.target.value));
+                    const [year, month, day] = e.target.value.split('-').map(Number);
+                    setSelectedDate(new Date(year, month - 1, day));
                   } else {
                     setSelectedDate(undefined);
                   }

@@ -112,6 +112,7 @@ export async function POST(req: NextRequest) {
     // Create event
     const event = await calendar.events.insert({
       calendarId,
+      conferenceDataVersion: 1, // Enable Google Meet
       requestBody: {
         summary,
         description,
@@ -121,6 +122,12 @@ export async function POST(req: NextRequest) {
           email: a.email,
           displayName: a.displayName,
         })),
+        conferenceData: {
+          createRequest: {
+            requestId: `${Date.now()}-${Math.random().toString(36).substring(7)}`,
+            conferenceSolutionKey: { type: 'hangoutsMeet' },
+          },
+        },
         reminders: {
           useDefault: false,
           overrides: [
