@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { auth } from "./auth";
+
 
 // Get therapist's Google Calendar ID
 export const getCalendarId = query({

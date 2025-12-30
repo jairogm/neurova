@@ -384,54 +384,36 @@ export function LandingPage() {
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4">Platform</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="#" className="hover:text-white">
-                    Features
+                  <Link href="/dashboard" className="hover:text-white">
+                    Dashboard
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white">
-                    Pricing
+                  <Link href="/patients" className="hover:text-white">
+                    Patients
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white">
-                    Security
+                  <Link href="/profile" className="hover:text-white">
+                    Profile
                   </Link>
                 </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    Updates
-                  </Link>
-                </li>
+
               </ul>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h3 className="font-semibold mb-4">Connect</h3>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="#" className="hover:text-white">
-                    Documentation
-                  </Link>
+                  <a href="mailto:support@neurova.app" className="hover:text-white">
+                    support@neurova.app
+                  </a>
                 </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    Help Center
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    Contact Us
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    Training
-                  </Link>
-                </li>
+
               </ul>
             </div>
 
@@ -448,16 +430,7 @@ export function LandingPage() {
                     Terms of Service
                   </Link>
                 </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    GDPR Compliance
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#" className="hover:text-white">
-                    Data Security
-                  </Link>
-                </li>
+
               </ul>
             </div>
           </div>
