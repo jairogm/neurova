@@ -5,7 +5,7 @@ import { Skeleton } from "./ui/skeleton";
 import { ScheduleAppointment } from "./modals/ScheduleAppointment";
 import { CancelAppointmentModal, type CancelType } from "./modals/CancelAppointmentModal";
 import { useAppointments } from "@/hooks/useAppointments";
-import { cancelAppointment } from "@/lib/supabase/google-calendar";
+import { cancelAppointment } from "@/lib/google-calendar";
 import {
   CalendarIcon,
   Clock,
@@ -243,11 +243,11 @@ function AppointmentsList({
               {startDateTime && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span className="font-medium flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
+                    <Calendar className="h-4 w-4" />
                     {formatAppointmentDate(startDateTime)}
                   </span>
                   <span className="font-medium flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
+                    <Clock className="h-4 w-4" />
                     {formatAppointmentTime(
                       startDateTime,
                       endDateTime || undefined
@@ -255,7 +255,7 @@ function AppointmentsList({
                   </span>
                 </div>
               )}
-             
+
 
               {/* Description - more compact */}
               {(appointment.description || appointment.notes) && (
@@ -296,7 +296,7 @@ function AppointmentsList({
                     Cancel
                   </Button>
                 </div>
-                
+
               </div>
             </div>
           </div>
@@ -309,7 +309,7 @@ function AppointmentsList({
           </p>
         </div>
       )}
-      
+
       <CancelAppointmentModal
         open={cancelModalOpen}
         onOpenChange={setCancelModalOpen}

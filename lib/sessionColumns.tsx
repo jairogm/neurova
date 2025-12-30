@@ -2,9 +2,11 @@
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,22 +17,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Session, PaymentStatus } from "./types";
-import { updatePaymentStatus } from "@/lib/supabase/sessions";
 
 // Payment status cell component
 function PaymentStatusCell({ session }: { session: Session }) {
-  const queryClient = useQueryClient();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const updatePayment = useMutation(api.sessions.updatePayment);
 
-  const updateMutation = useMutation({
-    mutationFn: (status: PaymentStatus) => updatePaymentStatus(session.id, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["sessions", session.patient_id] });
+  const handleStatusChange = async (status: PaymentStatus) => {
+    if (!session.id) {
+      toast.error("Session ID is missing");
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      await updatePayment({
+        id: session.id,
+        payment_status: status,
+      });
       toast.success("Payment status updated");
-    },
-    onError: (error) => {
-      toast.error("Failed to update payment: " + error.message);
-    },
-  });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      toast.error("Failed to update payment: " + message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const getPaymentColor = (status: PaymentStatus) => {
     switch (status) {
@@ -49,11 +61,11 @@ function PaymentStatusCell({ session }: { session: Session }) {
 
   return (
     <Select
-      value={session.payment_status}
-      onValueChange={(value) => updateMutation.mutate(value as PaymentStatus)}
-      disabled={updateMutation.isPending}
+      value={session.payment_status || "pending"}
+      onValueChange={(value) => handleStatusChange(value as PaymentStatus)}
+      disabled={isUpdating}
     >
-      <SelectTrigger className={`w-[140px] h-8 ${getPaymentColor(session.payment_status)}`}>
+      <SelectTrigger className={`w-[140px] h-8 ${getPaymentColor(session.payment_status || "pending")}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

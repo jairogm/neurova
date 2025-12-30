@@ -1,5 +1,5 @@
 // hooks/useUpcomingAppointments.ts
-import { CalendarEvent, createAppointment, getUpcomingAppointments } from '@/lib/supabase/google-calendar';
+import { CalendarEvent, createAppointment, getUpcomingAppointments } from '@/lib/google-calendar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 

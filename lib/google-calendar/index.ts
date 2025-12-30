@@ -1,4 +1,4 @@
-// services/calendarService.ts
+// Google Calendar integration (temporarily disabled)
 
 export interface CalendarEvent {
   id: string;
@@ -18,10 +18,9 @@ export interface CreateAppointmentData {
   summary: string;
   start: { dateTime: string };
   end: { dateTime: string };
-  // ... other fields
 }
 
-// Stub functions that do nothing or return empty
+// Stub functions - Google Calendar integration to be implemented
 export async function getUpcomingAppointments(): Promise<CalendarEvent[]> {
   console.warn("Google Calendar integration is temporarily disabled during migration.");
   return [];

@@ -32,8 +32,8 @@ import { format } from "date-fns";
 import { cn, addOneHour } from "@/lib/utils";
 import { toast } from "sonner";
 import { Patient, RecurrenceType } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
-import { getPatients } from "@/lib/supabase/getPatients";
+import { useQuery as useConvexQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { AddPatient } from "./AddPatient";
 import { useAppointments } from "@/hooks/useAppointments";
 
@@ -82,13 +82,8 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
   });
 
   // Query for patients
-  const { data: patients = [], isLoading: patientsLoading } = useQuery<
-    Patient[]
-  >({
-    queryKey: ["patients"],
-    queryFn: getPatients,
-  });
-
+  const patients = useConvexQuery(api.patients.list) || [];
+  const isLoadingPatients = patients === undefined;
   // Use the appointments hook for creating appointments
   const { createAppointment, isCreating, createError, createSuccess } = useAppointments();
 
@@ -170,11 +165,11 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
     // Combine date and time to create proper datetime strings with timezone
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const dateStr = format(selectedDate, "yyyy-MM-dd");
-    
+
     // Create datetime strings in the format Google Calendar expects
     const startDateTime = `${dateStr}T${formData.start_time}:00`;
     const endDateTime = `${dateStr}T${formData.end_time}:00`;
-    
+
     const appointmentData = {
       summary: formData.title,
       description: formData.notes,
@@ -232,7 +227,7 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
             {/* Patient Selection */}
             <div className="space-y-2">
               <Label htmlFor="patient">Patient *</Label>
-              {patientsLoading ? (
+              {isLoadingPatients ? (
                 <div className="text-sm text-gray-500">Loading patients...</div>
               ) : patients.length === 0 ? (
                 <div className="border rounded-lg p-4 text-center space-y-3">
