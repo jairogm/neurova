@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, internalMutation } from "./_generated/server";
 
 // Create therapist profile from Clerk webhook
 export const createFromClerk = mutation({
@@ -91,7 +91,7 @@ export const deleteAllData = mutation({
       throw new Error("Therapist profile not found");
     }
 
-    const therapistId = therapist.id || therapist._id.toString();
+    const therapistId = therapist.id ?? therapist._id;
 
     // Delete all patients and their related data
     const patients = await ctx.db
