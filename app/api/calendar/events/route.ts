@@ -9,10 +9,20 @@ async function getCalendarClient(userId: string) {
   try {
     // Get OAuth token from Clerk (async in v5)
     const clerk = await clerkClient();
-    const tokenResponse = await clerk.users.getUserOauthAccessToken(
-      userId,
-      'oauth_google'
-    );
+    let tokenResponse;
+    try {
+      tokenResponse = await clerk.users.getUserOauthAccessToken(
+        userId,
+        'oauth_google'
+      );
+    } catch (tokenError: any) {
+      console.error('Error fetching OAuth token:', JSON.stringify(tokenError, null, 2));
+      // If the error suggests the account isn't connected (often 422), we should treat it as such
+      if (tokenError.status === 422) {
+         throw new Error('Google account not connected. Please connect your Google account in your profile settings.');
+      }
+      throw tokenError;
+    }
 
     if (!tokenResponse || tokenResponse.data.length === 0) {
       throw new Error('No Google OAuth token found. Please connect your Google account in your profile settings.');
@@ -87,20 +97,29 @@ export async function GET(req: NextRequest) {
     const calendarId = await getOrCreateNeurovaCalendar(calendar);
 
     // Get events from now onwards
-    const response = await calendar.events.list({
-      calendarId,
-      timeMin: new Date().toISOString(),
-      maxResults: 50,
-      singleEvents: true,
-      orderBy: 'startTime',
-    });
+    console.log('Listing events for calendar:', calendarId);
+    try {
+      const response = await calendar.events.list({
+        calendarId,
+        timeMin: new Date().toISOString(),
+        maxResults: 50,
+        singleEvents: true,
+        orderBy: 'startTime',
+      });
+      console.log('Events found:', response.data.items?.length);
+      return NextResponse.json({ events: response.data.items || [] });
+    } catch (googleError: any) {
+      console.error('Google API Error details:', googleError.errors);
+      throw googleError;
+    }
 
-    return NextResponse.json({ events: response.data.items || [] });
   } catch (error: any) {
     console.error('Error listing events:', error);
+    // Return the specific status code if available (e.g. from Google API)
+    const status = error.code && typeof error.code === 'number' ? error.code : 500;
     return NextResponse.json(
-      { error: error.message || 'Failed to list events' },
-      { status: 500 }
+      { error: error.message || 'Failed to list events', details: error },
+      { status }
     );
   }
 }
