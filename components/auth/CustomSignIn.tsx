@@ -147,12 +147,19 @@ export function CustomSignIn() {
                 </PopoverContent>
               </Popover>
             </div>
+
+            <p className="text-xs text-center text-muted-foreground leading-relaxed px-4 pt-4">
+              By clicking continue, you agree to our{' '}
+              <a href="/terms" className="underline hover:text-primary">Terms of Service</a>,{' '}
+              <a href="/privacy" className="underline hover:text-primary">Privacy Policy</a>, and{' '}
+              <a href="/baa" className="underline hover:text-primary">Business Associate Agreement (BAA)</a>.
+            </p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="flex justify-between items-center text-xs text-muted-foreground pt-8">
-          <p>Copyright © 2025 Neurova.</p>
+          <p>Copyright © {new Date().getFullYear()} Neurova.</p>
           <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
         </div>
       </div>
