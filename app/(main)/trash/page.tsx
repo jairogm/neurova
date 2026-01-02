@@ -52,7 +52,8 @@ export default function TrashPage() {
       } else {
         await restoreRecord({ id: id as any });
       }
-      toast.success("Item restored successfully");
+      const label = type === 'patient' ? "Patient" : "Record";
+      toast.success(`${label} restored successfully`);
     } catch (error: any) {
       // Convex errors often come as an Error object or a ConvexError
       const message = error.message.includes("Cannot restore record")
@@ -71,7 +72,8 @@ export default function TrashPage() {
       } else {
         await deleteRecord({ id: itemToDelete.id as any });
       }
-      toast.success("Item permanently deleted");
+      const label = itemToDelete.type === 'patient' ? "Patient" : "Record";
+      toast.success(`${label} permanently deleted`);
     } catch (error) {
       toast.error("Failed to delete item");
     } finally {
