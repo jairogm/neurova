@@ -26,6 +26,11 @@ export function CustomSignIn() {
       description: "Effortlessly document session notes and access comprehensive patient medical history.",
       image: "/undraw_personal-information.svg"
     },
+    {
+      title: "Generate Session History",
+      description: "Download detailed PDF files of your session notes and complete patient history reviews.",
+      image: "/undraw_filing-system.svg"
+    },
   ];
 
   useEffect(() => {
