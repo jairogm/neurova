@@ -9,12 +9,14 @@
  */
 
 import type * as calendar from "../calendar.js";
+import type * as crons from "../crons.js";
 import type * as debug from "../debug.js";
 import type * as medical_history_notes from "../medical_history_notes.js";
 import type * as migrations from "../migrations.js";
 import type * as patients from "../patients.js";
 import type * as sessions from "../sessions.js";
 import type * as therapists from "../therapists.js";
+import type * as trash from "../trash.js";
 import type * as users from "../users.js";
 
 import type {
@@ -25,12 +27,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   calendar: typeof calendar;
+  crons: typeof crons;
   debug: typeof debug;
   medical_history_notes: typeof medical_history_notes;
   migrations: typeof migrations;
   patients: typeof patients;
   sessions: typeof sessions;
   therapists: typeof therapists;
+  trash: typeof trash;
   users: typeof users;
 }>;
 

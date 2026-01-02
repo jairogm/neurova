@@ -5,7 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { AddPatient } from "@/components/modals/AddPatient";
 
@@ -45,6 +45,13 @@ export default function Patients() {
         <Button onClick={() => setIsAddPatientOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Add Patient
+        </Button>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <Button variant="outline" onClick={() => window.location.href = '/trash'} className="gap-2">
+          <Trash2 className="h-4 w-4" />
+          View Trash
         </Button>
       </div>
 

@@ -22,6 +22,7 @@ export default defineSchema({
     height: v.optional(v.any()), // null in dump
     therapist_id: v.string(), // UUID string
     country_code: v.optional(v.string()), // JSON string
+    deleted_at: v.optional(v.number()), // Soft delete timestamp
   }).index("by_therapist_id", ["therapist_id"]),
 
   therapists: defineTable({
@@ -73,6 +74,7 @@ export default defineSchema({
     created_at: v.string(),
     updated_at: v.string(),
     description: v.optional(v.string()),
+    deleted_at: v.optional(v.number()), // Soft delete timestamp
   }).index("by_patient_id", ["patient_id"]),
 
   therapist_patients: defineTable({

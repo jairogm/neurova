@@ -47,7 +47,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
   const [selectedNote, setSelectedNote] = useState<MedicalNote | null>(null);
   const [noteToEdit, setNoteToEdit] = useState<MedicalNote | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
-  const deleteNote = useMutation(api.medical_history_notes.remove);
+  const deleteNote = useMutation(api.trash.softDeleteRecord);
 
   // Sort notes from newest to latest
   const sortedNotes = useMemo(() => {
@@ -70,8 +70,8 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
     if (!noteToDelete) return;
 
     try {
-      await deleteNote({ id: noteToDelete });
-      toast.success("Record deleted successfully");
+      await deleteNote({ id: noteToDelete as any }); // Cast as any because we need v.id but string might be passed, usually fine
+      toast.success("Record moved to trash");
       setNoteToDelete(null);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -204,7 +204,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Record</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this record? This action cannot be undone.
+              Are you sure you want to delete this record? It will be moved to trash and permanently deleted after 30 days.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

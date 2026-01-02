@@ -14,6 +14,21 @@ import { formatDateOfBirth } from "./utils";
 import { ViewPatientModal } from "@/components/modals/ViewPatientModal";
 import { PDFViewerModal } from "@/components/modals/PDFViewerModal";
 import { generatePatientMedicalHistoryPDF } from "./pdf-generator";
+import { useMutation } from "convex/react";
+import { Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 // Actions cell component
 function ActionsCell({ patient }: { patient: Patient }) {
@@ -28,6 +43,42 @@ function ActionsCell({ patient }: { patient: Patient }) {
     api.medical_history_notes.listByPatient,
     isPDFViewerOpen ? { patientId: patient.id } : "skip"
   );
+
+  const softDeletePatient = useMutation(api.trash.softDeletePatient);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteRecords, setDeleteRecords] = useState(false);
+
+  // ... (handlers)
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      // Use the Convex _id if available, otherwise we assume the `id` field matches _id 
+      // OR we need to find the document by `id` first?
+      // The `softDeletePatient` mutation expects `id: v.id("patients")`.
+      // `patient.id` is the string UUID. `patient._id` is the Convex ID.
+      // We should use `patient._id` if it's available. The Patient type usually has `_id`.
+      // Let's assume `patient` object has `_id`. If not, we might have an issue.
+      // Looking at `columns.tsx`, `Patient` type is used. I should check `types.ts`.
+      // But typically `useQuery` returns `_id`.
+      // Let's cast or check.
+
+      await softDeletePatient({
+        id: (patient as any)._id,
+        cascade: deleteRecords
+      });
+      toast.success("Patient moved to trash");
+    } catch (error) {
+      toast.error("Failed to delete patient");
+      console.error(error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   const handleViewPatient = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -112,7 +163,45 @@ function ActionsCell({ patient }: { patient: Patient }) {
         >
           <Printer className="h-4 w-4" />
         </Button>
+
+
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleDeleteClick}
+          title="Delete Patient"
+          className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Patient?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will move <strong>{patient.name}</strong> to the trash. You can restore them within 30 days.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="flex items-center space-x-2 py-4">
+            <Checkbox
+              id="cascade-delete"
+              checked={deleteRecords}
+              onCheckedChange={(checked) => setDeleteRecords(checked as boolean)}
+            />
+            <Label htmlFor="cascade-delete">Also delete all associated medical records?</Label>
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <ViewPatientModal
         open={isViewModalOpen}

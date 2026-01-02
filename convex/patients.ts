@@ -30,6 +30,7 @@ export const list = query({
     const patients = await ctx.db
       .query("patients")
       .withIndex("by_therapist_id", (q) => q.eq("therapist_id", lookupId))
+      .filter((q) => q.eq(q.field("deleted_at"), undefined))
       .collect();
 
     // Map to ensure types match Patient interface expectations

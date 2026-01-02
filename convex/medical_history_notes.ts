@@ -13,6 +13,7 @@ export const listByPatient = query({
     const notes = await ctx.db
       .query("medical_history_notes")
       .withIndex("by_patient_id", (q) => q.eq("patient_id", args.patientId))
+      .filter((q) => q.eq(q.field("deleted_at"), undefined))
       .collect();
 
     // Parse content for each note and ensure id field exists
