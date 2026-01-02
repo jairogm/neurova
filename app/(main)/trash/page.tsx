@@ -53,8 +53,13 @@ export default function TrashPage() {
         await restoreRecord({ id: id as any });
       }
       toast.success("Item restored successfully");
-    } catch (error) {
-      toast.error("Failed to restore item");
+    } catch (error: any) {
+      // Convex errors often come as an Error object or a ConvexError
+      const message = error.message.includes("Cannot restore record")
+        ? "Cannot restore record because the patient is deleted."
+        : error.data?.message || error.message || "Failed to restore item";
+
+      toast.error(message);
     }
   };
 
