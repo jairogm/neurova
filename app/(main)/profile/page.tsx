@@ -15,7 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Loader2 } from "lucide-react";
+import { User, Loader2, Camera } from "lucide-react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { COUNTRIES } from "@/lib/constants/countries";
 import { useQuery } from "convex/react";
@@ -29,6 +30,8 @@ export default function ProfilePage() {
   // Fetch current therapist profile from Convex
   const therapistProfile = useQuery(api.users.getCurrentUser);
   const isLoading = therapistProfile === undefined;
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [profile, setProfile] = useState({
     full_name: "",
@@ -106,6 +109,22 @@ export default function ProfilePage() {
     return name.substring(0, 2).toUpperCase();
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !clerkUser) return;
+
+    setIsUploadingImage(true);
+    try {
+      await clerkUser.setProfileImage({ file });
+      toast.success("Profile picture updated successfully");
+    } catch (error: any) {
+      console.error("Error updating profile image:", error);
+      toast.error("Failed to update profile picture: " + (error.message || "Unknown error"));
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 max-w-4xl">
@@ -120,15 +139,36 @@ export default function ProfilePage() {
     <div className="container mx-auto p-6 max-w-4xl">
       <div className="space-y-6">
         <div className="flex items-center space-x-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage
-              src={clerkUser?.imageUrl}
-              alt={profile.full_name || "Profile"}
+          <div className="relative group">
+            <Avatar className="h-24 w-24 border-2 border-white shadow-lg">
+              <AvatarImage
+                src={clerkUser?.imageUrl}
+                alt={profile.full_name || "Profile"}
+                className="object-cover"
+              />
+              <AvatarFallback className="text-xl">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <div
+              className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer backdrop-blur-[2px]"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {isUploadingImage ? (
+                <Loader2 className="h-6 w-6 text-white animate-spin" />
+              ) : (
+                <Camera className="h-6 w-6 text-white" />
+              )}
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleImageUpload}
+              disabled={isUploadingImage}
             />
-            <AvatarFallback className="text-lg">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Profile Settings

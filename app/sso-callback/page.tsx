@@ -4,7 +4,7 @@ export default function SSOCallback() {
   return (
     <>
       <div id="clerk-captcha" />
-      <AuthenticateWithRedirectCallback signInFallbackRedirectUrl="/dashboard" />
+      <AuthenticateWithRedirectCallback redirectUrl={"/dashboard"}/>
     </>
   );
 }
