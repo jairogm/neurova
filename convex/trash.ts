@@ -9,7 +9,8 @@ export const softDeletePatient = mutation({
     cascade: v.optional(v.boolean()) 
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { deleted_at: Date.now() });
+    const deletedAt = Date.now();
+    await ctx.db.patch(args.id, { deleted_at: deletedAt });
     
     // Cascade soft delete to records if requested
     if (args.cascade) {
@@ -23,10 +24,11 @@ export const softDeletePatient = mutation({
          const records = await ctx.db
             .query("medical_history_notes")
             .withIndex("by_patient_id", q => q.eq("patient_id", lookupId))
+            .filter(q => q.eq(q.field("deleted_at"), undefined)) // Only delete active records
             .collect();
             
          for (const record of records) {
-            await ctx.db.patch(record._id, { deleted_at: Date.now() });
+            await ctx.db.patch(record._id, { deleted_at: deletedAt });
          }
       }
     }
@@ -45,7 +47,25 @@ export const softDeleteRecord = mutation({
 export const restorePatient = mutation({
   args: { id: v.id("patients") },
   handler: async (ctx, args) => {
+    const patient = await ctx.db.get(args.id);
+    if (!patient || !patient.deleted_at) return;
+
+    const deletedAt = patient.deleted_at;
+
+    // Restore the patient
     await ctx.db.patch(args.id, { deleted_at: undefined });
+
+    // Restore cascaded records: find records deleted at the exact same time
+    const lookupId = patient.id ?? patient._id;
+    const records = await ctx.db
+        .query("medical_history_notes")
+        .withIndex("by_patient_id", q => q.eq("patient_id", lookupId))
+        .filter(q => q.eq(q.field("deleted_at"), deletedAt))
+        .collect();
+
+    for (const record of records) {
+        await ctx.db.patch(record._id, { deleted_at: undefined });
+    }
   },
 });
 
