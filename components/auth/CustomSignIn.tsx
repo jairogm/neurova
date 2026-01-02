@@ -1,6 +1,7 @@
 "use client";
 
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +12,8 @@ import { useState, useEffect } from "react";
 
 export function CustomSignIn() {
   const { signIn, isLoaded } = useSignIn();
+  const { isSignedIn } = useUser();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -40,6 +43,12 @@ export function CustomSignIn() {
     return () => clearInterval(interval);
   }, [carouselItems.length]);
 
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/dashboard");
+    }
+  }, [isSignedIn, router]);
+
   if (!isLoaded) {
     return null;
   }
@@ -52,8 +61,13 @@ export function CustomSignIn() {
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/dashboard",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error signing in with Google", err);
+      // Check if the error is due to an existing session
+      if (err.errors && err.errors.find((e: any) => e.code === "session_exists")) {
+        router.push("/dashboard");
+        return;
+      }
       setIsLoading(false);
     }
   };
