@@ -1,4 +1,4 @@
-import { SignIn } from "@clerk/nextjs";
+import { CustomSignIn } from "@/components/auth/CustomSignIn";
 
 export default function LoginPage() {
   return (
@@ -12,9 +12,9 @@ export default function LoginPage() {
           }} />
       </div>
 
-      <div className="relative flex min-h-screen items-center justify-center p-6 md:p-10">
-        <div className="w-full max-w-md flex justify-center">
-          <SignIn fallbackRedirectUrl="/dashboard" />
+      <div className="relative flex min-h-screen items-center justify-center p-4">
+        <div className="w-full flex justify-center">
+          <CustomSignIn />
         </div>
       </div>
     </div>
