@@ -37,7 +37,7 @@ export default function SSOCallback() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       <Card className="w-full max-w-[1400px] h-[85vh] mx-auto shadow-2xl border-0 ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl overflow-hidden grid md:grid-cols-2">
-        
+
         {/* Left Column - Loading State */}
         <div className="p-8 md:p-12 flex flex-col justify-between relative z-10 h-full">
           <div className="flex justify-start items-center gap-3">
@@ -53,28 +53,28 @@ export default function SSOCallback() {
           </div>
 
           <div className="w-full max-w-sm mx-auto space-y-8 text-center flex flex-col items-center">
-             <div className="relative">
-                <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/30 rounded-full animate-ping opacity-75"></div>
-                <div className="relative bg-white dark:bg-slate-950 rounded-full p-4 shadow-sm border border-slate-100 dark:border-slate-800">
-                  <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                </div>
-             </div>
-             <div className="space-y-4">
-                <h2 className="text-2xl font-bold tracking-tight">Verifying Secure Session</h2>
-                <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-                  Please wait while we authenticate your credentials and prepare your workspace...
-                </p>
-             </div>
-             
-             {/* Hidden Clerk Callback Component */}
-             <div className="hidden">
-                <div id="clerk-captcha" />
-                <AuthenticateWithRedirectCallback redirectUrl="/dashboard" />
-             </div>
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-100 dark:bg-blue-900/30 rounded-full animate-ping opacity-75"></div>
+              <div className="relative bg-white dark:bg-slate-950 rounded-full p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+                <Loader2 className="h-12 w-12 text-primary animate-spin" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold tracking-tight">Verifying Secure Session</h2>
+              <p className="text-muted-foreground text-sm max-w-xs mx-auto">
+                Please wait while we authenticate your credentials and prepare your workspace...
+              </p>
+            </div>
+
+            {/* Hidden Clerk Callback Component */}
+            <div className="hidden">
+              <div id="clerk-captcha" />
+              <AuthenticateWithRedirectCallback redirectUrl="/dashboard" />
+            </div>
           </div>
 
           <div className="flex justify-between items-center text-xs text-muted-foreground pt-8">
-            <p>Copyright © 2025 Neurova.</p>
+            <p>Copyright © {new Date().getFullYear()} Neurova.</p>
             <p className="animate-pulse">Securing connection...</p>
           </div>
         </div>
@@ -109,8 +109,8 @@ export default function SSOCallback() {
               {carouselItems.map((_, index) => (
                 <button
                   key={index}
-                  className={`h - 2 rounded - full transition - all duration - 300 ${ index === activeIndex ? "w-8 bg-white" : "w-2 bg-white/40" } `}
-                  aria-label={`Go to slide ${ index + 1 } `}
+                  className={`h - 2 rounded - full transition - all duration - 300 ${index === activeIndex ? "w-8 bg-white" : "w-2 bg-white/40"} `}
+                  aria-label={`Go to slide ${index + 1} `}
                 />
               ))}
             </div>

@@ -264,6 +264,16 @@ export default function PrivacyPolicyPage() {
                     Terms of Service
                   </Link>
                 </li>
+                <li>
+                  <Link href="/dpa" className="hover:text-white">
+                    Data Processing Agreement
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/baa" className="hover:text-white">
+                    BAA
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>

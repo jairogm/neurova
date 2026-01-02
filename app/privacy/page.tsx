@@ -264,13 +264,23 @@ export default function PrivacyPolicyPage() {
                     Terms of Service
                   </Link>
                 </li>
+                <li>
+                  <Link href="/dpa" className="hover:text-white">
+                    Data Processing Agreement
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/baa" className="hover:text-white">
+                    BAA
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-sm text-gray-400">
-              © 2024 NEUROVA. All rights reserved. | Designed for mental health
+              © {new Date().getFullYear()} NEUROVA. All rights reserved. | Designed for mental health
               professionals.
             </p>
           </div>

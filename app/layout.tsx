@@ -7,6 +7,7 @@ import { SessionTimeoutProvider } from "@/providers/SessionTimeoutProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { ConvexClientProvider } from "@/components/ConvexClientProvider";
 import { UserSync } from "@/components/UserSync";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -46,6 +47,7 @@ export default function RootLayout({
             >
               <TanstackProvider>
                 {children}
+                <CookieBanner />
                 <Toaster richColors position="top-right" />
               </TanstackProvider>
             </SessionTimeoutProvider>

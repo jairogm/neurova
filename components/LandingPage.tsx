@@ -78,9 +78,7 @@ export function LandingPage() {
                   Start Your Practice
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
-                Watch Demo
-              </Button>
+
             </div>
 
             {/* Hero Image/Visual */}
@@ -430,6 +428,16 @@ export function LandingPage() {
                     Terms of Service
                   </Link>
                 </li>
+                <li>
+                  <Link href="/dpa" className="hover:text-white">
+                    Data Processing Agreement
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/baa" className="hover:text-white">
+                    BAA
+                  </Link>
+                </li>
 
               </ul>
             </div>
@@ -437,7 +445,7 @@ export function LandingPage() {
 
           <div className="border-t border-gray-800 mt-8 pt-8 text-center">
             <p className="text-sm text-gray-400">
-              © 2024 NEUROVA. All rights reserved. | Designed for mental health
+              © {new Date().getFullYear()} NEUROVA. All rights reserved. | Designed for mental health
               professionals.
             </p>
           </div>
