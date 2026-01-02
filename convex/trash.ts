@@ -72,6 +72,21 @@ export const restorePatient = mutation({
 export const restoreRecord = mutation({
   args: { id: v.id("medical_history_notes") },
   handler: async (ctx, args) => {
+    const record = await ctx.db.get(args.id);
+    if (!record) throw new Error("Record not found");
+
+    // Check if the patient is deleted
+    // Try to find patient by ID. Note that record.patient_id is a string UUID, 
+    // but we query mainly by legacy ID or we can try to find by `id` field.
+    const patient = await ctx.db
+      .query("patients")
+      .filter(q => q.eq(q.field("id"), record.patient_id))
+      .first();
+
+    if (patient && patient.deleted_at) {
+        throw new Error("Cannot restore record because the associated patient is deleted. Please restore the patient first.");
+    }
+    
     await ctx.db.patch(args.id, { deleted_at: undefined });
   },
 });
