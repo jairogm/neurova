@@ -42,17 +42,16 @@ export default function Patients() {
           <h1 className="text-3xl font-bold">Patients</h1>
           <p className="text-gray-500">Manage your patients</p>
         </div>
-        <Button onClick={() => setIsAddPatientOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Patient
-        </Button>
-      </div>
-
-      <div className="flex justify-end mb-4">
-        <Button variant="outline" onClick={() => window.location.href = '/trash'} className="gap-2">
-          <Trash2 className="h-4 w-4" />
-          View Trash
-        </Button>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => window.location.href = '/trash'} className="gap-2">
+            <Trash2 className="h-4 w-4" />
+            View Trash
+          </Button>
+          <Button onClick={() => setIsAddPatientOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Patient
+          </Button>
+        </div>
       </div>
 
       {/* Search Bar */}
