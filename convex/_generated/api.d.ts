@@ -10,6 +10,7 @@
 
 import type * as calendar from "../calendar.js";
 import type * as crons from "../crons.js";
+import type * as dashboard from "../dashboard.js";
 import type * as debug from "../debug.js";
 import type * as medical_history_notes from "../medical_history_notes.js";
 import type * as migrations from "../migrations.js";
@@ -28,6 +29,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   calendar: typeof calendar;
   crons: typeof crons;
+  dashboard: typeof dashboard;
   debug: typeof debug;
   medical_history_notes: typeof medical_history_notes;
   migrations: typeof migrations;

@@ -57,7 +57,7 @@ export const UpcomingAppointments = () => {
   const { appointments, isLoading, error, refetch } = useAppointments();
 
   return (
-    <Card className="lg:w-2/3 2xl:w-3/4">
+    <Card className="w-full h-full">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
           <CalendarIcon className="h-5 w-5" />

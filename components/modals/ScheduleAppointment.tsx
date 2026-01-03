@@ -200,8 +200,8 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
         <DialogTrigger
           className={
             variant
-              ? `border-sky-500 text-sky-600 hover:text-sky-600 w-full border rounded-md items-center flex justify-center gap-2 p-2 max-w-64 hover:bg-sky-100`
-              : `bg-sky-600 border-sky-600 text-white w-full hover:bg-sky-500 hover:text-white rounded-md flex items-center justify-center p-2 gap-2 `
+              ? `border-sky-500 text-sky-600 hover:text-sky-600 border rounded-md items-center flex justify-center gap-2 p-2 px-4 h-10 hover:bg-sky-100 whitespace-nowrap`
+              : `bg-sky-600 border-sky-600 text-white hover:bg-sky-500 hover:text-white rounded-md flex items-center justify-center p-2 px-4 gap-2 h-10 whitespace-nowrap`
           }
         >
           <CalendarIcon
