@@ -93,11 +93,11 @@ export function SessionTimeoutProvider({
       });
 
       // Redirect to sign-in
-      router.push("/sign-in");
+      router.push("/auth/login");
     } catch (error) {
       console.error("Error during logout:", error);
       // Force redirect even if logout fails
-      router.push("/sign-in");
+      router.push("/auth/login");
     }
   };
 
