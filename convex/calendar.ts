@@ -51,3 +51,48 @@ export const setCalendarId = mutation({
     return { success: true };
   },
 });
+
+// Query to get calendar ID by Clerk user ID (for API routes)
+// Note: This is used by the calendar events API route which validates auth separately
+export const getCalendarIdByClerkId = query({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", args.clerkUserId))
+      .first();
+
+    if (!therapist) {
+      return null;
+    }
+
+    return therapist.google_calendar_id || null;
+  },
+});
+
+// Mutation to set calendar ID by Clerk user ID (for API routes)
+// Note: This is used by the calendar events API route which validates auth separately
+export const setCalendarIdByClerkId = mutation({
+  args: {
+    clerkUserId: v.string(),
+    calendarId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", args.clerkUserId))
+      .first();
+
+    if (!therapist) {
+      throw new Error("Therapist profile not found");
+    }
+
+    await ctx.db.patch(therapist._id, {
+      google_calendar_id: args.calendarId,
+    });
+
+    return { success: true };
+  },
+});
