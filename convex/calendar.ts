@@ -82,29 +82,22 @@ export const setCalendarIdByClerkId = mutation({
     fullName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let therapist = await ctx.db
+    const therapist = await ctx.db
       .query("therapists")
       .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", args.clerkUserId))
       .first();
 
-    // If therapist profile doesn't exist yet (new user), create one
+    // If therapist profile doesn't exist yet, return early
+    // The Clerk webhook should create the profile - avoid race conditions
     if (!therapist) {
-      const newTherapistId = await ctx.db.insert("therapists", {
-        clerk_user_id: args.clerkUserId,
-        email: args.email || "",
-        full_name: args.fullName || "New Therapist",
-        google_calendar_id: args.calendarId,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
-      
-      return { success: true, created: true };
+      console.log("Therapist profile not found yet for:", args.clerkUserId);
+      return { success: false, message: "Profile not ready yet" };
     }
 
     await ctx.db.patch(therapist._id, {
       google_calendar_id: args.calendarId,
     });
 
-    return { success: true, created: false };
+    return { success: true };
   },
 });
