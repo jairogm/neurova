@@ -9,16 +9,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ScheduleAppointment } from "@/components/modals/ScheduleAppointment";
 import { AddPatient } from "@/components/modals/AddPatient";
 import { UpcomingAppointments } from "@/components/UpcomingAppointments";
-import { Users, Calendar, DollarSign, Activity, Clock } from "lucide-react";
+import { Users, Calendar, Activity, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTutorial } from "@/hooks/useTutorial";
+import { useEffect } from "react";
 
 export default function Dashboard() {
   const stats = useQuery(api.dashboard.getStats);
   const recentPatients = useQuery(api.dashboard.getRecentPatients);
+  const { startDashboardTour, shouldShowTutorial, tutorialCompleted, replayTutorial, isLoading } = useTutorial();
+
+  // Auto-start tutorial for new users
+  useEffect(() => {
+    if (shouldShowTutorial && !isLoading) {
+      // Small delay to ensure page is fully rendered
+      const timer = setTimeout(() => {
+        startDashboardTour();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldShowTutorial, isLoading, startDashboardTour]);
 
   const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string | number | undefined, icon: any, description?: string }) => (
     <Card>
@@ -47,14 +62,19 @@ export default function Dashboard() {
             Overview of your practice for {format(new Date(), 'EEEE, MMMM do, yyyy')}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div id="quick-actions" className="flex items-center gap-2">
           <ScheduleAppointment />
           <AddPatient variant="outline" />
+          {tutorialCompleted && (
+            <Button variant="ghost" size="icon" onClick={replayTutorial} title="Replay Tutorial">
+              <HelpCircle className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div id="stats-overview" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Patients"
           value={stats?.totalPatients}
@@ -83,12 +103,12 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         {/* Upcoming Sessions (Main Column) */}
-        <div className="col-span-4">
+        <div id="upcoming-appointments" className="col-span-4">
           <UpcomingAppointments />
         </div>
 
         {/* Recent Activity (Side Column) */}
-        <Card className="col-span-3">
+        <Card id="recent-patients" className="col-span-3">
           <CardHeader>
             <CardTitle>Recent Patients</CardTitle>
             <CardDescription>

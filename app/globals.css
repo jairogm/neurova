@@ -236,3 +236,82 @@
 #editorjs h6 {
   font-size: 1rem; /* ~16px */
 }
+
+/* =========================
+   Driver.js Tutorial Styles
+   ========================= */
+.driver-popover.neurova-popover {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 12px;
+  box-shadow: 0 20px 50px -10px rgba(14, 165, 233, 0.25);
+  padding: 20px;
+  max-width: 400px;
+}
+
+.dark .driver-popover.neurova-popover {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-color: #38bdf8;
+}
+
+.driver-popover.neurova-popover .driver-popover-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #0369a1;
+  margin-bottom: 8px;
+}
+
+.dark .driver-popover.neurova-popover .driver-popover-title {
+  color: #38bdf8;
+}
+
+.driver-popover.neurova-popover .driver-popover-description {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.dark .driver-popover.neurova-popover .driver-popover-description {
+  color: #cbd5e1;
+}
+
+.driver-popover.neurova-popover .driver-popover-progress-text {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.driver-popover.neurova-popover button {
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.driver-popover.neurova-popover .driver-popover-prev-btn {
+  background: transparent;
+  color: #0ea5e9;
+  border: 1px solid #0ea5e9;
+}
+
+.driver-popover.neurova-popover .driver-popover-prev-btn:hover {
+  background: #e0f2fe;
+}
+
+.driver-popover.neurova-popover .driver-popover-next-btn,
+.driver-popover.neurova-popover .driver-popover-close-btn {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  border: none;
+}
+
+.driver-popover.neurova-popover .driver-popover-next-btn:hover,
+.driver-popover.neurova-popover .driver-popover-close-btn:hover {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  transform: translateY(-1px);
+}
+
+.driver-popover-arrow {
+  border-color: #0ea5e9 !important;
+}
+

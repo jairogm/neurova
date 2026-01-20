@@ -68,7 +68,7 @@ export default function Navbar() {
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link href="/patients" className={linkClass("/patients")}>
+              <Link id="nav-patients" href="/patients" className={linkClass("/patients")}>
                 Patients
               </Link>
             </NavigationMenuItem>

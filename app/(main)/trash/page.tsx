@@ -25,9 +25,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTutorial } from "@/hooks/useTutorial";
 
 export default function TrashPage() {
   const router = useRouter();
@@ -36,8 +36,19 @@ export default function TrashPage() {
   const restoreRecord = useMutation(api.trash.restoreRecord);
   const deletePatient = useMutation(api.trash.permanentDeletePatient);
   const deleteRecord = useMutation(api.trash.permanentDeleteRecord);
+  const { startTrashTour, currentTourPage } = useTutorial();
 
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'patient' | 'record' } | null>(null);
+
+  // Continue tour from patients page
+  useEffect(() => {
+    if (currentTourPage === "patients") {
+      const timer = setTimeout(() => {
+        startTrashTour();
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [currentTourPage, startTrashTour]);
 
   if (!trashData) {
     return <div className="p-8 text-center">Loading trash...</div>;
@@ -55,11 +66,9 @@ export default function TrashPage() {
       const label = type === 'patient' ? "Patient" : "Record";
       toast.success(`${label} restored successfully`);
     } catch (error: any) {
-      // Convex errors often come as an Error object or a ConvexError
       const message = error.message.includes("Cannot restore record")
         ? "Cannot restore record because the patient is deleted."
         : error.data?.message || error.message || "Failed to restore item";
-
       toast.error(message);
     }
   };
@@ -90,7 +99,7 @@ export default function TrashPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-3 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
+        <Button id="trash-back-btn" variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
@@ -103,13 +112,13 @@ export default function TrashPage() {
       </div>
 
       <Tabs defaultValue="patients" className="w-full">
-        <TabsList className="mb-4">
+        <TabsList id="trash-tabs" className="mb-4">
           <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
           <TabsTrigger value="records">Records ({records.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="patients">
-          <div className="rounded-md border bg-white dark:bg-gray-950">
+          <div id="trash-table" className="rounded-md border bg-white dark:bg-gray-950">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -127,7 +136,7 @@ export default function TrashPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  patients.map((patient) => (
+                  patients.map((patient, index) => (
                     <TableRow key={patient._id}>
                       <TableCell className="font-medium">{patient.name}</TableCell>
                       <TableCell>
@@ -138,6 +147,7 @@ export default function TrashPage() {
                       </TableCell>
                       <TableCell className="text-right space-x-2">
                         <Button
+                          id={index === 0 ? "trash-restore-btn" : undefined}
                           variant="outline"
                           size="sm"
                           onClick={() => handleRestore(patient._id, 'patient')}
@@ -145,6 +155,7 @@ export default function TrashPage() {
                           <RefreshCcw className="mr-2 h-3 w-3" /> Restore
                         </Button>
                         <Button
+                          id={index === 0 ? "trash-delete-btn" : undefined}
                           variant="destructive"
                           size="sm"
                           onClick={() => setItemToDelete({ id: patient._id, type: 'patient' })}

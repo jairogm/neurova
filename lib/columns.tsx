@@ -125,10 +125,12 @@ function ActionsCell({ patient }: { patient: Patient }) {
   return (
     <>
       <div
+        id="patient-actions"
         className="flex justify-center gap-2"
         onClick={(e) => e.stopPropagation()}
       >
         <Button
+          id="action-view"
           variant="ghost"
           size="icon"
           onClick={handleViewPatient}
@@ -138,6 +140,7 @@ function ActionsCell({ patient }: { patient: Patient }) {
         </Button>
 
         <Button
+          id="action-edit"
           variant="ghost"
           size="icon"
           onClick={handleEditPatient}
@@ -147,6 +150,7 @@ function ActionsCell({ patient }: { patient: Patient }) {
         </Button>
 
         <Button
+          id="action-records"
           variant="ghost"
           size="icon"
           onClick={handleViewRecords}
@@ -156,6 +160,7 @@ function ActionsCell({ patient }: { patient: Patient }) {
         </Button>
 
         <Button
+          id="action-print"
           variant="ghost"
           size="icon"
           onClick={handlePrint}
@@ -166,6 +171,7 @@ function ActionsCell({ patient }: { patient: Patient }) {
 
 
         <Button
+          id="action-delete"
           variant="ghost"
           size="icon"
           onClick={handleDeleteClick}

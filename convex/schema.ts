@@ -49,6 +49,8 @@ export default defineSchema({
     patient_limit: v.optional(v.number()),
     payment_provider: v.optional(v.string()), // Keep for migrated data
     google_calendar_id: v.optional(v.string()), // Neurova Appointments calendar ID
+    tutorial_completed: v.optional(v.boolean()), // Onboarding tutorial completed
+    tutorial_completed_at: v.optional(v.string()), // When tutorial was completed
   }).index("by_user_id", ["user_id"]).index("by_clerk_id", ["clerk_user_id"]).index("by_email", ["email"]),
 
   sessions: defineTable({
