@@ -48,7 +48,11 @@ async function getCalendarClient(userId: string) {
 }
 
 // Find or create the Neurova Appointments calendar, using Convex to cache the ID
-async function getOrCreateNeurovaCalendar(calendar: any, userId: string): Promise<string> {
+async function getOrCreateNeurovaCalendar(
+  calendar: any, 
+  userId: string, 
+  userInfo?: { email?: string; fullName?: string }
+): Promise<string> {
   try {
     // Step 1: Check if we have a stored calendar ID in Convex
     const storedCalendarId = await convex.query(api.calendar.getCalendarIdByClerkId, {
@@ -83,6 +87,8 @@ async function getOrCreateNeurovaCalendar(calendar: any, userId: string): Promis
         await convex.mutation(api.calendar.setCalendarIdByClerkId, {
           clerkUserId: userId,
           calendarId: neurovaCalendar.id,
+          email: userInfo?.email,
+          fullName: userInfo?.fullName,
         });
         return neurovaCalendar.id;
       }
@@ -107,6 +113,8 @@ async function getOrCreateNeurovaCalendar(calendar: any, userId: string): Promis
     await convex.mutation(api.calendar.setCalendarIdByClerkId, {
       clerkUserId: userId,
       calendarId: calendarId,
+      email: userInfo?.email,
+      fullName: userInfo?.fullName,
     });
 
     return calendarId;
@@ -125,8 +133,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user info from Clerk for potential therapist profile creation
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const userInfo = {
+      email: user.emailAddresses[0]?.emailAddress,
+      fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+    };
+
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId, userInfo);
 
     // Get events from now onwards
     console.log('Listing events for calendar:', calendarId);
@@ -167,8 +183,16 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { summary, description, start, end, attendees } = body;
 
+    // Get user info from Clerk for potential therapist profile creation
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const userInfo = {
+      email: user.emailAddresses[0]?.emailAddress,
+      fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+    };
+
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId, userInfo);
 
     // Create event with Google Meet
     const event = await calendar.events.insert({
@@ -225,8 +249,16 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Event ID required' }, { status: 400 });
     }
 
+    // Get user info from Clerk for potential therapist profile creation
+    const clerk = await clerkClient();
+    const user = await clerk.users.getUser(userId);
+    const userInfo = {
+      email: user.emailAddresses[0]?.emailAddress,
+      fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || undefined,
+    };
+
     const calendar = await getCalendarClient(userId);
-    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId);
+    const calendarId = await getOrCreateNeurovaCalendar(calendar, userId, userInfo);
 
     // Delete event
     await calendar.events.delete({
