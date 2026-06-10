@@ -1,7 +1,10 @@
+import type {NextConfig} from 'next';
 import {withSentryConfig} from '@sentry/nextjs';
-// next.config.js or next.config.mjs
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin();
+
+const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
@@ -13,7 +16,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

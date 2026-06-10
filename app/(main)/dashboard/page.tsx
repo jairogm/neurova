@@ -14,12 +14,14 @@ import { ScheduleAppointment } from "@/components/modals/ScheduleAppointment";
 import { AddPatient } from "@/components/modals/AddPatient";
 import { UpcomingAppointments } from "@/components/UpcomingAppointments";
 import { Users, Calendar, Activity, HelpCircle } from "lucide-react";
-import { format } from "date-fns";
+import { useFormatter, useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useEffect } from "react";
 
 export default function Dashboard() {
+  const t = useTranslations("dashboard");
+  const format = useFormatter();
   const stats = useQuery(api.dashboard.getStats);
   const recentPatients = useQuery(api.dashboard.getRecentPatients);
   const { startDashboardTour, shouldShowTutorial, tutorialCompleted, replayTutorial, isLoading } = useTutorial();
@@ -39,7 +41,7 @@ export default function Dashboard() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </CardHeader>
       <CardContent>
         {value === undefined ? (
@@ -57,17 +59,24 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
           <p className="text-muted-foreground">
-            Overview of your practice for {format(new Date(), 'EEEE, MMMM do, yyyy')}
+            {t("overview", {
+              date: format.dateTime(new Date(), {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              }),
+            })}
           </p>
         </div>
-        <div id="quick-actions" className="flex items-center gap-2">
+        <div id="quick-actions" className="flex flex-wrap items-center gap-2">
           <ScheduleAppointment />
           <AddPatient variant="outline" />
           {tutorialCompleted && (
-            <Button variant="ghost" size="icon" onClick={replayTutorial} title="Replay Tutorial">
-              <HelpCircle className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={replayTutorial} title={t("replayTutorial")} aria-label={t("replayTutorial")}>
+              <HelpCircle className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
         </div>
@@ -76,28 +85,28 @@ export default function Dashboard() {
       {/* Stats Overview */}
       <div id="stats-overview" className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Patients"
+          title={t("stats.totalPatients")}
           value={stats?.totalPatients}
           icon={Users}
-          description="Active patients in your practice"
+          description={t("stats.totalPatientsDesc")}
         />
         <StatCard
-          title="Total Sessions"
+          title={t("stats.totalSessions")}
           value={stats?.totalSessions}
           icon={Calendar}
-          description="Lifetime sessions conducted"
+          description={t("stats.totalSessionsDesc")}
         />
         <StatCard
-          title="Sessions This Month"
+          title={t("stats.sessionsThisMonth")}
           value={stats?.sessionsThisMonth}
           icon={Activity}
-          description="Scheduled for this month"
+          description={t("stats.sessionsThisMonthDesc")}
         />
         <StatCard
-          title="Active Now"
+          title={t("stats.activeNow")}
           value={1}
           icon={Activity}
-          description="Current active sessions"
+          description={t("stats.activeNowDesc")}
         />
       </div>
 
@@ -110,9 +119,9 @@ export default function Dashboard() {
         {/* Recent Activity (Side Column) */}
         <Card id="recent-patients" className="col-span-3">
           <CardHeader>
-            <CardTitle>Recent Patients</CardTitle>
+            <CardTitle>{t("recentPatients.title")}</CardTitle>
             <CardDescription>
-              Newest additions to your patient list.
+              {t("recentPatients.description")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,11 +133,11 @@ export default function Dashboard() {
                   <Skeleton className="h-12 w-full" />
                 </div>
               ) : !recentPatients || recentPatients.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">No recent patients found.</p>
+                <p className="text-sm text-muted-foreground text-center py-4">{t("recentPatients.empty")}</p>
               ) : (
                 recentPatients.map((patient) => (
                   <div key={patient._id} className="flex items-center">
-                    <div className="h-9 w-9 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center border border-sky-200 dark:border-sky-800">
+                    <div className="h-9 w-9 rounded-full bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center border border-sky-200 dark:border-sky-800" aria-hidden="true">
                       <span className="text-xs font-medium text-sky-700 dark:text-sky-300">
                         {patient.name.charAt(0)}
                       </span>
@@ -136,11 +145,17 @@ export default function Dashboard() {
                     <div className="ml-4 space-y-1">
                       <p className="text-sm font-medium leading-none">{patient.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Added {format(new Date(patient.created_at), 'MMM d, yyyy')}
+                        {t("recentPatients.added", {
+                          date: format.dateTime(new Date(patient.created_at), {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          }),
+                        })}
                       </p>
                     </div>
                     <div className="ml-auto font-medium text-xs text-muted-foreground">
-                      {patient.phone_number || "No phone"}
+                      {patient.phone_number || t("recentPatients.noPhone")}
                     </div>
                   </div>
                 ))

@@ -19,6 +19,7 @@ import { api } from "@/convex/_generated/api";
 import { patientSchema } from "@/lib/schemas/patient";
 import { COUNTRIES, Country } from "@/lib/constants/countries";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface AddPatientProps {
   variant?: string;
@@ -27,6 +28,7 @@ interface AddPatientProps {
 }
 
 export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddPatientProps) => {
+  const t = useTranslations("addPatient");
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -75,10 +77,10 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
       setForm({ name: "", email: "", phone_number: "" });
       setSelectedCountry(COUNTRIES[0]);
       setOpen(false);
-      toast.success("Patient created successfully");
+      toast.success(t("successToast"));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to create patient: " + message);
+      toast.error(t("errorToast", { message }));
     } finally {
       setIsSubmitting(false);
     }
@@ -95,53 +97,71 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
               : `bg-sky-600 border-sky-600 text-white hover:bg-sky-500 hover:text-white rounded-md w-full max-w-52 flex items-center justify-center gap-2 p-2`
           }
         >
-          <Plus className={variant ? `text-sky-600` : `text-white`} size={20} />
-          Add Patient
+          <Plus className={variant ? `text-sky-600` : `text-white`} size={20} aria-hidden="true" />
+          {t("trigger")}
         </DialogTrigger>
       )}
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add a new patient</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Fill in the details below to add a patient.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           {/* Name */}
           <div className="grid gap-2">
-            <Label htmlFor="name">Full Name *</Label>
+            <Label htmlFor="name">
+              {t("fullName")} <span className="text-red-500" aria-hidden="true">*</span>
+            </Label>
             <Input
               id="name"
-              placeholder="John Doe"
+              placeholder={t("fullNamePlaceholder")}
               value={form.name}
+              required
+              aria-required="true"
+              aria-invalid={errors.name ? true : undefined}
+              aria-describedby={errors.name ? "name-error" : undefined}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
             />
             {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name}</p>
+              <p id="name-error" role="alert" className="text-red-500 text-sm">{errors.name}</p>
             )}
           </div>
 
           {/* Email */}
           <div className="grid gap-2">
-            <Label htmlFor="email">Email *</Label>
+            <Label htmlFor="email">
+              {t("email")} <span className="text-red-500" aria-hidden="true">*</span>
+            </Label>
             <Input
               id="email"
               type="email"
-              placeholder="john@example.com"
+              placeholder={t("emailPlaceholder")}
               value={form.email}
+              required
+              aria-required="true"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? "email-error" : undefined}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
             {errors.email && (
-              <p className="text-red-500 text-sm">{errors.email}</p>
+              <p id="email-error" role="alert" className="text-red-500 text-sm">{errors.email}</p>
             )}
           </div>
 
           {/* Phone with country code */}
           <div className="grid gap-2">
-            <Label htmlFor="phone_number">Phone Number *</Label>
+            <Label htmlFor="phone_number">
+              {t("phoneNumber")} <span className="text-red-500" aria-hidden="true">*</span>
+            </Label>
             <div className="flex gap-2">
+              <label htmlFor="country_code" className="sr-only">
+                {t("countryCodeLabel")}
+              </label>
               <select
+                id="country_code"
                 value={selectedCountry.iso}
                 onChange={(e) => {
                   const country = COUNTRIES.find(c => c.iso === e.target.value);
@@ -158,24 +178,34 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
               <Input
                 id="phone_number"
                 type="tel"
-                placeholder="3001234567"
+                placeholder={t("phoneNumberPlaceholder")}
                 value={form.phone_number}
+                required
+                aria-required="true"
+                aria-invalid={errors.phone_number || errors.country_code ? true : undefined}
+                aria-describedby={
+                  errors.phone_number
+                    ? "phone_number-error"
+                    : errors.country_code
+                    ? "country_code-error"
+                    : undefined
+                }
                 onChange={(e) =>
                   setForm({ ...form, phone_number: e.target.value })
                 }
               />
             </div>
             {errors.country_code && (
-              <p className="text-red-500 text-sm">{errors.country_code}</p>
+              <p id="country_code-error" role="alert" className="text-red-500 text-sm">{errors.country_code}</p>
             )}
             {errors.phone_number && (
-              <p className="text-red-500 text-sm">{errors.phone_number}</p>
+              <p id="phone_number-error" role="alert" className="text-red-500 text-sm">{errors.phone_number}</p>
             )}
           </div>
 
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Patient"}
+              {isSubmitting ? t("submitting") : t("submit")}
             </Button>
           </DialogFooter>
         </form>

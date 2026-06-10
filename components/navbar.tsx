@@ -16,7 +16,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ThemeSwitcher } from "./theme-switcher";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useUser, useClerk } from "@clerk/nextjs";
 
 export default function Navbar() {
@@ -24,6 +26,7 @@ export default function Navbar() {
   const router = useRouter();
   const { user } = useUser();
   const { signOut } = useClerk();
+  const t = useTranslations("nav");
 
   const logout = async () => {
     await signOut();
@@ -51,58 +54,77 @@ export default function Navbar() {
       : "text-gray-600 hover:text-sky-600"
     }`;
 
+  const displayName =
+    user?.fullName || user?.primaryEmailAddress?.emailAddress;
+
   return (
-    <div className="sticky top-0 z-50 mb-4 px-4 border-b-2 lg:flex lg:items-center lg:justify-between lg:max-w-[1920px] lg:mx-auto">
-      <div className="flex gap-8">
-        <div className="h-12 flex items-center justify-center">
-          <Link href={"/"} className="text-2xl text-sky-600 font-bold">
-            NEUROVA
-          </Link>
-        </div>
+    <header className="sticky top-0 z-50 mb-4 flex items-center justify-between gap-2 border-b-2 bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:mx-auto lg:max-w-[1920px]">
+      <div className="flex items-center gap-3 sm:gap-8">
+        <Link
+          href={"/"}
+          className="flex h-12 items-center text-xl font-bold text-sky-600 sm:text-2xl"
+        >
+          NEUROVA
+        </Link>
 
         <NavigationMenu className="h-12">
-          <NavigationMenuList>
+          <NavigationMenuList aria-label={t("primary")}>
             <NavigationMenuItem>
-              <Link href="/dashboard" className={linkClass("/dashboard")}>
-                Dashboard
+              <Link
+                href="/dashboard"
+                aria-current={pathname === "/dashboard" ? "page" : undefined}
+                className={linkClass("/dashboard")}
+              >
+                {t("dashboard")}
               </Link>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <Link id="nav-patients" href="/patients" className={linkClass("/patients")}>
-                Patients
+              <Link
+                id="nav-patients"
+                href="/patients"
+                aria-current={pathname === "/patients" ? "page" : undefined}
+                className={linkClass("/patients")}
+              >
+                {t("patients")}
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </div>
 
-      <div className="flex items-center">
+      <div className="flex items-center gap-1">
+        <LanguageSwitcher />
         <ThemeSwitcher />
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="rounded-full">
+          <DropdownMenuTrigger
+            aria-label={t("userMenu")}
+            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
+          >
             <Avatar>
               <AvatarImage
                 src={user?.imageUrl}
-                alt={user?.fullName || user?.primaryEmailAddress?.emailAddress || "User avatar"}
+                alt={
+                  displayName
+                    ? t("userAvatarAlt", { name: displayName })
+                    : t("userMenu")
+                }
               />
-              <AvatarFallback>
-                {getUserInitials()}
-              </AvatarFallback>
+              <AvatarFallback>{getUserInitials()}</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end">
             <DropdownMenuLabel>
-              {user?.fullName || user?.primaryEmailAddress?.emailAddress || "My Account"}
+              {displayName || t("myAccount")}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/profile">Profile</Link>
+              <Link href="/profile">{t("profile")}</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={logout}>Log Out</DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>{t("logOut")}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
+    </header>
   );
 }

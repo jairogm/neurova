@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "NEUROVA",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search",
+    "noResults": "No results.",
+    "previous": "Previous",
+    "next": "Next",
+    "replayTutorial": "Replay tutorial"
+  },
+  "language": {
+    "label": "Language",
+    "changeLanguage": "Change language",
+    "en": "English",
+    "es": "Spanish"
+  },
+  "nav": {
+    "skipToContent": "Skip to main content",
+    "primary": "Primary",
+    "dashboard": "Dashboard",
+    "patients": "Patients",
+    "profile": "Profile",
+    "logOut": "Log Out",
+    "myAccount": "My Account",
+    "userMenu": "Open user menu",
+    "userAvatarAlt": "{name} avatar"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview of your practice for {date}",
+    "replayTutorial": "Replay tutorial",
+    "stats": {
+      "totalPatients": "Total Patients",
+      "totalPatientsDesc": "Active patients in your practice",
+      "totalSessions": "Total Sessions",
+      "totalSessionsDesc": "Lifetime sessions conducted",
+      "sessionsThisMonth": "Sessions This Month",
+      "sessionsThisMonthDesc": "Scheduled for this month",
+      "activeNow": "Active Now",
+      "activeNowDesc": "Current active sessions"
+    },
+    "recentPatients": {
+      "title": "Recent Patients",
+      "description": "Newest additions to your patient list.",
+      "empty": "No recent patients found.",
+      "added": "Added {date}",
+      "noPhone": "No phone"
+    }
+  },
+  "patients": {
+    "title": "Patients",
+    "subtitle": "Manage your patients",
+    "viewTrash": "View Trash",
+    "addPatient": "Add Patient",
+    "searchPlaceholder": "Search patients by name, email, or phone...",
+    "searchLabel": "Search patients"
+  },
+  "addPatient": {
+    "trigger": "Add Patient",
+    "title": "Add a new patient",
+    "description": "Fill in the details below to add a patient.",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "email": "Email",
+    "emailPlaceholder": "john@example.com",
+    "phoneNumber": "Phone Number",
+    "phoneNumberPlaceholder": "3001234567",
+    "countryCodeLabel": "Country code",
+    "required": "required",
+    "submit": "Add Patient",
+    "submitting": "Adding...",
+    "successToast": "Patient created successfully",
+    "errorToast": "Failed to create patient: {message}"
+  }
+}

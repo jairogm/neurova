@@ -10,8 +10,11 @@ import { useState, useMemo, useEffect } from "react";
 import { AddPatient } from "@/components/modals/AddPatient";
 import { useTutorial } from "@/hooks/useTutorial";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export default function Patients() {
+  const t = useTranslations("patients");
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const data = useQuery(api.patients.list);
   const isLoading = data === undefined;
@@ -62,24 +65,24 @@ export default function Patients() {
   return (
     <div className="container mx-auto py-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Patients</h1>
-          <p className="text-gray-500">Manage your patients</p>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
+          <p className="text-gray-500">{t("subtitle")}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           {tutorialCompleted && (
-            <Button variant="ghost" size="icon" onClick={replayTutorial} title="Replay Tutorial">
-              <HelpCircle className="h-4 w-4" />
+            <Button variant="ghost" size="icon" onClick={replayTutorial} title={tCommon("replayTutorial")} aria-label={tCommon("replayTutorial")}>
+              <HelpCircle className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
           <Button id="view-trash-btn" variant="outline" onClick={() => window.location.href = '/trash'} className="gap-2">
-            <Trash2 className="h-4 w-4" />
-            View Trash
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+            {t("viewTrash")}
           </Button>
           <Button id="add-patient-btn" onClick={() => setIsAddPatientOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Patient
+            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+            {t("addPatient")}
           </Button>
         </div>
       </div>
@@ -87,9 +90,14 @@ export default function Patients() {
       {/* Search Bar */}
       <div id="patients-search" className="mb-4">
         <div className="relative max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <label htmlFor="patients-search-input" className="sr-only">
+            {t("searchLabel")}
+          </label>
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" aria-hidden="true" />
           <Input
-            placeholder="Search patients by name, email, or phone..."
+            id="patients-search-input"
+            type="search"
+            placeholder={t("searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"

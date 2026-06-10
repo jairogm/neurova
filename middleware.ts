@@ -2,8 +2,13 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/patients(.*)"]);
 
+// LOCAL DEV ONLY: set BYPASS_AUTH=true in .env.local to view protected routes
+// without signing in. Defaults to OFF, so any environment without the flag
+// (e.g. production) keeps full Clerk protection.
+const BYPASS_AUTH = process.env.BYPASS_AUTH === "true";
+
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
+  if (!BYPASS_AUTH && isProtectedRoute(req)) {
     await auth.protect({
       unauthenticatedUrl: "/auth/login",
     });

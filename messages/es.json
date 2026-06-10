@@ -1,0 +1,80 @@
+{
+  "common": {
+    "appName": "NEUROVA",
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "search": "Buscar",
+    "noResults": "Sin resultados.",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "replayTutorial": "Repetir tutorial"
+  },
+  "language": {
+    "label": "Idioma",
+    "changeLanguage": "Cambiar idioma",
+    "en": "Inglés",
+    "es": "Español"
+  },
+  "nav": {
+    "skipToContent": "Saltar al contenido principal",
+    "primary": "Principal",
+    "dashboard": "Panel",
+    "patients": "Pacientes",
+    "profile": "Perfil",
+    "logOut": "Cerrar sesión",
+    "myAccount": "Mi cuenta",
+    "userMenu": "Abrir menú de usuario",
+    "userAvatarAlt": "Avatar de {name}"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "overview": "Resumen de tu consulta para el {date}",
+    "replayTutorial": "Repetir tutorial",
+    "stats": {
+      "totalPatients": "Total de pacientes",
+      "totalPatientsDesc": "Pacientes activos en tu consulta",
+      "totalSessions": "Total de sesiones",
+      "totalSessionsDesc": "Sesiones realizadas en total",
+      "sessionsThisMonth": "Sesiones este mes",
+      "sessionsThisMonthDesc": "Programadas para este mes",
+      "activeNow": "Activas ahora",
+      "activeNowDesc": "Sesiones activas actualmente"
+    },
+    "recentPatients": {
+      "title": "Pacientes recientes",
+      "description": "Las incorporaciones más recientes a tu lista de pacientes.",
+      "empty": "No se encontraron pacientes recientes.",
+      "added": "Agregado el {date}",
+      "noPhone": "Sin teléfono"
+    }
+  },
+  "patients": {
+    "title": "Pacientes",
+    "subtitle": "Gestiona tus pacientes",
+    "viewTrash": "Ver papelera",
+    "addPatient": "Agregar paciente",
+    "searchPlaceholder": "Busca pacientes por nombre, correo o teléfono...",
+    "searchLabel": "Buscar pacientes"
+  },
+  "addPatient": {
+    "trigger": "Agregar paciente",
+    "title": "Agregar un nuevo paciente",
+    "description": "Completa los datos a continuación para agregar un paciente.",
+    "fullName": "Nombre completo",
+    "fullNamePlaceholder": "Juan Pérez",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "juan@ejemplo.com",
+    "phoneNumber": "Número de teléfono",
+    "phoneNumberPlaceholder": "3001234567",
+    "countryCodeLabel": "Código de país",
+    "required": "obligatorio",
+    "submit": "Agregar paciente",
+    "submitting": "Agregando...",
+    "successToast": "Paciente creado correctamente",
+    "errorToast": "No se pudo crear el paciente: {message}"
+  }
+}

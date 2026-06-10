@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import "./globals.css";
 import { TanstackProvider } from "@/providers/TanstackProvider";
 import { SessionTimeoutProvider } from "@/providers/SessionTimeoutProvider";
@@ -25,34 +27,38 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ConvexClientProvider>
-            <UserSync />
-            <SessionTimeoutProvider
-              timeoutMinutes={22}
-              warningMinutes={2}
-            >
-              <TanstackProvider>
-                {children}
-                <CookieBanner />
-                <Toaster richColors position="top-right" />
-              </TanstackProvider>
-            </SessionTimeoutProvider>
-          </ConvexClientProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ConvexClientProvider>
+              <UserSync />
+              <SessionTimeoutProvider
+                timeoutMinutes={22}
+                warningMinutes={2}
+              >
+                <TanstackProvider>
+                  {children}
+                  <CookieBanner />
+                  <Toaster richColors position="top-right" />
+                </TanstackProvider>
+              </SessionTimeoutProvider>
+            </ConvexClientProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
