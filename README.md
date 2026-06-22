@@ -1,106 +1,190 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# NEUROVA
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+NEUROVA is a practice-management platform for mental health professionals. It helps therapists organize patients, schedule appointments, manage session notes, track payments, export records, and keep day-to-day clinical admin in one secure workspace.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+Built with Next.js, Clerk, Convex, Google Calendar, EditorJS, Tailwind CSS, and shadcn/ui.
 
-## Features
+## What It Does
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+- Patient management with searchable patient lists, profiles, emergency contacts, and soft delete recovery
+- Appointment scheduling with Google Calendar integration, Google Meet links, recurring appointments, and attendee invites
+- Clinical records with rich-text EditorJS notes, record preview/edit flows, and PDF export
+- Session history with payment status tracking
+- Therapist profile management, avatar upload, and account deletion flow
+- Guided onboarding tours for key workflows
+- English and Spanish localization with `next-intl`
+- Dark mode, responsive UI, and accessible shadcn/Radix primitives
+- Sentry instrumentation for production error monitoring
 
-## Demo
+## Tech Stack
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+| Area | Technology |
+| --- | --- |
+| App framework | Next.js App Router |
+| UI | React, Tailwind CSS v4, shadcn/ui, Radix UI, Lucide |
+| Auth | Clerk |
+| Backend/data | Convex |
+| Calendar | Google Calendar API via Clerk OAuth |
+| Rich text | EditorJS |
+| Data tables | TanStack Table |
+| Server state | TanStack Query |
+| i18n | next-intl |
+| Monitoring | Sentry |
+| PDF export | jsPDF |
 
-## Deploy to Vercel
+## Project Structure
 
-Vercel deployment will guide you through creating a Supabase account and project.
+```txt
+app/                    Next.js routes, layouts, API handlers
+app/(main)/             Authenticated product routes
+app/api/                Calendar, Clerk webhook, account APIs
+components/             Reusable UI and feature components
+components/modals/      Patient, record, appointment, and payment dialogs
+components/ui/          shadcn/Radix UI primitives
+convex/                 Convex schema, queries, mutations, auth config
+hooks/                  Product hooks for appointments, tutorials, timeouts
+i18n/                   Locale configuration
+lib/                    Types, utilities, columns, PDF generation, integrations
+messages/               English and Spanish translation files
+public/                 Logo, favicon, and illustration assets
+providers/              App-level React providers
+supabase/               Legacy migrations kept for migration/reference context
+```
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+## Getting Started
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+### Prerequisites
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+- Node.js 20+
+- npm
+- A Convex project
+- A Clerk application
+- A Google OAuth connection configured in Clerk if you want calendar features locally
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+### Install Dependencies
 
-## Clone and run locally
+```bash
+npm install
+```
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+### Configure Environment Variables
 
-2. Create a Next.js app using the Supabase Starter template npx command
+Create a `.env.local` file in the project root:
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+```bash
+CONVEX_DEPLOYMENT=dev:your-deployment-name
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+CLERK_SECRET_KEY=sk_test_xxxxx
+CLERK_JWT_ISSUER_DOMAIN=https://your-app.clerk.accounts.dev
+CLERK_FRONTEND_API_URL=your-app.clerk.accounts.dev
+CLERK_WEBHOOK_SECRET=whsec_xxxxx
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+# Optional
+BYPASS_AUTH=false
+LOOPS_API_KEY=
+LOOPS_LIST_ID=
+SENTRY_AUTH_TOKEN=
+```
 
-3. Use `cd` to change into the app's directory
+Notes:
 
-   ```bash
-   cd with-supabase-app
-   ```
+- `BYPASS_AUTH=true` is only for local development and lets you inspect protected pages without signing in.
+- Convex auth expects a Clerk JWT template named `convex`.
+- Google Calendar access is handled through Clerk OAuth. Configure Google as an OAuth provider in Clerk and enable the calendar scopes needed for reading and writing events.
+- See [ENV_SETUP.md](./ENV_SETUP.md) for a more detailed environment guide.
 
-4. Rename `.env.example` to `.env.local` and update the following:
+### Start Convex
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
+In one terminal:
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+```bash
+npx convex dev
+```
 
-5. You can now run the Next.js local development server:
+This watches Convex functions and updates deployment configuration.
 
-   ```bash
-   npm run dev
-   ```
+### Start the App
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+In another terminal:
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+```bash
+npm run dev
+```
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+Open [http://localhost:3000](http://localhost:3000).
 
-## Feedback and issues
+## Available Scripts
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+```bash
+npm run dev      # Start the Next.js dev server with Turbopack
+npm run build    # Build the production app
+npm run start    # Start the production server
+npm run lint     # Run linting
+```
 
-## More Supabase examples
+## Core Workflows
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
-# neurova-v3
+### Authentication
+
+Users sign in with Clerk, currently through Google OAuth. A Clerk webhook creates or updates the therapist profile in Convex when a user is created or updated.
+
+### Calendar
+
+Appointments are created in a dedicated Google Calendar named `Neurova Appointments`. The calendar ID is cached on the therapist profile in Convex. Appointments can include:
+
+- Patient attendee
+- Google Meet conference link
+- Email and popup reminders
+- Recurrence metadata
+- Linked session data
+
+### Patients and Records
+
+Patients belong to therapists and are stored in Convex. Clinical records are stored as EditorJS JSON content, with supporting metadata such as title, description, and date.
+
+### Trash and Recovery
+
+Patients and records support soft deletion. Deleted items are shown in the trash area and can be restored or permanently removed. Old trash is cleaned up by Convex cron logic.
+
+## Internationalization
+
+Translations live in:
+
+```txt
+messages/en.json
+messages/es.json
+```
+
+Use `next-intl` hooks such as `useTranslations` for user-facing strings. Some screens still contain hardcoded English, so new product work should continue moving copy into the message files.
+
+## Design System
+
+Global theme tokens live in:
+
+```txt
+app/globals.css
+```
+
+The app uses Tailwind v4 CSS variables, shadcn/ui primitives, Lucide icons, dark mode via `next-themes`, and `sonner` for toast feedback.
+
+## Deployment Notes
+
+The app is designed for Vercel deployment. Make sure production has:
+
+- Convex deployment variables
+- Clerk production keys and webhook secret
+- Clerk Google OAuth configured for the production domain
+- Sentry token if source map upload is enabled
+- Any optional Loops email marketing credentials
+
+## Repository Notes
+
+- The `supabase/` directory is legacy migration/reference material from an earlier data layer.
+- Convex is the active application backend.
+- `CLAUDE.md` contains agent/development notes, but some references may be older than the current Clerk + Convex architecture.
+
+## License
+
+Private project. All rights reserved.
