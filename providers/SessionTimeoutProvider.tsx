@@ -234,14 +234,14 @@ export function SessionTimeoutProvider({
               Session Expiring Soon
             </DialogTitle>
             <DialogDescription className="space-y-2">
-              <p>
+              <span className="block">
                 Your session will expire in <strong className="text-amber-600 dark:text-amber-400">
                   {formatTime(remainingTime)}
                 </strong> for security purposes.
-              </p>
-              <p className="text-sm text-muted-foreground">
+              </span>
+              <span className="block text-sm text-muted-foreground">
                 This helps protect sensitive patient information when devices are left unattended.
-              </p>
+              </span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">

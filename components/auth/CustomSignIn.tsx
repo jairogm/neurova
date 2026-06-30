@@ -1,14 +1,101 @@
 "use client";
 
 import { useSignIn, useUser } from "@clerk/nextjs";
+import {
+  ArrowLeft,
+  CalendarDays,
+  Loader2,
+  Mail,
+  ShieldCheck,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Loader2, Info } from "lucide-react";
-import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+type PreviewRow = {
+  tag: string;
+  color: string;
+  title: string;
+  sub: string;
+  meta: string;
+};
+
+type Slide = {
+  icon: LucideIcon;
+  title: string;
+  body: string;
+  previewLabel: string;
+  rows: PreviewRow[];
+};
+
+const slides: Slide[] = [
+  {
+    icon: CalendarDays,
+    title: "Your whole day, calm and in view.",
+    body: "Today’s agenda, your next session, and Google Calendar sync — the moment you sign in.",
+    previewLabel: "Today · 6 sessions",
+    rows: [
+      { tag: "DO", color: "#8FE3F2", title: "David Okafor", sub: "Therapy session", meta: "10:00" },
+      { tag: "SM", color: "#9AD3E6", title: "Sofia Marin", sub: "Intake assessment", meta: "11:30" },
+      { tag: "JL", color: "#C3B5E0", title: "James Lee", sub: "Progress review", meta: "14:00" },
+    ],
+  },
+  {
+    icon: Sparkles,
+    title: "Notes written up in seconds — reviewed by you.",
+    body: "Draft structured session summaries with AI, then review and sign off. Always clinician-approved, never automated diagnosis.",
+    previewLabel: "AI summary · draft",
+    rows: [
+      { tag: "AI", color: "#8FE3F2", title: "Summary draft ready", sub: "Progress note · Maya T.", meta: "review" },
+      { tag: "TP", color: "#9AD3E6", title: "Treatment plan", sub: "Updated Jun 04", meta: "saved" },
+      { tag: "FU", color: "#C3B5E0", title: "Follow-up note", sub: "Autosaved", meta: "now" },
+    ],
+  },
+  {
+    icon: ShieldCheck,
+    title: "Built for trust, private by default.",
+    body: "PHI encrypted in transit and at rest, with clear data controls. Your patients’ records stay yours.",
+    previewLabel: "Security",
+    rows: [
+      { tag: "✓", color: "#8FE3F2", title: "Encryption", sub: "In transit & at rest", meta: "on" },
+      { tag: "✓", color: "#9AD3E6", title: "BAA & DPA", sub: "Signed agreements", meta: "on" },
+      { tag: "✓", color: "#C3B5E0", title: "Access controls", sub: "Revoke anytime", meta: "on" },
+    ],
+  },
+];
+
+function NeurovaMark({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <svg width={compact ? 30 : 34} height={compact ? 30 : 34} viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <rect width="32" height="32" rx="9" fill="url(#login-logo-gradient)" />
+        <path d="M10 22.5V10.5L22 21.5V9.5" stroke="#EAFBF8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="10" cy="10.5" r="2" fill="#A7E9F6" />
+        <circle cx="22" cy="21.5" r="2" fill="#A7E9F6" />
+        <defs>
+          <linearGradient id="login-logo-gradient" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#0E96B8" />
+            <stop offset="1" stopColor="#0B7693" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span className="text-[17px] font-extrabold tracking-[.18em] text-white">NEUROVA</span>
+    </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="19" height="19" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
+      <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.1 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.5-5.2l-6.2-5.3C29.2 35 26.7 36 24 36c-5.3 0-9.7-3.1-11.3-7.6l-6.5 5C9.6 39.6 16.2 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4 5.5l6.2 5.3C39.9 36.5 44 31 44 24c0-1.3-.1-2.3-.4-3.5z" />
+    </svg>
+  );
+}
 
 export function CustomSignIn() {
   const { signIn, isLoaded } = useSignIn();
@@ -17,193 +104,137 @@ export function CustomSignIn() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const carouselItems = [
-    {
-      title: "Manage your time effortlessly",
-      description: "Sync your calendar and never miss an appointment with our smart scheduling tools.",
-      image: "/undraw_time-management.svg"
-    },
-
-    {
-      title: "Track Session Notes & History",
-      description: "Effortlessly document session notes and access comprehensive patient medical history.",
-      image: "/undraw_personal-information.svg"
-    },
-    {
-      title: "Generate Session History",
-      description: "Download detailed PDF files of your session notes and complete patient history reviews.",
-      image: "/undraw_filing-system.svg"
-    },
-  ];
+  useEffect(() => {
+    const interval = window.setInterval(
+      () => setActiveIndex((current) => (current + 1) % slides.length),
+      5000,
+    );
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveIndex((current) => (current + 1) % carouselItems.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [carouselItems.length]);
-
-  useEffect(() => {
-    if (isSignedIn) {
-      router.push("/dashboard");
-    }
+    if (isSignedIn) router.replace("/dashboard");
   }, [isSignedIn, router]);
 
-  if (!isLoaded) {
-    return null;
-  }
-
   const handleGoogleSignIn = async () => {
+    if (!signIn) return;
     setIsLoading(true);
+
     try {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/dashboard",
       });
-    } catch (err: any) {
-      console.error("Error signing in with Google", err);
-      // Check if the error is due to an existing session
-      if (err.errors && err.errors.find((e: any) => e.code === "session_exists")) {
-        router.push("/dashboard");
+    } catch (error: unknown) {
+      const clerkError = error as { errors?: Array<{ code?: string }> };
+      if (clerkError.errors?.some((item) => item.code === "session_exists")) {
+        router.replace("/dashboard");
         return;
       }
+      console.error("Error signing in with Google", error);
       setIsLoading(false);
     }
   };
 
+  const slide = slides[activeIndex];
+  const SlideIcon = slide.icon;
+
   return (
-    <Card className="w-full max-w-[1400px] h-[85vh] mx-auto shadow-2xl border-0 ring-1 ring-black/5 dark:ring-white/10 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl overflow-hidden grid md:grid-cols-2">
+    <main className="flex min-h-dvh flex-col overflow-hidden bg-[#eff3f4] text-[#36474f] md:h-dvh md:flex-row">
+      <section className="relative flex h-[78px] flex-none flex-col overflow-hidden bg-[linear-gradient(150deg,#0d2933,#081d25)] px-5 py-5 text-white md:h-auto md:flex-[1.15] md:px-14 md:py-12">
+        <div className="absolute -right-28 -top-24 size-[420px] rounded-full bg-[radial-gradient(circle,rgba(63,182,214,.16),transparent_70%)]" />
+        <div className="absolute -bottom-28 -left-20 size-[360px] rounded-full bg-[radial-gradient(circle,rgba(44,143,176,.12),transparent_70%)]" />
+        <div className="relative"><NeurovaMark compact /></div>
 
-      {/* Left Column - Login Form */}
-      <div className="p-8 md:p-12 flex flex-col justify-between relative z-10 h-full">
-        <div className="flex justify-start items-center gap-3">
-          <Image
-            src="/neurova_logo.png"
-            alt="Neurova Logo"
-            width={40}
-            height={40}
-            className="h-10 w-10 object-contain"
-            priority
-          />
-          <span className="text-2xl text-sky-600 font-bold tracking-tight">NEUROVA</span>
-        </div>
-
-        {/* Main Content - Form */}
-        <div className="w-full max-w-sm mx-auto space-y-8">
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight">Welcome back</h2>
-            <p className="text-muted-foreground">
-              Enter your details to access your account.
-            </p>
+        <div className="relative mt-auto hidden max-w-[460px] md:block">
+          <div className="mb-6 flex size-[46px] items-center justify-center rounded-[14px] border border-white/15 bg-white/10">
+            <SlideIcon size={22} strokeWidth={1.8} className="text-[#a7e9f6]" />
           </div>
+          <h2 className="m-0 text-[30px] font-extrabold leading-[1.18] tracking-[-.02em]">{slide.title}</h2>
+          <p className="mt-4 text-[15px] leading-[1.6] text-[#a2bac1]">{slide.body}</p>
 
-          <div className="grid gap-4">
-            <Button
-              variant="outline"
-              className="w-full h-12 relative overflow-hidden transition-all hover:bg-slate-50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 text-base"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-              ) : (
-                <svg className="mr-3 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
-                  <path fill="currentColor" d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path>
-                </svg>
-              )}
-              Continue with Google
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full h-12 relative overflow-hidden transition-all border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed group text-base"
-              disabled
-            >
-              <svg className="mr-3 h-5 w-5" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="microsoft" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                <path fill="currentColor" d="M0 32h214.6v214.6H0V32zm233.4 0H448v214.6H233.4V32zM0 265.4h214.6V480H0V265.4zm233.4 0H448V480H233.4V265.4z"></path>
-              </svg>
-              Continue with Outlook
-              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-[10px] font-medium pointer-events-none">
-                Coming Soon
-              </Badge>
-            </Button>
-
-            <div className="pt-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground gap-1.5 h-auto py-2">
-                    <Info className="h-3.5 w-3.5" />
-                    Why do we use Google?
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 p-4 text-sm bg-white/95 backdrop-blur-md dark:bg-slate-950/95" side="bottom">
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Google Integration</h4>
-                    <p className="text-muted-foreground">
-                      We use your Google account to securely connect with Google Calendar, allowing you to manage appointments and events directly within Neurova.
-                    </p>
-                  </div>
-                </PopoverContent>
-              </Popover>
+          <div className="mt-8 rounded-2xl border border-white/10 bg-white/[.06] p-3.5 backdrop-blur-sm">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="size-[9px] rounded-full bg-[#3fb6d6]" />
+              <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#a2bac1]">{slide.previewLabel}</span>
             </div>
-
-            <p className="text-xs text-center text-muted-foreground leading-relaxed px-4 pt-4">
-              By clicking continue, you agree to our{' '}
-              <a href="/terms" className="underline hover:text-primary">Terms of Service</a>,{' '}
-              <a href="/privacy" className="underline hover:text-primary">Privacy Policy</a>, and{' '}
-              <a href="/baa" className="underline hover:text-primary">Business Associate Agreement (BAA)</a>.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-between items-center text-xs text-muted-foreground pt-8">
-          <p>Copyright © {new Date().getFullYear()} Neurova.</p>
-          <a href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</a>
-        </div>
-      </div>
-
-      {/* Right Column - Tips & Tricks */}
-      <div className="hidden md:flex flex-col items-center justify-center p-8 bg-primary relative overflow-hidden text-primary-foreground">
-        {/* Background Gradients/Patterns */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary to-blue-500 dark:from-primary dark:to-blue-900" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150" />
-
-        <div className="relative z-10 w-full max-w-md space-y-8 flex flex-col items-center text-center">
-
-          <div className="relative w-64 h-64 md:w-80 md:h-80 animate-in fade-in zoom-in duration-700">
-            <Image
-              src={carouselItems[activeIndex].image}
-              alt={carouselItems[activeIndex].title}
-              fill
-              className="object-contain drop-shadow-2xl"
-              priority
-              key={activeIndex}
-            />
+            {slide.rows.map((row) => (
+              <div key={row.title} className="flex items-center gap-3 border-t border-white/[.07] py-2.5">
+                <div className="flex size-[30px] flex-none items-center justify-center rounded-[9px] text-[11px] font-bold text-[#062623]" style={{ background: row.color }}>{row.tag}</div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[12.5px] font-bold text-white">{row.title}</div>
+                  <div className="text-[11px] text-[#a2bac1]">{row.sub}</div>
+                </div>
+                <span className="font-mono text-[11.5px] text-[#a2bac1]">{row.meta}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="space-y-4 max-w-sm mx-auto">
-            <h3 className="text-2xl font-bold leading-tight transition-all duration-500 ease-in-out text-white">
-              {carouselItems[activeIndex].title}
-            </h3>
-            <p className="text-blue-100 text-lg transition-all duration-500 ease-in-out">
-              {carouselItems[activeIndex].description}
-            </p>
-          </div>
-
-          <div className="flex justify-center gap-2 pt-4">
-            {carouselItems.map((_, index) => (
+          <div className="mt-6 flex gap-2">
+            {slides.map((item, index) => (
               <button
-                key={index}
+                key={item.title}
+                type="button"
                 onClick={() => setActiveIndex(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${index === activeIndex ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/60"}`}
-                aria-label={`Go to slide ${index + 1}`}
+                aria-label={`Show slide ${index + 1}`}
+                className={`h-1.5 rounded-full transition-all ${index === activeIndex ? "w-[26px] bg-[#3fb6d6]" : "w-1.5 bg-white/25 hover:bg-white/40"}`}
               />
             ))}
           </div>
         </div>
-      </div>
-    </Card>
+      </section>
+
+      <section className="flex min-h-[calc(100dvh-78px)] w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-[520px] md:max-w-[46vw] md:px-[52px] md:py-10">
+        <div className="flex justify-end">
+          <Link href="/" className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#6c828c] transition-colors hover:text-[#0e96b8]">
+            <ArrowLeft size={14} /> Back to site
+          </Link>
+        </div>
+
+        <div className="my-auto w-full max-w-[340px] self-center py-8">
+          <div className="mb-[22px] flex size-[46px] items-center justify-center rounded-[13px] bg-[linear-gradient(135deg,#0e96b8,#0b7693)]">
+            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+              <path d="M10 22.5V10.5L22 21.5V9.5" stroke="#EAFBF8" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="10" cy="10.5" r="2.1" fill="#A7E9F6" /><circle cx="22" cy="21.5" r="2.1" fill="#A7E9F6" />
+            </svg>
+          </div>
+          <h1 className="text-[26px] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
+          <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">Sign in to your NEUROVA practice workspace.</p>
+
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            disabled={!isLoaded || isLoading}
+            className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#cfdadd] bg-white px-3 py-[13px] text-sm font-bold text-[#15252c] shadow-[0_1px_2px_rgba(16,40,46,.04),0_6px_20px_-8px_rgba(16,40,46,.12)] transition-colors hover:border-[#0e96b8] hover:bg-[#f4f7f8] disabled:cursor-wait disabled:opacity-70"
+          >
+            {isLoading ? <Loader2 size={19} className="animate-spin text-[#0e96b8]" /> : <GoogleIcon />}
+            Continue with Google
+          </button>
+
+          <div className="mt-3.5 flex items-start gap-2.5 rounded-[11px] border border-[#8acfe0] bg-[#e0f1f6] px-3.5 py-3">
+            <CalendarDays size={16} strokeWidth={1.8} className="mt-px flex-none text-[#0e96b8]" />
+            <p className="m-0 text-[11.5px] leading-[1.5] text-[#36474f]">Google sign-in lets NEUROVA sync your <strong className="text-[#15252c]">Google Calendar</strong> so appointments and sessions stay in one place. You can revoke access anytime.</p>
+          </div>
+
+          <div className="my-[22px] flex items-center gap-3">
+            <div className="h-px flex-1 bg-[#e2e9eb]" />
+            <span className="text-[11px] font-bold uppercase tracking-[.08em] text-[#93a6ae]">More options soon</span>
+            <div className="h-px flex-1 bg-[#e2e9eb]" />
+          </div>
+
+          <div aria-disabled="true" className="relative flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-[#e2e9eb] bg-[#f4f7f8] px-3 py-[13px] text-sm font-bold text-[#93a6ae]">
+            <Mail size={18} strokeWidth={1.8} /> Continue with Outlook
+            <span className="absolute right-3 rounded-full border border-[#e2e9eb] bg-white px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[.06em] text-[#6c828c]">Soon</span>
+          </div>
+
+          <p className="mt-7 text-center text-[11.5px] leading-[1.6] text-[#93a6ae]">
+            By continuing you agree to NEUROVA&apos;s <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Terms</Link>, <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Privacy</Link> &amp; <Link href="/baa" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">BAA</Link>. Protected health information is encrypted in transit and at rest.
+          </p>
+        </div>
+
+        <div className="text-center text-[11.5px] text-[#93a6ae]">New to NEUROVA? <Link href="/" className="font-bold text-[#0e96b8]">See how it works</Link></div>
+      </section>
+    </main>
   );
 }

@@ -315,3 +315,81 @@
   border-color: #0ea5e9 !important;
 }
 
+/* NEUROVA design system — aligned with the supplied product mockups. */
+@layer base {
+  :root {
+    --background: #f4f7f8;
+    --foreground: #15252c;
+    --card: #ffffff;
+    --card-foreground: #15252c;
+    --popover: #ffffff;
+    --popover-foreground: #15252c;
+    --primary: #0e96b8;
+    --primary-foreground: #ffffff;
+    --secondary: #eef3f4;
+    --secondary-foreground: #36474f;
+    --muted: #eef3f4;
+    --muted-foreground: #6c828c;
+    --accent: #e0f1f6;
+    --accent-foreground: #0b7693;
+    --border: #e2e9eb;
+    --input: #cfdadd;
+    --ring: #8acfe0;
+    --sidebar: #0d2933;
+    --sidebar-foreground: #a2bac1;
+    --sidebar-primary: #3fb6d6;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #163943;
+    --sidebar-accent-foreground: #eafbf8;
+    --sidebar-border: #24444d;
+    --sidebar-ring: #3fb6d6;
+    --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --radius: 0.75rem;
+    --shadow-sm: 0 1px 2px rgb(16 40 46 / 4%), 0 6px 20px -10px rgb(16 40 46 / 12%);
+    --shadow: 0 1px 2px rgb(16 40 46 / 4%), 0 10px 30px -14px rgb(16 40 46 / 16%);
+    --shadow-md: 0 1px 2px rgb(16 40 46 / 5%), 0 16px 36px -16px rgb(16 40 46 / 20%);
+    --shadow-lg: 0 24px 50px -24px rgb(10 40 46 / 30%);
+  }
+
+  .dark {
+    --background: #0f1d22;
+    --foreground: #e8f1f3;
+    --card: #15282f;
+    --card-foreground: #e8f1f3;
+    --popover: #15282f;
+    --popover-foreground: #e8f1f3;
+    --primary: #3fb6d6;
+    --primary-foreground: #08252e;
+    --secondary: #20343b;
+    --secondary-foreground: #dce8eb;
+    --muted: #20343b;
+    --muted-foreground: #9bb0b7;
+    --accent: #173e49;
+    --accent-foreground: #8fe3f2;
+    --border: #294149;
+    --input: #39545d;
+    --ring: #3fb6d6;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+}
+
+.neurova-marketing-page [style-hover] {
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.neurova-marketing-page .feature-grid > div:hover {
+  border-color: #8acfe0 !important;
+  transform: translateY(-2px);
+}
+
+.neurova-marketing-page a[style-hover]:hover {
+  filter: brightness(0.97);
+}

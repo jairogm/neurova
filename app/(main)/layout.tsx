@@ -16,10 +16,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       >
         {t("skipToContent")}
       </a>
-      <Navbar />
-      <main id="main-content" tabIndex={-1} className="focus:outline-none">
-        {children}
-      </main>
+      <div className="flex h-dvh overflow-hidden bg-background">
+        <Navbar />
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="min-w-0 flex-1 overflow-y-auto pb-20 pt-14 focus:outline-none lg:pb-0 lg:pt-16"
+        >
+          {children}
+        </main>
+      </div>
     </OnboardingProvider>
   );
 }
