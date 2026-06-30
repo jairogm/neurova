@@ -17,6 +17,7 @@ export type MedicalHistory = {
 };
 
 export type Patient = {
+  _id?: string;
   id: string;
   name: string;
   profile_img?: string;
@@ -34,6 +35,12 @@ export type Patient = {
   medical_history?: MedicalHistory; // stored as JSONB in Supabase
   created_at?: string;
   updated_at?: string;
+  status?: "active" | "intake" | "paused" | "discharged";
+  focus?: string;
+  session_count?: number;
+  next_session?: string;
+  last_seen?: string;
+  outstanding_balance?: number;
 };
 
 export type MedicalHistoryNote = {

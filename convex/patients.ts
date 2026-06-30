@@ -1,6 +1,5 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getCurrentUser } from "./users";
 
 export const list = query({
   args: {},
@@ -33,17 +32,50 @@ export const list = query({
       .filter((q) => q.eq(q.field("deleted_at"), undefined))
       .collect();
 
-    // Map to ensure types match Patient interface expectations
-    return patients.map(p => ({
-      ...p,
-      gender: (["male", "female", "other"].includes(p.gender || "") 
-        ? p.gender 
-        : undefined) as "male" | "female" | "other" | undefined,
-      national_id: p.national_id ?? 0, // Fallback for strict frontend type
-      // Parse JSON fields that were stored as strings
-      country_code: p.country_code ? JSON.parse(p.country_code) : undefined,
-      emergency_contact: p.emergency_contact ? JSON.parse(p.emergency_contact) : undefined,
-      medical_history: p.medical_history ? JSON.parse(p.medical_history) : undefined,
+    const parseJson = (value?: string) => {
+      if (!value) return undefined;
+      try { return JSON.parse(value); } catch { return undefined; }
+    };
+    const amountOf = (value: unknown) => {
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      if (typeof value !== "string") return 0;
+      const parsed = Number(value.replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+    const now = new Date().toISOString();
+
+    return Promise.all(patients.map(async (p) => {
+      const sessions = await ctx.db
+        .query("sessions")
+        .withIndex("by_patient_id", (q) => q.eq("patient_id", p.id))
+        .collect();
+      const sorted = [...sessions].sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+      const nextSession = sorted.find((session) => session.scheduled_date >= now);
+      const lastSession = [...sorted].reverse().find((session) => session.scheduled_date < now);
+      const medicalHistory = parseJson(p.medical_history);
+      const outstandingBalance = sessions.reduce((sum, session) => {
+        const status = session.payment_status?.toLowerCase();
+        return ["unpaid", "pending", "partially_paid", "overdue"].includes(status || "")
+          ? sum + amountOf(session.payment_amount)
+          : sum;
+      }, 0);
+
+      return {
+        ...p,
+        gender: (["male", "female", "other"].includes(p.gender || "")
+          ? p.gender
+          : undefined) as "male" | "female" | "other" | undefined,
+        national_id: p.national_id ?? 0,
+        country_code: parseJson(p.country_code),
+        emergency_contact: parseJson(p.emergency_contact),
+        medical_history: medicalHistory,
+        status: "active" as const,
+        focus: medicalHistory?.mainTopic || medicalHistory?.diagnosis || p.occupation || "General care",
+        session_count: sessions.length,
+        next_session: nextSession?.scheduled_date,
+        last_seen: lastSession?.scheduled_date,
+        outstanding_balance: outstandingBalance,
+      };
     }));
   },
 });

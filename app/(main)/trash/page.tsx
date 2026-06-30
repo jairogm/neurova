@@ -1,21 +1,7 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, RefreshCcw, AlertTriangle, ArrowLeft } from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
+import type { Id } from "@/convex/_generated/dataModel";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,8 +12,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTutorial } from "@/hooks/useTutorial";
+import { useMutation, useQuery } from "convex/react";
+import { AlertTriangle, ArrowLeft, FileText, RefreshCcw, Trash2, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+
+type DeleteTarget = { id: string; type: "patient" | "record"; label: string };
+
+function deletedLabel(value?: number) {
+  if (!value) return "Today";
+  return new Date(value).toLocaleDateString([], { month: "short", day: "numeric" });
+}
 
 export default function TrashPage() {
   const router = useRouter();
@@ -37,211 +36,109 @@ export default function TrashPage() {
   const deletePatient = useMutation(api.trash.permanentDeletePatient);
   const deleteRecord = useMutation(api.trash.permanentDeleteRecord);
   const { startTrashTour, currentTourPage } = useTutorial();
+  const [target, setTarget] = useState<DeleteTarget | null>(null);
 
-  const [itemToDelete, setItemToDelete] = useState<{ id: string, type: 'patient' | 'record' } | null>(null);
-
-  // Continue tour from patients page
   useEffect(() => {
-    if (currentTourPage === "patients") {
-      const timer = setTimeout(() => {
-        startTrashTour();
-      }, 800);
-      return () => clearTimeout(timer);
-    }
+    if (currentTourPage !== "patients") return;
+    const timer = window.setTimeout(startTrashTour, 800);
+    return () => window.clearTimeout(timer);
   }, [currentTourPage, startTrashTour]);
 
-  if (!trashData) {
-    return <div className="p-8 text-center">Loading trash...</div>;
-  }
-
-  const { patients, records } = trashData;
-
-  const handleRestore = async (id: string, type: 'patient' | 'record') => {
+  const restore = async (id: string, type: "patient" | "record") => {
     try {
-      if (type === 'patient') {
-        await restorePatient({ id: id as any });
-      } else {
-        await restoreRecord({ id: id as any });
-      }
-      const label = type === 'patient' ? "Patient" : "Record";
-      toast.success(`${label} restored successfully`);
-    } catch (error: any) {
-      const message = error.message.includes("Cannot restore record")
-        ? "Cannot restore record because the patient is deleted."
-        : error.data?.message || error.message || "Failed to restore item";
-      toast.error(message);
+      if (type === "patient") await restorePatient({ id: id as Id<"patients"> });
+      else await restoreRecord({ id: id as Id<"medical_history_notes"> });
+      toast.success(`${type === "patient" ? "Patient" : "Record"} restored`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to restore item";
+      toast.error(message.includes("Cannot restore record") ? "Restore the patient before restoring this record." : message);
     }
   };
 
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
+  const permanentlyDelete = async () => {
+    if (!target) return;
     try {
-      if (itemToDelete.type === 'patient') {
-        await deletePatient({ id: itemToDelete.id as any });
-      } else {
-        await deleteRecord({ id: itemToDelete.id as any });
-      }
-      const label = itemToDelete.type === 'patient' ? "Patient" : "Record";
-      toast.success(`${label} permanently deleted`);
-    } catch (error) {
+      if (target.type === "patient") await deletePatient({ id: target.id as Id<"patients"> });
+      else await deleteRecord({ id: target.id as Id<"medical_history_notes"> });
+      toast.success(`${target.type === "patient" ? "Patient" : "Record"} permanently deleted`);
+    } catch {
       toast.error("Failed to delete item");
     } finally {
-      setItemToDelete(null);
+      setTarget(null);
     }
   };
 
-  const getDaysRemaining = (deletedAt?: number) => {
-    if (!deletedAt) return 30;
-    const daysPassed = (Date.now() - deletedAt) / (1000 * 60 * 60 * 24);
-    return Math.max(0, Math.round(30 - daysPassed));
-  };
+  const patients = trashData?.patients || [];
+  const records = trashData?.records || [];
+  const actionClass = "h-8 rounded-lg px-2.5 text-[11.5px] shadow-none";
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex items-center gap-3 mb-6">
-        <Button id="trash-back-btn" variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
-          <Trash2 className="h-6 w-6 text-red-600" />
-        </div>
+    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
+      <div className="mb-[22px] flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Trash</h1>
-          <p className="text-gray-500">Items are permanently deleted after 30 days.</p>
+          <h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">Trash</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Restore items or remove them permanently. Deleted data is retained for 30 days.</p>
         </div>
+        <Button id="trash-back-btn" variant="outline" onClick={() => router.back()} className="h-9"><ArrowLeft size={15} />Back</Button>
       </div>
 
-      <Tabs defaultValue="patients" className="w-full">
-        <TabsList id="trash-tabs" className="mb-4">
-          <TabsTrigger value="patients">Patients ({patients.length})</TabsTrigger>
-          <TabsTrigger value="records">Records ({records.length})</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="patients">
-          <div id="trash-table" className="rounded-md border bg-white dark:bg-gray-950">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Deleted</TableHead>
-                  <TableHead>Auto-Delete In</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {patients.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-gray-500">
-                      No deleted patients found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  patients.map((patient, index) => (
-                    <TableRow key={patient._id}>
-                      <TableCell className="font-medium">{patient.name}</TableCell>
-                      <TableCell>
-                        {patient.deleted_at ? formatDistanceToNow(patient.deleted_at, { addSuffix: true }) : '-'}
-                      </TableCell>
-                      <TableCell className="text-orange-600 font-medium">
-                        {getDaysRemaining(patient.deleted_at)} days
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button
-                          id={index === 0 ? "trash-restore-btn" : undefined}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRestore(patient._id, 'patient')}
-                        >
-                          <RefreshCcw className="mr-2 h-3 w-3" /> Restore
-                        </Button>
-                        <Button
-                          id={index === 0 ? "trash-delete-btn" : undefined}
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setItemToDelete({ id: patient._id, type: 'patient' })}
-                        >
-                          Delete Forever
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+      <div id="trash-tabs" className="grid gap-[18px]">
+        <section id="trash-table" className="overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-[18px] py-[15px]">
+            <div className="flex items-center gap-2.5"><UserRound size={16} className="text-primary" /><h2 className="text-[15px] font-extrabold text-foreground">Patients</h2></div>
+            <span className="font-mono text-xs text-muted-foreground">{trashData === undefined ? "—" : patients.length}</span>
           </div>
-        </TabsContent>
+          {trashData === undefined ? (
+            <div className="space-y-2 p-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
+          ) : patients.length ? (
+            <div>
+              {patients.map((patient, index) => (
+                <div key={patient._id} className="flex flex-wrap items-center gap-3 border-b border-border px-[18px] py-3.5 last:border-0 hover:bg-secondary sm:flex-nowrap">
+                  <div className="flex size-9 flex-none items-center justify-center rounded-[10px] bg-primary/10 text-primary"><UserRound size={16} /></div>
+                  <div className="min-w-[180px] flex-1"><div className="truncate text-[13px] font-bold text-foreground">{patient.name}</div><div className="mt-0.5 text-[11px] text-muted-foreground">Deleted {deletedLabel(patient.deleted_at)}</div></div>
+                  <div className="ml-auto flex gap-2">
+                    <Button id={index === 0 ? "trash-restore-btn" : undefined} variant="outline" className={actionClass} onClick={() => restore(patient._id, "patient")}><RefreshCcw size={13} />Restore</Button>
+                    <Button id={index === 0 ? "trash-delete-btn" : undefined} variant="outline" className={`${actionClass} text-[#d2574f] hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]`} onClick={() => setTarget({ id: patient._id, type: "patient", label: patient.name })}><Trash2 size={13} />Delete forever</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <div className="px-6 py-12 text-center text-[13px] text-muted-foreground">No deleted patients.</div>}
+        </section>
 
-        <TabsContent value="records">
-          <div className="rounded-md border bg-white dark:bg-gray-950">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Deleted</TableHead>
-                  <TableHead>Auto-Delete In</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {records.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                      No deleted records found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  records.map((record) => (
-                    <TableRow key={record._id}>
-                      <TableCell className="font-medium">{record.title || "Untitled"}</TableCell>
-                      <TableCell>{record.date}</TableCell>
-                      <TableCell>
-                        {record.deleted_at ? formatDistanceToNow(record.deleted_at, { addSuffix: true }) : '-'}
-                      </TableCell>
-                      <TableCell className="text-orange-600 font-medium">
-                        {getDaysRemaining(record.deleted_at)} days
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRestore(record._id, 'record')}
-                        >
-                          <RefreshCcw className="mr-2 h-3 w-3" /> Restore
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setItemToDelete({ id: record._id, type: 'record' })}
-                        >
-                          Delete Forever
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+        <section className="overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-[18px] py-[15px]">
+            <div className="flex items-center gap-2.5"><FileText size={16} className="text-primary" /><h2 className="text-[15px] font-extrabold text-foreground">Records</h2></div>
+            <span className="font-mono text-xs text-muted-foreground">{trashData === undefined ? "—" : records.length}</span>
           </div>
-        </TabsContent>
-      </Tabs>
+          {trashData === undefined ? (
+            <div className="space-y-2 p-4"><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></div>
+          ) : records.length ? (
+            <div>
+              {records.map((record) => (
+                <div key={record._id} className="flex flex-wrap items-center gap-3 border-b border-border px-[18px] py-3.5 last:border-0 hover:bg-secondary sm:flex-nowrap">
+                  <div className="flex size-9 flex-none items-center justify-center rounded-[10px] bg-primary/10 text-primary"><FileText size={16} /></div>
+                  <div className="min-w-[180px] flex-1"><div className="truncate text-[13px] font-bold text-foreground">{record.title || "Untitled record"}</div><div className="mt-0.5 text-[11px] text-muted-foreground">{record.date || "No date"} · Deleted {deletedLabel(record.deleted_at)}</div></div>
+                  <div className="ml-auto flex gap-2">
+                    <Button variant="outline" className={actionClass} onClick={() => restore(record._id, "record")}><RefreshCcw size={13} />Restore</Button>
+                    <Button variant="outline" className={`${actionClass} text-[#d2574f] hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]`} onClick={() => setTarget({ id: record._id, type: "record", label: record.title || "this record" })}><Trash2 size={13} />Delete forever</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <div className="px-6 py-12 text-center text-[13px] text-muted-foreground">No deleted records.</div>}
+        </section>
+      </div>
 
-      <AlertDialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+      <AlertDialog open={Boolean(target)} onOpenChange={(open) => { if (!open) setTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Permanent Deletion
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This item will be permanently removed from the database.
-            </AlertDialogDescription>
+            <AlertDialogTitle className="flex items-center gap-2 text-foreground"><span className="flex size-9 items-center justify-center rounded-[10px] bg-[#f8e5e3] text-[#d2574f]"><AlertTriangle size={17} /></span>Delete forever?</AlertDialogTitle>
+            <AlertDialogDescription>{target?.label} will be permanently removed. This action cannot be undone.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete Forever
-            </AlertDialogAction>
+            <AlertDialogAction onClick={permanentlyDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">Delete forever</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

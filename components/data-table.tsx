@@ -31,12 +31,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   loading?: boolean;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   loading = false,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const t = useTranslations("common");
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -62,9 +64,9 @@ export function DataTable<TData, TValue>({
   return (
     <div>
 
-      <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <Table className="min-w-[980px]">
+          <TableHeader className="bg-secondary">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
@@ -98,7 +100,8 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="h-14"
+                  className={onRowClick ? "h-14 cursor-pointer" : "h-14"}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -125,7 +128,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       {!loading && (
-        <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex items-center justify-end gap-2 py-4">
           <Button
             variant="outline"
             size="sm"

@@ -95,15 +95,6 @@ export const patientsTourSteps: DriveStep[] = [
     },
   },
   {
-    element: "#action-view",
-    popover: {
-      title: "👁️ View Patient Info",
-      description: "Click this eye icon to view detailed patient information like contact details, medical history, and notes.",
-      side: "left" as const,
-      align: "center" as const,
-    },
-  },
-  {
     element: "#action-edit",
     popover: {
       title: "✏️ Edit Patient",
@@ -117,15 +108,6 @@ export const patientsTourSteps: DriveStep[] = [
     popover: {
       title: "📂 Patient Records",
       description: "Click the folder icon to access the patient's medical records. We'll visit this page next!",
-      side: "left" as const,
-      align: "center" as const,
-    },
-  },
-  {
-    element: "#action-print",
-    popover: {
-      title: "🖨️ Print Medical History",
-      description: "Click the printer icon to generate a PDF of the patient's complete medical history for printing or download.",
       side: "left" as const,
       align: "center" as const,
     },

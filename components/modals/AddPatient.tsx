@@ -93,23 +93,26 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
         <DialogTrigger
           className={
             variant
-              ? `border-sky-500 text-sky-600 hover:text-sky-600 w-full border rounded-md flex items-center justify-center gap-2 p-2`
-              : `bg-sky-600 border-sky-600 text-white hover:bg-sky-500 hover:text-white rounded-md w-full max-w-52 flex items-center justify-center gap-2 p-2`
+              ? "flex h-10 w-full items-center justify-center gap-2 rounded-[10px] border border-primary text-[13px] font-bold text-primary hover:bg-primary/10"
+              : "flex h-10 w-full max-w-52 items-center justify-center gap-2 rounded-[10px] bg-primary text-[13px] font-bold text-primary-foreground hover:bg-[#0b7693]"
           }
         >
-          <Plus className={variant ? `text-sky-600` : `text-white`} size={20} aria-hidden="true" />
+          <Plus className="text-current" size={16} aria-hidden="true" />
           {t("trigger")}
         </DialogTrigger>
       )}
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>
-            {t("description")}
-          </DialogDescription>
+      <DialogContent className="max-w-xl gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-primary/10 text-primary"><Plus size={18} strokeWidth={2.2} /></span>
+            <div>
+              <DialogTitle className="text-[17px] font-extrabold">{t("title")}</DialogTitle>
+              <DialogDescription className="mt-1 text-[12.5px]">{t("description")}</DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-4 p-6" noValidate>
           {/* Name */}
           <div className="grid gap-2">
             <Label htmlFor="name">
@@ -167,7 +170,7 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
                   const country = COUNTRIES.find(c => c.iso === e.target.value);
                   if (country) setSelectedCountry(country);
                 }}
-                className="border rounded-md px-2 py-1 text-sm min-w-24"
+                className="h-10 min-w-24 rounded-[9px] border border-input bg-card px-2 text-[13px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
               >
                 {COUNTRIES.map((country) => (
                   <option key={country.iso} value={country.iso}>
@@ -203,8 +206,9 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
             )}
           </div>
 
-          <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+          <DialogFooter className="mt-6 border-t border-border pt-4">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting} className="min-w-28">
               {isSubmitting ? t("submitting") : t("submit")}
             </Button>
           </DialogFooter>
