@@ -12,7 +12,7 @@ import { Laptop, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-const ThemeSwitcher = () => {
+const ThemeSwitcher = ({ dashboard = false }: { dashboard?: boolean }) => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -30,7 +30,11 @@ const ThemeSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size={"sm"}>
+        <Button
+          variant={dashboard ? "outline" : "ghost"}
+          size="icon"
+          className={dashboard ? "size-[38px] rounded-[10px] border-border bg-secondary text-foreground hover:border-primary hover:bg-secondary" : undefined}
+        >
           {theme === "light" ? (
             <Sun
               key="light"

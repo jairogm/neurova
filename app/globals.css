@@ -318,7 +318,7 @@
 /* NEUROVA design system — aligned with the supplied product mockups. */
 @layer base {
   :root {
-    --background: #f4f7f8;
+    --background: #eff3f4;
     --foreground: #15252c;
     --card: #ffffff;
     --card-foreground: #15252c;
@@ -326,23 +326,27 @@
     --popover-foreground: #15252c;
     --primary: #0e96b8;
     --primary-foreground: #ffffff;
-    --secondary: #eef3f4;
+    --secondary: #f4f7f8;
     --secondary-foreground: #36474f;
-    --muted: #eef3f4;
+    --muted: #edf2f3;
     --muted-foreground: #6c828c;
     --accent: #e0f1f6;
     --accent-foreground: #0b7693;
     --border: #e2e9eb;
     --input: #cfdadd;
     --ring: #8acfe0;
-    --sidebar: #0d2933;
-    --sidebar-foreground: #a2bac1;
-    --sidebar-primary: #3fb6d6;
+    --sidebar: #fbfcfc;
+    --sidebar-foreground: #5a6f77;
+    --sidebar-primary: #0e96b8;
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #163943;
-    --sidebar-accent-foreground: #eafbf8;
-    --sidebar-border: #24444d;
-    --sidebar-ring: #3fb6d6;
+    --sidebar-accent: #e0f1f6;
+    --sidebar-accent-foreground: #0e96b8;
+    --sidebar-border: #e6edee;
+    --sidebar-ring: #0e96b8;
+    --nv-success: #15986a;
+    --nv-warning: #be7c16;
+    --nv-danger: #d2574f;
+    --nv-faint: #93a6ae;
     --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, monospace;
     --radius: 0.75rem;
@@ -353,23 +357,35 @@
   }
 
   .dark {
-    --background: #0f1d22;
-    --foreground: #e8f1f3;
-    --card: #15282f;
-    --card-foreground: #e8f1f3;
-    --popover: #15282f;
-    --popover-foreground: #e8f1f3;
-    --primary: #3fb6d6;
-    --primary-foreground: #08252e;
-    --secondary: #20343b;
-    --secondary-foreground: #dce8eb;
-    --muted: #20343b;
-    --muted-foreground: #9bb0b7;
-    --accent: #173e49;
-    --accent-foreground: #8fe3f2;
-    --border: #294149;
-    --input: #39545d;
-    --ring: #3fb6d6;
+    --background: #0b1518;
+    --foreground: #e9f2f2;
+    --card: #11242a;
+    --card-foreground: #e9f2f2;
+    --popover: #11242a;
+    --popover-foreground: #e9f2f2;
+    --primary: #38b6d8;
+    --primary-foreground: #031c23;
+    --secondary: #0e1e23;
+    --secondary-foreground: #c2d3d5;
+    --muted: #0c1b20;
+    --muted-foreground: #85a0a4;
+    --accent: #0f3038;
+    --accent-foreground: #5cc7e2;
+    --border: #1e3640;
+    --input: #294852;
+    --ring: #1f5664;
+    --sidebar: #0e2025;
+    --sidebar-foreground: #a9bec2;
+    --sidebar-primary: #38b6d8;
+    --sidebar-primary-foreground: #031c23;
+    --sidebar-accent: #0f3038;
+    --sidebar-accent-foreground: #edf7f8;
+    --sidebar-border: #233e47;
+    --sidebar-ring: #38b6d8;
+    --nv-success: #2ba378;
+    --nv-warning: #d29a3a;
+    --nv-danger: #e0726a;
+    --nv-faint: #5e787c;
   }
 
   html {
@@ -379,6 +395,22 @@
   body {
     font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 10px;
+  background: #c4d2d4;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #284048;
 }
 
 .neurova-marketing-page [style-hover] {

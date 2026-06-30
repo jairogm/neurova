@@ -25,9 +25,9 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { CalendarIcon, Clock, Users, Plus } from "lucide-react";
 import { format } from "date-fns";
-import { cn, addOneHour } from "@/lib/utils";
+import { addOneHour } from "@/lib/utils";
 import { toast } from "sonner";
-import { Patient, RecurrenceType } from "@/lib/types";
+import { RecurrenceType } from "@/lib/types";
 import { useQuery as useConvexQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { AddPatient } from "./AddPatient";
@@ -59,7 +59,7 @@ const TIME_OPTIONS = Array.from({ length: 24 * 4 }, (_, i) => {
   return { value: time, label: displayTime };
 });
 
-export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
+export const ScheduleAppointment = ({ variant }: { variant?: "outline" | "topbar" }) => {
   const [isAddPatientOpen, setIsAddPatientOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [open, setOpen] = useState(false);
@@ -199,16 +199,20 @@ export const ScheduleAppointment = ({ variant }: { variant?: string }) => {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger
           className={
-            variant
-              ? `border-sky-500 text-sky-600 hover:text-sky-600 border rounded-md items-center flex justify-center gap-2 p-2 px-4 h-10 hover:bg-sky-100 whitespace-nowrap`
-              : `bg-sky-600 border-sky-600 text-white hover:bg-sky-500 hover:text-white rounded-md flex items-center justify-center p-2 px-4 gap-2 h-10 whitespace-nowrap`
+            variant === "topbar"
+              ? "flex h-[38px] items-center justify-center gap-1.5 whitespace-nowrap rounded-[10px] border-0 bg-primary px-3.5 text-[13px] font-bold text-primary-foreground shadow-[0_4px_14px_-4px_rgba(11,90,95,.4)] transition-colors hover:bg-[#0b7693]"
+              : variant === "outline"
+                ? "flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-primary px-4 text-primary hover:bg-primary/10 hover:text-primary"
+                : "flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-md border border-primary bg-primary px-4 text-white hover:bg-primary/90 hover:text-white"
           }
         >
           <CalendarIcon
-            className={variant ? `text-sky-600` : `text-white `}
-            size={20}
+            className={variant === "outline" ? "text-primary" : "text-current"}
+            size={variant === "topbar" ? 16 : 20}
           />
-          Schedule Appointment
+          <span className={variant === "topbar" ? "hidden xl:inline" : undefined}>
+            {variant === "topbar" ? "New appointment" : "Schedule Appointment"}
+          </span>
         </DialogTrigger>
 
         <DialogContent className="max-w-2xl">

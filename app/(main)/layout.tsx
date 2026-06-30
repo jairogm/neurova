@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <main
           id="main-content"
           tabIndex={-1}
-          className="min-w-0 flex-1 overflow-y-auto pb-20 pt-14 focus:outline-none lg:pb-0 lg:pt-16"
+          className="min-w-0 flex-1 overflow-y-auto pb-[68px] pt-[58px] focus:outline-none lg:pb-0 lg:pt-16"
         >
           {children}
         </main>

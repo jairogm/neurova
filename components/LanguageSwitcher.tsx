@@ -12,7 +12,7 @@ import {
 import { setUserLocale } from "@/i18n/locale";
 import { Locale, locales, localeLabels } from "@/i18n/config";
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "segmented" }) {
   const t = useTranslations("language");
   const activeLocale = useLocale() as Locale;
   const [isPending, startTransition] = useTransition();
@@ -25,6 +25,32 @@ export function LanguageSwitcher() {
       setUserLocale(locale);
     });
   };
+
+  if (variant === "segmented") {
+    return (
+      <div
+        className="flex items-center rounded-[9px] border border-border bg-secondary p-[3px] text-xs font-bold"
+        aria-label={t("changeLanguage")}
+      >
+        {locales.map((locale) => (
+          <button
+            key={locale}
+            type="button"
+            onClick={() => onSelect(locale)}
+            disabled={isPending}
+            aria-pressed={locale === activeLocale}
+            className={`rounded-md px-2.5 py-1 font-bold uppercase transition-colors disabled:opacity-50 ${
+              locale === activeLocale
+                ? "bg-card text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {locale}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <DropdownMenu>

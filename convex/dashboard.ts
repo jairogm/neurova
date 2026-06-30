@@ -1,5 +1,4 @@
 import { query } from "./_generated/server";
-import { v } from "convex/values";
 
 export const getStats = query({
   args: {},
@@ -26,8 +25,6 @@ export const getStats = query({
       .collect();
 
     const activePatients = patients.filter((p) => !p.deleted_at);
-    const activePatientIds = new Set(activePatients.map(p => p.id));
-
     // Get all sessions
     // Ideally we'd filter sessions by patient_id at the query level if we had a secondary index,
     // but for now we'll fetch all and filter in memory or join.
@@ -43,19 +40,82 @@ export const getStats = query({
     const therapistPatientIds = new Set(patients.map(p => p.id));
     const sessions = allSessions.filter(s => therapistPatientIds.has(s.patient_id));
 
-    // Calculate sessions this month
+    // Calculate dashboard ranges and payment totals.
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setDate(endOfToday.getDate() + 1);
+    const startOfWeek = new Date(startOfToday);
+    const dayOffset = (startOfWeek.getDay() + 6) % 7;
+    startOfWeek.setDate(startOfWeek.getDate() - dayOffset);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(endOfWeek.getDate() + 7);
     
     // Check if scheduled_date is >= startOfMonth
     // Note: scheduled_date format needs to be consistent (ISO string). 
     // If it's just YYYY-MM-DD, ISO string comparison works fine.
     const sessionsThisMonth = sessions.filter(s => s.scheduled_date >= startOfMonth).length;
 
+    const sessionsThisWeek = sessions.filter((session) => {
+      const date = new Date(session.scheduled_date);
+      return date >= startOfWeek && date < endOfWeek;
+    }).length;
+
+    const sessionsToday = sessions.filter((session) => {
+      const date = new Date(session.scheduled_date);
+      return date >= startOfToday && date < endOfToday;
+    }).length;
+
+    const completedSessions = sessions.filter((session) => {
+      const status = session.session_status?.toLowerCase();
+      return status === "completed" || status === "complete";
+    }).length;
+    const noShowSessions = sessions.filter((session) => {
+      const status = session.session_status?.toLowerCase();
+      return status === "no-show" || status === "no_show" || status === "missed";
+    }).length;
+    const attendanceBase = completedSessions + noShowSessions;
+    const attendanceRate = attendanceBase
+      ? Math.round((completedSessions / attendanceBase) * 100)
+      : 100;
+
+    const amountOf = (value: unknown) => {
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      if (typeof value !== "string") return 0;
+      const parsed = Number(value.replace(/[^0-9.-]/g, ""));
+      return Number.isFinite(parsed) ? parsed : 0;
+    };
+
+    const paymentTotals = sessions.reduce(
+      (totals, session) => {
+        const amount = amountOf(session.payment_amount);
+        const status = session.payment_status?.toLowerCase() || "";
+
+        if (["paid", "collected", "complete", "completed"].includes(status)) {
+          totals.collected += amount;
+        } else if (["overdue", "late"].includes(status)) {
+          totals.overdue += amount;
+        } else if (["unpaid", "pending", "open"].includes(status)) {
+          totals.unpaid += amount;
+        }
+
+        return totals;
+      },
+      { collected: 0, unpaid: 0, overdue: 0 },
+    );
+
     return {
       totalPatients: activePatients.length,
       totalSessions: sessions.length,
       sessionsThisMonth,
+      sessionsThisWeek,
+      sessionsToday,
+      attendanceRate,
+      outstandingAmount: paymentTotals.unpaid + paymentTotals.overdue,
+      paymentCollected: paymentTotals.collected,
+      paymentUnpaid: paymentTotals.unpaid,
+      paymentOverdue: paymentTotals.overdue,
     };
   },
 });
