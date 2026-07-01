@@ -57,13 +57,13 @@ export function EditEmergencyContactModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Emergency Contact</DialogTitle>
+      <DialogContent className="max-w-lg gap-0 overflow-hidden p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="text-[17px] font-extrabold">Edit emergency contact</DialogTitle>
           <DialogDescription>Update the emergency contact information.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           {/* Name and Relationship fields */}
           {fields.map(({ label, key }) => (
             <div key={key} className="grid gap-2">
@@ -88,7 +88,7 @@ export function EditEmergencyContactModal({
                     handleChange("country_code", country);
                   }
                 }}
-                className="border rounded-md px-2 py-1 text-sm min-w-24"
+                className="h-10 min-w-24 rounded-[9px] border border-input bg-card px-2 text-[13px] outline-none focus:border-primary"
               >
                 {COUNTRIES.map((country) => (
                   <option key={country.iso} value={country.iso}>
@@ -104,14 +104,13 @@ export function EditEmergencyContactModal({
               />
             </div>
           </div>
-        </div>
-
-        <DialogFooter>
+        <DialogFooter className="border-t border-border px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSaveClick}>Save Changes</Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -15,6 +15,7 @@ import { useState, useMemo } from "react";
 
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -70,7 +71,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
     if (!noteToDelete) return;
 
     try {
-      await deleteNote({ id: noteToDelete as any }); // Cast as any because we need v.id but string might be passed, usually fine
+      await deleteNote({ id: noteToDelete as Id<"medical_history_notes"> });
       toast.success("Record moved to trash");
       setNoteToDelete(null);
     } catch (error: unknown) {
@@ -92,22 +93,19 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
   // Strip HTML tags from description to show plain text only
   const stripHtmlTags = (html?: string) => {
     if (!html) return "—";
-    // Remove HTML tags and decode HTML entities
-    const tmp = document.createElement("div");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "—";
+    return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() || "—";
   };
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-100 dark:bg-gray-800">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <Table className="min-w-[720px]">
+          <TableHeader className="bg-secondary">
+            <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Name Record</TableHead>
-              <TableHead>Notes</TableHead>
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead>Record</TableHead>
+              <TableHead>Summary</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -129,46 +127,46 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
               ))
             ) : sortedNotes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                <TableCell colSpan={4} className="py-12 text-center text-muted-foreground">
                   No records found
                 </TableCell>
               </TableRow>
             ) : (
               sortedNotes.map((note) => (
                 <TableRow key={note.id}>
-                  <TableCell>{formatDate(note.date)}</TableCell>
-                  <TableCell className="font-medium">{note.title || "Untitled"}</TableCell>
-                  <TableCell className="max-w-md truncate">
+                  <TableCell className="font-mono text-[12px] text-muted-foreground">{formatDate(note.date)}</TableCell>
+                  <TableCell className="font-bold text-foreground">{note.title || "Untitled"}</TableCell>
+                  <TableCell className="max-w-md truncate text-muted-foreground">
                     {stripHtmlTags(note.description)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-center gap-2">
+                    <div className="flex justify-end gap-1.5">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className="h-8 w-8"
+                        className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-primary hover:bg-primary/10 hover:text-primary"
                         onClick={() => handleView(note)}
                         title="View record"
                       >
-                        <Eye className="h-4 w-4 text-blue-600" />
+                        <Eye size={14} />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className="h-8 w-8"
+                        className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-primary hover:bg-primary/10 hover:text-primary"
                         onClick={() => handleEdit(note)}
                         title="Edit record"
                       >
-                        <Pencil className="h-4 w-4 text-gray-600" />
+                        <Pencil size={14} />
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="icon"
-                        className="h-8 w-8"
+                        className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]"
                         onClick={() => setNoteToDelete(note.id)}
                         title="Delete record"
                       >
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                        <Trash2 size={14} />
                       </Button>
                     </div>
                   </TableCell>
@@ -202,15 +200,15 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
       <AlertDialog open={!!noteToDelete} onOpenChange={(open) => !open && setNoteToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Record</AlertDialogTitle>
+            <AlertDialogTitle>Move record to trash?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this record? It will be moved to trash and permanently deleted after 30 days.
+              This record will remain recoverable for 30 days.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+            <AlertDialogAction onClick={handleDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">
+              Move to trash
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

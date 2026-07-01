@@ -1,89 +1,45 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { MedicalNotesTable } from "@/components/MedicalNotesTable";
-import { useState, useEffect } from "react";
 import { AddRecordModal } from "@/components/modals/AddRecordModal";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useTutorial } from "@/hooks/useTutorial";
+import { useQuery } from "convex/react";
+import { ArrowLeft, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
 
 export default function PatientRecordsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: patientId } = use(params);
   const router = useRouter();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const patient = useQuery(api.patients.get, { id: patientId });
+  const notes = useQuery(api.medical_history_notes.listByPatient, { patientId });
+  const [addOpen, setAddOpen] = useState(false);
   const { startRecordsTour, currentTourPage } = useTutorial();
 
-  // Unwrap params
-  const [patientId, setPatientId] = useState<string | null>(null);
-
-  params.then(p => setPatientId(p.id));
-
-  const patient = useQuery(api.patients.get, patientId ? { id: patientId } : "skip");
-  const notes = useQuery(
-    api.medical_history_notes.listByPatient,
-    patientId ? { patientId } : "skip"
-  );
-
-  // Start records tour if coming from trash page
   useEffect(() => {
-    if (currentTourPage === "pre-records" || currentTourPage === "records") {
-      const timer = setTimeout(() => {
-        startRecordsTour();
-      }, 800);
-      return () => clearTimeout(timer);
-    }
+    if (currentTourPage !== "pre-records" && currentTourPage !== "records") return;
+    const timer = window.setTimeout(startRecordsTour, 800);
+    return () => window.clearTimeout(timer);
   }, [currentTourPage, startRecordsTour]);
 
-  if (!patientId || patient === undefined) {
-    return <div>Loading...</div>;
-  }
-
-  if (patient === null) {
-    return <div>Patient not found</div>;
-  }
+  if (patient === undefined) return <div className="mx-auto max-w-[1280px] px-6 py-8"><Skeleton className="h-[500px] rounded-[18px]" /></div>;
+  if (!patient) return <div className="px-6 py-16 text-center text-sm text-muted-foreground">Patient not found.</div>;
 
   return (
-    <div className="container mx-auto py-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            id="records-back-btn"
-            variant="ghost"
-            size="icon"
-            onClick={() => router.push("/patients")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Records - {patient.name}</h1>
-            <p className="text-sm text-gray-500">Medical history and clinical notes</p>
-          </div>
+    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
+      <div className="mb-[22px] flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Button id="records-back-btn" variant="outline" size="icon" onClick={() => router.push(`/patients/${patientId}`)} className="size-9"><ArrowLeft size={15} /></Button>
+          <div><h1 className="text-[22px] font-extrabold tracking-[-.02em] text-foreground">Notes & records</h1><p className="mt-0.5 text-[12.5px] text-muted-foreground">{patient.name} · Clinical documentation</p></div>
         </div>
-
-        <Button id="add-record-btn" onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Record
-        </Button>
+        <Button id="add-record-btn" onClick={() => setAddOpen(true)}><Plus size={15} />New note</Button>
       </div>
 
-      {/* Medical Notes Table */}
-      <div id="records-table">
-        <MedicalNotesTable
-          notes={notes || []}
-          patientId={patientId}
-          loading={notes === undefined}
-        />
-      </div>
-
-      {/* Add Record Modal */}
-      <AddRecordModal
-        open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
-        patientId={patientId}
-      />
+      <div id="records-table"><MedicalNotesTable notes={notes || []} patientId={patientId} loading={notes === undefined} /></div>
+      <AddRecordModal open={addOpen} onOpenChange={setAddOpen} patientId={patientId} />
     </div>
   );
 }

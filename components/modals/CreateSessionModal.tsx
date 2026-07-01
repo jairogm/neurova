@@ -98,15 +98,15 @@ export function CreateSessionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Session</DialogTitle>
+      <DialogContent className="max-h-[90vh] max-w-md gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="text-[17px] font-extrabold">Create session</DialogTitle>
           <DialogDescription>
             Schedule a new therapy session for this patient
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* Date Picker */}
           <div className="space-y-2">
             <Label>Date *</Label>
@@ -193,7 +193,7 @@ export function CreateSessionModal({
             </Select>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="mt-5 border-t border-border pt-4">
             <Button
               type="button"
               variant="outline"

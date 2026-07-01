@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -47,15 +46,15 @@ function PaymentStatusCell({ session }: { session: Session }) {
   const getPaymentColor = (status: PaymentStatus) => {
     switch (status) {
       case "paid":
-        return "text-green-700 bg-green-50 border-green-200";
+        return "text-[#15986a] bg-[#e2f1ea] border-[#b9ddcc] dark:bg-[#11302a] dark:border-[#215344]";
       case "pending":
-        return "text-amber-700 bg-amber-50 border-amber-200";
+        return "text-[#be7c16] bg-[#f6ecd8] border-[#e7cca0] dark:bg-[#33280f] dark:border-[#604d23]";
       case "partially_paid":
-        return "text-blue-700 bg-blue-50 border-blue-200";
+        return "text-primary bg-primary/10 border-primary/30";
       case "refunded":
-        return "text-red-700 bg-red-50 border-red-200";
+        return "text-[#d2574f] bg-[#f8e5e3] border-[#edc1bd] dark:bg-[#3a1f1d] dark:border-[#67312d]";
       default:
-        return "text-gray-700 bg-gray-50 border-gray-200";
+        return "text-muted-foreground bg-secondary border-border";
     }
   };
 
@@ -65,7 +64,7 @@ function PaymentStatusCell({ session }: { session: Session }) {
       onValueChange={(value) => handleStatusChange(value as PaymentStatus)}
       disabled={isUpdating}
     >
-      <SelectTrigger className={`w-[140px] h-8 ${getPaymentColor(session.payment_status || "pending")}`}>
+      <SelectTrigger className={`h-8 w-[140px] rounded-full text-[11px] font-bold ${getPaymentColor(session.payment_status || "pending")}`}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -103,13 +102,14 @@ export const sessionColumns: ColumnDef<Session>[] = [
     accessorKey: "scheduled_date",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
+        <button
+          type="button"
+          className="flex items-center gap-1.5 uppercase"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Date & Time
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown size={12} />
+        </button>
       );
     },
     cell: ({ row }) => {
@@ -122,9 +122,9 @@ export const sessionColumns: ColumnDef<Session>[] = [
       }
 
       return (
-        <div className="flex flex-col">
-          <span className="font-medium">{format(date, "MMM dd, yyyy")}</span>
-          <span className="text-sm text-muted-foreground">{format(date, "hh:mm a")}</span>
+        <div className="flex flex-col font-mono">
+          <span className="font-semibold text-foreground">{format(date, "MMM dd, yyyy")}</span>
+          <span className="text-[11px] text-muted-foreground">{format(date, "hh:mm a")}</span>
         </div>
       );
     },
@@ -134,7 +134,7 @@ export const sessionColumns: ColumnDef<Session>[] = [
     header: "Duration",
     cell: ({ row }) => {
       const duration = row.getValue("duration") as number;
-      return <span>{duration} min</span>;
+      return <span className="font-mono text-foreground/80">{duration} min</span>;
     },
   },
   {

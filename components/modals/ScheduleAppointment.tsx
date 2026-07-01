@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -215,22 +216,22 @@ export const ScheduleAppointment = ({ variant }: { variant?: "outline" | "topbar
           </span>
         </DialogTrigger>
 
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <CalendarIcon className="h-5 w-5" />
-              <span>Schedule Appointment</span>
-            </DialogTitle>
+        <DialogContent className="max-h-[92vh] max-w-2xl gap-0 overflow-hidden p-0">
+          <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-primary/10 text-primary"><CalendarIcon size={18} /></span>
+              <div><DialogTitle className="text-[17px] font-extrabold">Schedule appointment</DialogTitle><DialogDescription className="mt-1 text-[12.5px]">Syncs to Google Calendar automatically.</DialogDescription></div>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
+          <div className="max-h-[calc(92vh-150px)] space-y-5 overflow-y-auto px-6 py-5">
             {/* Patient Selection */}
             <div className="space-y-2">
               <Label htmlFor="patient">Patient *</Label>
               {isLoadingPatients ? (
                 <div className="text-sm text-gray-500">Loading patients...</div>
               ) : patients.length === 0 ? (
-                <div className="border rounded-lg p-4 text-center space-y-3">
+                <div className="space-y-3 rounded-xl border border-dashed border-border bg-secondary p-4 text-center">
                   <div className="flex items-center justify-center text-gray-400">
                     <Users className="h-8 w-8" />
                   </div>
@@ -323,7 +324,7 @@ export const ScheduleAppointment = ({ variant }: { variant?: "outline" | "topbar
             </div>
 
             {/* Time Selection */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Start Time *</Label>
                 <Select
@@ -386,7 +387,7 @@ export const ScheduleAppointment = ({ variant }: { variant?: "outline" | "topbar
 
             {/* Recurrence Options */}
             {formData.is_recurring && (
-              <div className="space-y-4 pl-6 border-l-2 border-sky-200">
+              <div className="space-y-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
                 <div className="space-y-2">
                   <Label>Repeat every</Label>
                   <Select
@@ -446,7 +447,7 @@ export const ScheduleAppointment = ({ variant }: { variant?: "outline" | "topbar
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="border-t border-border px-6 py-4">
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>

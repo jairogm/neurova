@@ -31,7 +31,7 @@ import { COUNTRIES, Country } from "@/lib/constants/countries";
 
 type PatientData = {
   name: string;
-  country_code: Country;
+  country_code?: Country;
   phone_number?: string;
   email?: string;
   gender?: string;
@@ -107,15 +107,15 @@ export function EditPatientModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Patient Info</DialogTitle>
+      <DialogContent className="max-h-[90vh] max-w-xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="text-[17px] font-extrabold">Edit patient</DialogTitle>
           <DialogDescription>
             Update the patients details below.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           {/* Name */}
           <div className="grid gap-2">
             <label className="text-sm font-medium">Name</label>
@@ -136,7 +136,7 @@ export function EditPatientModal({
                   const country = COUNTRIES.find(c => c.iso === e.target.value);
                   if (country) setSelectedCountry(country);
                 }}
-                className="border rounded-md px-2 py-1 text-sm min-w-24"
+                className="h-10 min-w-24 rounded-[9px] border border-input bg-card px-2 text-[13px] outline-none focus:border-primary"
               >
                 {COUNTRIES.map((country) => (
                   <option key={country.iso} value={country.iso}>
@@ -163,7 +163,7 @@ export function EditPatientModal({
           </div>
 
           {/* Gender + Date of Birth */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             {/* Gender */}
             <div className="grid gap-2">
               <label className="text-sm font-medium">Gender</label>
@@ -228,14 +228,13 @@ export function EditPatientModal({
               onChange={(e) => handleChange("occupation", e.target.value)}
             />
           </div>
-        </div>
-
-        <DialogFooter>
+        <DialogFooter className="border-t border-border px-6 py-4">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleSaveClick}>Save Changes</Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

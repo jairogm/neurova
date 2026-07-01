@@ -1,90 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import { Pencil } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { EmergencyContact } from "@/lib/types";
-import { EditEmergencyContactModal } from "../modals/EditEmergencyContactModal";
-import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { toast } from "sonner";
+import { EditEmergencyContactModal } from "@/components/modals/EditEmergencyContactModal";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { COUNTRIES } from "@/lib/constants/countries";
+import type { EmergencyContact } from "@/lib/types";
+import { useMutation } from "convex/react";
+import { AlertTriangle, Pencil, Phone } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-type Props = {
-  emergency_contact?: EmergencyContact;
-  patientId: string;
-};
-
-export const EmergencyContactCard = ({ emergency_contact, patientId }: Props) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export const EmergencyContactCard = ({ emergency_contact, patientId }: { emergency_contact?: EmergencyContact; patientId: string }) => {
+  const [open, setOpen] = useState(false);
   const updatePatient = useMutation(api.patients.update);
 
-  const handleSave = async (updated: EmergencyContact) => {
+  const save = async (contact: EmergencyContact) => {
     try {
-      await updatePatient({
-        id: patientId,
-        updates: { emergency_contact: JSON.stringify(updated) }
-      });
-      toast.success("Emergency contact updated successfully");
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to update patient: " + message);
+      await updatePatient({ id: patientId, updates: { emergency_contact: JSON.stringify(contact) } });
+      toast.success("Emergency contact updated");
+    } catch (error) {
+      toast.error(`Failed to update contact: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   };
 
   return (
     <>
-      <Card className="shadow-xs border border-red-200  relative">
-        <CardHeader className="text-center flex flex-row items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-red-500">
-            Emergency Contact
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="hover:bg-red-200"
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Pencil className="w-4 h-4 text-red-400" />
-          </Button>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-3 space-y-1 text-sm">
-          <div className="flex justify-between items-center gap-2">
-            <span className="text-gray-400">Name</span>
-            <span className="text-primary text-right">
-              {emergency_contact?.name ?? "--"}
-            </span>
+      <Card className="p-[18px]">
+        <div className="mb-[13px] flex items-center justify-between">
+          <div className="text-[11px] font-bold uppercase tracking-[.08em] text-muted-foreground">Emergency contact</div>
+          <AlertTriangle size={15} strokeWidth={1.8} className="text-[#d2574f]" />
+        </div>
+        {emergency_contact?.name || emergency_contact?.phone ? (
+          <div>
+            <div className="text-[13.5px] font-bold text-foreground">{emergency_contact.name || "Unnamed contact"}</div>
+            <div className="mb-1.5 text-xs text-muted-foreground">{emergency_contact.relationship || "Relationship not set"}</div>
+            <div className="flex items-center gap-2 font-mono text-[12px] text-foreground/80"><Phone size={13} className="text-[var(--nv-faint)]" />{emergency_contact.country_code?.phoneCode} {emergency_contact.phone}</div>
           </div>
-          <div className="flex justify-between items-center gap-2">
-            <span className="text-gray-400">Phone</span>
-            <span className="text-primary text-right">
-              {emergency_contact?.country_code?.flag && emergency_contact?.country_code?.phoneCode && emergency_contact?.phone
-                ? `${emergency_contact.country_code.flag} ${emergency_contact.country_code.phoneCode} ${emergency_contact.phone}`
-                : emergency_contact?.phone || "--"}
-            </span>
-          </div>
-          <div className="flex justify-between items-center gap-2">
-            <span className="text-gray-400">Relationship</span>
-            <span className="text-primary text-right">
-              {emergency_contact?.relationship ?? "--"}
-            </span>
-          </div>
-        </CardContent>
+        ) : <div className="text-[12.5px] text-[var(--nv-faint)]">No emergency contact on file.</div>}
+        <Button variant="outline" onClick={() => setOpen(true)} className="mt-3 h-8 w-full text-[11.5px]"><Pencil size={13} />Edit contact</Button>
       </Card>
 
-      <EditEmergencyContactModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        contact={{
-          name: emergency_contact?.name ?? "",
-          country_code: emergency_contact?.country_code ?? COUNTRIES[0],
-          phone: emergency_contact?.phone ?? "",
-          relationship: emergency_contact?.relationship ?? "",
-        }}
-        onSave={handleSave}
-      />
+      <EditEmergencyContactModal open={open} onOpenChange={setOpen} contact={emergency_contact || { name: "", country_code: COUNTRIES[0], phone: "", relationship: "" }} onSave={save} />
     </>
   );
 };

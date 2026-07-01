@@ -17,7 +17,7 @@ interface ViewRecordModalProps {
 export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalProps) {
   const renderContent = () => {
     if (!note.content || !(note.content as { blocks?: unknown[] }).blocks) {
-      return <p className="text-gray-500">No content available</p>;
+      return <p className="text-muted-foreground">No content available</p>;
     }
 
     return (note.content as { blocks: unknown[] }).blocks.map((block: unknown, index: number) => {
@@ -58,17 +58,17 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="break-words">{note.title || "Untitled Record"}</DialogTitle>
+      <DialogContent className="max-h-[80vh] max-w-3xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="break-words text-[17px] font-extrabold">{note.title || "Untitled Record"}</DialogTitle>
           {note.date && (
-            <p className="text-sm text-gray-500">
+            <p className="font-mono text-[11.5px] text-muted-foreground">
               {format(new Date(note.date), "MMMM dd, yyyy")}
             </p>
           )}
         </DialogHeader>
 
-        <div className="prose max-w-none break-words">
+        <div className="prose max-w-none break-words px-6 py-5 text-[13.5px] leading-6 text-foreground/85 dark:prose-invert">
           {renderContent()}
         </div>
       </DialogContent>

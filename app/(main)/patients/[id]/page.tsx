@@ -5,8 +5,6 @@ export default async function PatientDetail({ params }: { params: Promise<{ id: 
   const { id } = await params;
 
   return (
-    <div className="container mx-auto">
-      <PatientDetailClient id={id} />
-    </div>
+    <PatientDetailClient id={id} />
   );
 }

@@ -79,17 +79,17 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Pencil className="h-5 w-5 text-blue-600" />
-            Edit Record
+      <DialogContent className="max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="flex items-center gap-3 text-[17px] font-extrabold">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Pencil size={17} /></span>
+            Edit note
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 p-6">
           {/* Title and Date */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="title">Name Record</Label>
               <Input
@@ -119,7 +119,7 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
             <Label>Notes</Label>
             <div
               id="edit-record-editor"
-              className="border rounded-md p-4 mt-2"
+              className="mt-2 rounded-xl border border-border bg-secondary p-4"
               style={{
                 height: '400px',
                 maxHeight: '400px',
@@ -132,7 +132,7 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
