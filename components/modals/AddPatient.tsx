@@ -1,86 +1,95 @@
 "use client";
 
-import React, { useState } from "react";
-import { Plus } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import {
   Dialog,
-  DialogDescription,
-  DialogTitle,
-  DialogTrigger,
   DialogContent,
+  DialogDescription,
   DialogHeader,
-  DialogFooter,
+  DialogTitle,
 } from "../ui/dialog";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Button } from "../ui/button";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { patientSchema } from "@/lib/schemas/patient";
-import { COUNTRIES, Country } from "@/lib/constants/countries";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useTranslations } from "next-intl";
 
 interface AddPatientProps {
-  variant?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
 
-export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddPatientProps) => {
-  const t = useTranslations("addPatient");
-  const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]);
-  const [internalOpen, setInternalOpen] = useState(false);
+const STATUS_CHIPS = [
+  { key: "active", label: "Active" },
+  { key: "intake", label: "Intake" },
+  { key: "paused", label: "Paused" },
+  { key: "discharged", label: "Discharged" },
+] as const;
 
-  // Use controlled open state if provided, otherwise use internal state
+const emptyForm = {
+  name: "",
+  pronouns: "",
+  age: "",
+  email: "",
+  phone: "",
+  location: "",
+  status: "active",
+  focus: "",
+  goal: "",
+  summary: "",
+  ecName: "",
+  ecRel: "",
+  ecPhone: "",
+};
+
+const fieldClass = "w-full rounded-[10px] border border-border bg-secondary px-3 py-2.5 text-[13px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary";
+const labelClass = "mb-[7px] block text-xs font-bold text-foreground/80";
+
+export const AddPatient = ({ open: controlledOpen, onOpenChange }: AddPatientProps) => {
+  const router = useRouter();
+  const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    phone_number: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [form, setForm] = useState(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const createPatient = useMutation(api.patients.create);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
+  useEffect(() => {
+    if (open) setForm(emptyForm);
+  }, [open]);
 
-    const result = patientSchema.safeParse({
-      name: form.name,
-      email: form.email,
-      country_code: selectedCountry,
-      phone_number: form.phone_number,
-    });
+  const setField = (key: keyof typeof emptyForm) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = event.target.value;
+    setForm((current) => ({ ...current, [key]: value }));
+  };
 
-    if (!result.success) {
-      const newErrors: Record<string, string> = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0]) newErrors[err.path[0].toString()] = err.message;
-      });
-      setErrors(newErrors);
+  const submit = async () => {
+    const name = form.name.trim();
+    if (!name) {
+      toast.error("Patient name is required");
       return;
     }
-
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
-      await createPatient({
-        name: result.data.name,
-        email: result.data.email,
-        phone_number: result.data.phone_number,
-        country_code: JSON.stringify(result.data.country_code),
+      const created = await createPatient({
+        name,
+        email: form.email || undefined,
+        phone_number: form.phone || undefined,
+        city: form.location || undefined,
+        status: form.status,
+        focus: form.focus || "New patient",
+        pronouns: form.pronouns || undefined,
+        age: form.age || undefined,
+        summary: form.summary || "New patient. Add presenting concerns and goals after the first session.",
+        goals: JSON.stringify([{ text: form.goal || "Define initial treatment goals", tone: "primary" }]),
+        emergency_contact: JSON.stringify({ name: form.ecName, relationship: form.ecRel, phone: form.ecPhone }),
       });
-
-      setForm({ name: "", email: "", phone_number: "" });
-      setSelectedCountry(COUNTRIES[0]);
+      toast.success("Patient created");
       setOpen(false);
-      toast.success(t("successToast"));
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error(t("errorToast", { message }));
+      if (created?.id) router.push(`/patients/${created.id}`);
+    } catch {
+      toast.error("Failed to create patient");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,131 +97,69 @@ export const AddPatient = ({ variant, open: controlledOpen, onOpenChange }: AddP
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* Only show trigger if not controlled externally */}
-      {controlledOpen === undefined && (
-        <DialogTrigger
-          className={
-            variant
-              ? "flex h-10 w-full items-center justify-center gap-2 rounded-[10px] border border-primary text-[13px] font-bold text-primary hover:bg-primary/10"
-              : "flex h-10 w-full max-w-52 items-center justify-center gap-2 rounded-[10px] bg-primary text-[13px] font-bold text-primary-foreground hover:bg-[#0b7693]"
-          }
-        >
-          <Plus className="text-current" size={16} aria-hidden="true" />
-          {t("trigger")}
-        </DialogTrigger>
-      )}
-      <DialogContent className="max-w-xl gap-0 overflow-hidden p-0">
-        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 flex-none items-center justify-center rounded-xl bg-primary/10 text-primary"><Plus size={18} strokeWidth={2.2} /></span>
-            <div>
-              <DialogTitle className="text-[17px] font-extrabold">{t("title")}</DialogTitle>
-              <DialogDescription className="mt-1 text-[12.5px]">{t("description")}</DialogDescription>
-            </div>
-          </div>
+      <DialogContent className="max-h-[90vh] w-[680px] max-w-[94vw] gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-[22px] py-5 pr-12 text-left">
+          <DialogTitle className="text-[17px] font-extrabold text-foreground">Add patient</DialogTitle>
+          <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">
+            Set up the core patient info, presenting focus, and first treatment goal.
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-6" noValidate>
-          {/* Name */}
-          <div className="grid gap-2">
-            <Label htmlFor="name">
-              {t("fullName")} <span className="text-red-500" aria-hidden="true">*</span>
-            </Label>
-            <Input
-              id="name"
-              placeholder={t("fullNamePlaceholder")}
-              value={form.name}
-              required
-              aria-required="true"
-              aria-invalid={errors.name ? true : undefined}
-              aria-describedby={errors.name ? "name-error" : undefined}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            {errors.name && (
-              <p id="name-error" role="alert" className="text-red-500 text-sm">{errors.name}</p>
-            )}
+        <div className="flex flex-col gap-[18px] p-[22px]">
+          <div className="grid gap-[13px] sm:grid-cols-[1.2fr_.7fr_.4fr]">
+            <div><label className={labelClass} htmlFor="np-name">Full name</label><input id="np-name" value={form.name} onChange={setField("name")} placeholder="Patient name" className={fieldClass} /></div>
+            <div><label className={labelClass} htmlFor="np-pronouns">Pronouns</label><input id="np-pronouns" value={form.pronouns} onChange={setField("pronouns")} placeholder="she/her" className={fieldClass} /></div>
+            <div><label className={labelClass} htmlFor="np-age">Age</label><input id="np-age" value={form.age} onChange={setField("age")} placeholder="34" className={fieldClass} /></div>
           </div>
 
-          {/* Email */}
-          <div className="grid gap-2">
-            <Label htmlFor="email">
-              {t("email")} <span className="text-red-500" aria-hidden="true">*</span>
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder={t("emailPlaceholder")}
-              value={form.email}
-              required
-              aria-required="true"
-              aria-invalid={errors.email ? true : undefined}
-              aria-describedby={errors.email ? "email-error" : undefined}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-            {errors.email && (
-              <p id="email-error" role="alert" className="text-red-500 text-sm">{errors.email}</p>
-            )}
+          <div className="grid gap-[13px] sm:grid-cols-2">
+            <div><label className={labelClass} htmlFor="np-email">Email</label><input id="np-email" type="email" value={form.email} onChange={setField("email")} placeholder="patient@email.com" className={fieldClass} /></div>
+            <div><label className={labelClass} htmlFor="np-phone">Phone</label><input id="np-phone" value={form.phone} onChange={setField("phone")} placeholder="+1 555 000 0000" className={fieldClass} /></div>
           </div>
 
-          {/* Phone with country code */}
-          <div className="grid gap-2">
-            <Label htmlFor="phone_number">
-              {t("phoneNumber")} <span className="text-red-500" aria-hidden="true">*</span>
-            </Label>
-            <div className="flex gap-2">
-              <label htmlFor="country_code" className="sr-only">
-                {t("countryCodeLabel")}
-              </label>
-              <select
-                id="country_code"
-                value={selectedCountry.iso}
-                onChange={(e) => {
-                  const country = COUNTRIES.find(c => c.iso === e.target.value);
-                  if (country) setSelectedCountry(country);
-                }}
-                className="h-10 min-w-24 rounded-[9px] border border-input bg-card px-2 text-[13px] outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
-              >
-                {COUNTRIES.map((country) => (
-                  <option key={country.iso} value={country.iso}>
-                    {country.flag} {country.phoneCode}
-                  </option>
-                ))}
-              </select>
-              <Input
-                id="phone_number"
-                type="tel"
-                placeholder={t("phoneNumberPlaceholder")}
-                value={form.phone_number}
-                required
-                aria-required="true"
-                aria-invalid={errors.phone_number || errors.country_code ? true : undefined}
-                aria-describedby={
-                  errors.phone_number
-                    ? "phone_number-error"
-                    : errors.country_code
-                    ? "country_code-error"
-                    : undefined
-                }
-                onChange={(e) =>
-                  setForm({ ...form, phone_number: e.target.value })
-                }
-              />
+          <div><label className={labelClass} htmlFor="np-location">Location</label><input id="np-location" value={form.location} onChange={setField("location")} placeholder="City, state" className={fieldClass} /></div>
+
+          <div>
+            <span className={labelClass}>Status</span>
+            <div className="flex flex-wrap gap-2">
+              {STATUS_CHIPS.map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={() => setForm((current) => ({ ...current, status: chip.key }))}
+                  className={`rounded-full border px-[13px] py-2 text-xs font-bold transition-colors ${form.status === chip.key ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground/80 hover:border-primary/50"}`}
+                >
+                  {chip.label}
+                </button>
+              ))}
             </div>
-            {errors.country_code && (
-              <p id="country_code-error" role="alert" className="text-red-500 text-sm">{errors.country_code}</p>
-            )}
-            {errors.phone_number && (
-              <p id="phone_number-error" role="alert" className="text-red-500 text-sm">{errors.phone_number}</p>
-            )}
           </div>
 
-          <DialogFooter className="mt-6 border-t border-border pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting} className="min-w-28">
-              {isSubmitting ? t("submitting") : t("submit")}
-            </Button>
-          </DialogFooter>
-        </form>
+          <div className="grid gap-[13px] sm:grid-cols-2">
+            <div><label className={labelClass} htmlFor="np-focus">Presenting focus</label><input id="np-focus" value={form.focus} onChange={setField("focus")} placeholder="Anxiety · CBT" className={fieldClass} /></div>
+            <div><label className={labelClass} htmlFor="np-goal">First active goal</label><input id="np-goal" value={form.goal} onChange={setField("goal")} placeholder="Define initial treatment goals" className={fieldClass} /></div>
+          </div>
+
+          <div><label className={labelClass} htmlFor="np-summary">Summary / formulation</label><textarea id="np-summary" value={form.summary} onChange={setField("summary")} placeholder="Brief clinical summary or intake notes" className={`${fieldClass} min-h-[82px] resize-y leading-normal`} /></div>
+
+          <div className="rounded-[13px] border border-border bg-secondary p-3.5">
+            <div className="mb-2.5 text-[11px] font-extrabold uppercase tracking-[.08em] text-muted-foreground">Emergency contact</div>
+            <div className="grid gap-2.5 sm:grid-cols-[1fr_.8fr_.8fr]">
+              <input aria-label="Emergency contact name" value={form.ecName} onChange={setField("ecName")} placeholder="Name" className={`${fieldClass} bg-card px-[11px] py-[9px] text-[12.5px]`} />
+              <input aria-label="Emergency contact relationship" value={form.ecRel} onChange={setField("ecRel")} placeholder="Relationship" className={`${fieldClass} bg-card px-[11px] py-[9px] text-[12.5px]`} />
+              <input aria-label="Emergency contact phone" value={form.ecPhone} onChange={setField("ecPhone")} placeholder="Phone" className={`${fieldClass} bg-card px-[11px] py-[9px] text-[12.5px]`} />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2.5 px-[22px] pb-[22px]">
+          <button type="button" onClick={() => setOpen(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">
+            Cancel
+          </button>
+          <button type="button" onClick={submit} disabled={isSubmitting} className="flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2.5 text-[13px] font-bold text-primary-foreground shadow-[0_4px_14px_-4px_rgba(11,90,95,.4)] transition-colors hover:bg-[#0b7693] disabled:opacity-60">
+            {isSubmitting && <Loader2 size={14} className="animate-spin" />}Create patient
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

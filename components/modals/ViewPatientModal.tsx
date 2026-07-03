@@ -77,12 +77,12 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{editMode ? "Edit Patient Information" : "Patient Information"}</DialogTitle>
+      <DialogContent className="max-h-[90vh] max-w-2xl gap-0 overflow-y-auto p-0">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+          <DialogTitle className="text-[17px] font-extrabold">{editMode ? "Edit patient" : "Patient information"}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
           {/* Personal Information */}
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -93,7 +93,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 </Button>
               )}
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Name</Label>
                 {editMode ? (
@@ -193,7 +193,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
           {/* Emergency Contact */}
           <div>
             <h3 className="font-semibold text-lg mb-3 text-red-600">Emergency Contact</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label>Name</Label>
                 {editMode ? (

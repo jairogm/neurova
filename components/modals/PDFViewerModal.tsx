@@ -14,8 +14,8 @@ export function PDFViewerModal({ open, onOpenChange, pdfUrl, patientName }: PDFV
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] h-[80vh] p-0 gap-0">
-        <div className="p-4">
+      <DialogContent className="h-[80vh] w-[90vw] max-w-5xl gap-0 overflow-hidden p-0">
+        <div className="h-full p-4 pt-12">
 
         {/* Hidden title for accessibility */}
         <VisuallyHidden>
@@ -23,7 +23,7 @@ export function PDFViewerModal({ open, onOpenChange, pdfUrl, patientName }: PDFV
         </VisuallyHidden>
 
         {/* PDF Viewer */}
-        <div className="max-w-5xl w-full h-full overflow-hidden bg-gray-100 dark:bg-gray-950 rounded-lg">
+        <div className="h-full w-full overflow-hidden rounded-xl border border-border bg-secondary">
           {pdfUrl ? (
             <iframe
               src={pdfUrl}

@@ -3,13 +3,10 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
-  DialogFooter,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 
 interface DeletePatientModalProps {
   open: boolean;
@@ -28,58 +25,34 @@ export function DeletePatientModal({
 }: DeletePatientModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <div className="flex items-center gap-3">
-            <div className="bg-red-100 p-2 rounded-full">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
-            </div>
-            <div>
-              <DialogTitle className="text-red-900">Delete Patient</DialogTitle>
-              <DialogDescription className="text-red-700">
-                This action cannot be undone
-              </DialogDescription>
-            </div>
+      <DialogContent className="w-[420px] max-w-[94vw] gap-0 overflow-hidden p-0">
+        <div className="p-[22px]">
+          <div className="mb-3.5 flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">
+            <AlertTriangle size={20} strokeWidth={2} />
           </div>
-        </DialogHeader>
-
-        <div className="py-4">
-          <p className="text-sm text-gray-600">
-            Are you sure you want to delete{" "}
-            <span className="font-semibold text-current">{patientName}</span>?
-          </p>
-          <p className="text-sm text-gray-600 mt-2">
-            All associated medical history, emergency contacts, and session notes will be permanently removed.
-          </p>
+          <DialogTitle className="mb-1.5 text-[17px] font-extrabold text-foreground">Move to trash?</DialogTitle>
+          <DialogDescription className="text-[13px] leading-[1.55] text-muted-foreground">
+            Delete {patientName}? This moves the patient to Trash.
+          </DialogDescription>
         </div>
-
-        <DialogFooter className="gap-2">
-          <Button 
-            variant="outline" 
+        <div className="flex justify-end gap-2.5 px-[22px] pb-[22px]">
+          <button
+            type="button"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
+            className="rounded-[10px] border border-border bg-card px-[15px] py-[9px] text-[13px] font-bold text-foreground/80"
           >
             Cancel
-          </Button>
-          <Button
-            variant="destructive"
+          </button>
+          <button
+            type="button"
             onClick={onConfirm}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700"
+            className="flex items-center gap-2 rounded-[10px] bg-[#d2574f] px-[15px] py-[9px] text-[13px] font-bold text-white transition-colors hover:bg-[#b94741] disabled:opacity-60"
           >
-            {isDeleting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                Deleting...
-              </>
-            ) : (
-              <>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Patient
-              </>
-            )}
-          </Button>
-        </DialogFooter>
+            {isDeleting && <Loader2 size={14} className="animate-spin" />}Move to trash
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -37,10 +37,21 @@ export type Patient = {
   updated_at?: string;
   status?: "active" | "intake" | "paused" | "discharged";
   focus?: string;
+  pronouns?: string;
+  age?: string;
+  summary?: string;
+  goals?: PatientGoal[];
+  avatar_color?: string;
   session_count?: number;
   next_session?: string;
   last_seen?: string;
   outstanding_balance?: number;
+  balance_state?: "ok" | "pending" | "overdue";
+};
+
+export type PatientGoal = {
+  text: string;
+  tone?: string; // success | primary | warning | danger
 };
 
 export type MedicalHistoryNote = {

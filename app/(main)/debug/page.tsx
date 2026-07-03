@@ -15,8 +15,10 @@ export default function DebugPage() {
       : "skip"
   );
   const syncUser = useMutation(api.users.syncUser);
+  const seedDemoData = useMutation(api.seed.seedDemoData);
   const [syncResult, setSyncResult] = useState<unknown>(null);
   const [syncError, setSyncError] = useState<unknown>(null);
+  const [seedResult, setSeedResult] = useState<unknown>(null);
 
   const handleManualSync = async () => {
     try {
@@ -30,15 +32,39 @@ export default function DebugPage() {
     }
   };
 
+  const handleSeed = async (force: boolean) => {
+    try {
+      const result = await seedDemoData({ force });
+      setSeedResult(result);
+    } catch (error) {
+      setSeedResult({ error: error instanceof Error ? error.message : String(error) });
+    }
+  };
+
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-2xl font-bold mb-4">Debug Info</h1>
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
         <Button onClick={handleManualSync}>
           Manually Trigger Sync
         </Button>
+        <Button variant="outline" onClick={() => handleSeed(false)}>
+          Seed NEUROVA demo data
+        </Button>
+        <Button variant="outline" onClick={() => handleSeed(true)}>
+          Seed (force)
+        </Button>
       </div>
+
+      {Boolean(seedResult) && (
+        <div className="border border-primary p-4 rounded mb-4">
+          <h2 className="font-bold text-primary">Seed Result:</h2>
+          <pre className="text-xs overflow-auto">
+            {JSON.stringify(seedResult as Record<string, unknown>, null, 2)}
+          </pre>
+        </div>
+      )}
 
       {Boolean(syncResult) && (
         <div className="border border-green-500 p-4 rounded mb-4">

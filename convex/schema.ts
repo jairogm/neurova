@@ -23,12 +23,20 @@ export default defineSchema({
     therapist_id: v.string(), // UUID string
     country_code: v.optional(v.string()), // JSON string
     deleted_at: v.optional(v.number()), // Soft delete timestamp
+    // NEUROVA workspace fields
+    status: v.optional(v.string()), // active | intake | paused | discharged
+    focus: v.optional(v.string()), // presenting focus, e.g. "Generalized anxiety · CBT"
+    pronouns: v.optional(v.string()),
+    age: v.optional(v.string()),
+    summary: v.optional(v.string()), // clinical summary / formulation
+    goals: v.optional(v.string()), // JSON array [{ text, tone }]
+    avatar_color: v.optional(v.string()),
   }).index("by_therapist_id", ["therapist_id"]),
 
   therapists: defineTable({
     id: v.optional(v.string()), // Supabase UUID (optional for new)
     user_id: v.optional(v.string()), // Supabase Auth User ID (kept for migrated data)
-    clerk_user_id: v.optional(v.string()), 
+    clerk_user_id: v.optional(v.string()),
     bio: v.optional(v.string()),
     email: v.optional(v.string()),
     years_of_experience: v.optional(v.number()),
@@ -51,6 +59,11 @@ export default defineSchema({
     google_calendar_id: v.optional(v.string()), // Neurova Appointments calendar ID
     tutorial_completed: v.optional(v.boolean()), // Onboarding tutorial completed
     tutorial_completed_at: v.optional(v.string()), // When tutorial was completed
+    // NEUROVA profile / billing fields
+    title: v.optional(v.string()), // professional title, e.g. "Clinical Psychologist"
+    billing_email: v.optional(v.string()),
+    tax_id: v.optional(v.string()),
+    billing_address: v.optional(v.string()),
   }).index("by_user_id", ["user_id"]).index("by_clerk_id", ["clerk_user_id"]).index("by_email", ["email"]),
 
   sessions: defineTable({
@@ -65,6 +78,9 @@ export default defineSchema({
     created_at: v.string(),
     updated_at: v.string(),
     event_id: v.optional(v.string()),
+    // NEUROVA workspace fields
+    mode: v.optional(v.string()), // video | inperson | phone
+    session_type: v.optional(v.string()), // e.g. "Follow-up · CBT"
   }).index("by_patient_id", ["patient_id"]),
 
   medical_history_notes: defineTable({
@@ -86,4 +102,34 @@ export default defineSchema({
   })
   .index("by_therapist_id", ["therapist_id"])
   .index("by_patient_id", ["patient_id"]),
+
+  tasks: defineTable({
+    therapist_id: v.string(),
+    label: v.string(),
+    meta: v.optional(v.string()),
+    done: v.boolean(),
+    created_at: v.string(),
+    completed_at: v.optional(v.number()),
+  }).index("by_therapist_id", ["therapist_id"]),
+
+  payment_methods: defineTable({
+    therapist_id: v.string(),
+    brand: v.string(),
+    last4: v.string(),
+    exp: v.string(),
+    name: v.string(),
+    is_primary: v.boolean(),
+    created_at: v.string(),
+  }).index("by_therapist_id", ["therapist_id"]),
+
+  invoices: defineTable({
+    therapist_id: v.string(),
+    invoice: v.string(),
+    date: v.string(),
+    description: v.string(),
+    amount: v.string(),
+    status: v.string(), // Paid | Pending
+    method: v.string(),
+    created_at: v.string(),
+  }).index("by_therapist_id", ["therapist_id"]),
 });

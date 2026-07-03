@@ -42,24 +42,24 @@ export function CancelAppointmentModal({
   };
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px]">
+        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
           <div className="flex items-center gap-3">
-            <div className="bg-red-100 p-2 rounded-full">
-              <AlertTriangle className="w-5 h-5 text-red-600" />
+            <div className="rounded-[10px] bg-[#f8e5e3] p-2.5">
+              <AlertTriangle className="size-5 text-[#d2574f]" />
             </div>
             <div>
-              <DialogTitle className="text-red-900">Cancel Appointment</DialogTitle>
-              <DialogDescription className="text-red-700">
+              <DialogTitle className="text-[17px] font-extrabold text-foreground">Cancel appointment?</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
                 This action cannot be undone
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="py-4 space-y-4">
+        <div className="space-y-4 px-6 py-5">
           <div>
-            <p className="text-sm text-gray-600">
+            <p className="text-[13px] text-foreground/80">
               Are you sure you want to cancel{" "}
               <span className="font-semibold text-current">{appointmentTitle}</span>
               {appointmentDate && (
@@ -70,7 +70,7 @@ export function CancelAppointmentModal({
               )}?
             </p>
             {isRecurring && (
-              <div className="flex items-center gap-1 mt-2 text-sm text-purple-700">
+              <div className="mt-2 flex items-center gap-1 text-[12px] text-primary">
                 <Repeat className="h-4 w-4" />
                 <span>This is a {recurrenceDescription?.toLowerCase() || "recurring"} appointment</span>
               </div>
@@ -79,46 +79,46 @@ export function CancelAppointmentModal({
 
           {isRecurring && (
             <div className="space-y-3">
-              <p className="text-sm font-medium text-gray-700">What would you like to cancel?</p>
+              <p className="text-[12.5px] font-bold text-foreground">What would you like to cancel?</p>
               <div className="space-y-2">
-                <label className="flex items-center space-x-3 cursor-pointer">
+                <label className="flex cursor-pointer items-center space-x-3 rounded-[10px] border border-border bg-secondary p-3">
                   <input
                     type="radio"
                     name="cancelType"
                     value="single"
                     checked={cancelType === "single"}
                     onChange={(e) => setCancelType(e.target.value as CancelType)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    className="size-4 accent-[#0e96b8]"
                   />
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-700">Just this appointment</div>
-                    <div className="text-xs text-gray-500">Cancel only this occurrence on {appointmentDate}</div>
+                    <div className="text-[12.5px] font-bold text-foreground">Just this appointment</div>
+                    <div className="text-[11px] text-muted-foreground">Cancel only this occurrence on {appointmentDate}</div>
                   </div>
                 </label>
-                <label className="flex items-center space-x-3 cursor-pointer">
+                <label className="flex cursor-pointer items-center space-x-3 rounded-[10px] border border-border bg-secondary p-3">
                   <input
                     type="radio"
                     name="cancelType"
                     value="series"
                     checked={cancelType === "series"}
                     onChange={(e) => setCancelType(e.target.value as CancelType)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
+                    className="size-4 accent-[#0e96b8]"
                   />
                   <div className="flex-1">
-                    <div className="text-sm font-medium text-gray-700">This and all future appointments</div>
-                    <div className="text-xs text-gray-500">Cancel the entire {recurrenceDescription?.toLowerCase() || "recurring"} series</div>
+                    <div className="text-[12.5px] font-bold text-foreground">This and all future appointments</div>
+                    <div className="text-[11px] text-muted-foreground">Cancel the entire {recurrenceDescription?.toLowerCase() || "recurring"} series</div>
                   </div>
                 </label>
               </div>
             </div>
           )}
 
-          <p className="text-sm text-gray-600">
+          <p className="text-[12px] text-muted-foreground">
             All attendees will be notified about the cancellation.
           </p>
         </div>
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 border-t border-border px-6 py-4">
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
@@ -127,10 +127,9 @@ export function CancelAppointmentModal({
             Keep Appointment
           </Button>
           <Button
-            variant="destructive"
             onClick={handleConfirm}
             disabled={isCanceling}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-[#d2574f] text-white hover:bg-[#b94741]"
           >
             {isCanceling ? (
               <>

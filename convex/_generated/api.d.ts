@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as billing from "../billing.js";
 import type * as calendar from "../calendar.js";
 import type * as crons from "../crons.js";
 import type * as dashboard from "../dashboard.js";
@@ -16,7 +17,9 @@ import type * as medical_history_notes from "../medical_history_notes.js";
 import type * as migrations from "../migrations.js";
 import type * as onboarding from "../onboarding.js";
 import type * as patients from "../patients.js";
+import type * as seed from "../seed.js";
 import type * as sessions from "../sessions.js";
+import type * as tasks from "../tasks.js";
 import type * as therapists from "../therapists.js";
 import type * as trash from "../trash.js";
 import type * as users from "../users.js";
@@ -28,6 +31,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  billing: typeof billing;
   calendar: typeof calendar;
   crons: typeof crons;
   dashboard: typeof dashboard;
@@ -36,7 +40,9 @@ declare const fullApi: ApiFromModules<{
   migrations: typeof migrations;
   onboarding: typeof onboarding;
   patients: typeof patients;
+  seed: typeof seed;
   sessions: typeof sessions;
+  tasks: typeof tasks;
   therapists: typeof therapists;
   trash: typeof trash;
   users: typeof users;

@@ -49,6 +49,8 @@ export const create = mutation({
     payment_amount: v.optional(v.number()),
     notes: v.optional(v.string()),
     event_id: v.optional(v.string()),
+    mode: v.optional(v.string()),
+    session_type: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -92,6 +94,8 @@ export const create = mutation({
       payment_amount: args.payment_amount,
       notes: args.notes,
       event_id: args.event_id,
+      mode: args.mode,
+      session_type: args.session_type,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -151,7 +155,7 @@ export const update = mutation({
     }
 
     // Update session
-    const { id, ...updates } = args;
+    const { id: _id, ...updates } = args;
     await ctx.db.patch(session._id, {
       ...updates,
       updated_at: new Date().toISOString(),
@@ -186,11 +190,18 @@ export const updatePayment = mutation({
 
     const therapistId = therapist.id ?? therapist._id;
 
-    // Find session
-    const session = await ctx.db
+    // Find session by legacy id, falling back to Convex _id
+    let session = await ctx.db
       .query("sessions")
       .filter(q => q.eq(q.field("id"), args.id))
       .first();
+    if (!session) {
+      try {
+        session = await ctx.db.get(args.id as import("./_generated/dataModel").Id<"sessions">);
+      } catch {
+        session = null;
+      }
+    }
 
     if (!session) {
       throw new Error("Session not found");

@@ -1,5 +1,41 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import type { Doc, Id } from "./_generated/dataModel";
+
+// Content may be an EditorJS JSON string or plain text — parse defensively.
+function parseContent(value?: string) {
+  if (!value) return undefined;
+  try { return JSON.parse(value); } catch { return value; }
+}
+
+type EditorBlock = { data?: { text?: string; items?: unknown[] } };
+
+export function plainTextOf(content: unknown): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (typeof content === "object" && content !== null && "blocks" in content) {
+    const blocks = ((content as { blocks?: EditorBlock[] }).blocks ?? []);
+    return blocks
+      .map((block) => {
+        const data = block.data ?? {};
+        if (typeof data.text === "string") return data.text;
+        if (Array.isArray(data.items)) {
+          return data.items
+            .map((item) => (typeof item === "string" ? item : ((item as { content?: string })?.content ?? "")))
+            .join(" ");
+        }
+        return "";
+      })
+      .join("\n")
+      .replace(/<[^>]+>/g, " ");
+  }
+  return "";
+}
+
+function wordCountOf(content: unknown): number {
+  const text = plainTextOf(content).trim();
+  return text ? text.split(/\s+/).filter(Boolean).length : 0;
+}
 
 export const listByPatient = query({
   args: { patientId: v.string() },
@@ -17,11 +53,60 @@ export const listByPatient = query({
       .collect();
 
     // Parse content for each note and ensure id field exists
-    return notes.map(note => ({
-      ...note,
-      id: note.id ?? note._id, // Use legacy id if available, otherwise use Convex _id
-      content: note.content ? JSON.parse(note.content) : undefined,
+    return notes.map(note => {
+      const content = parseContent(note.content);
+      return {
+        ...note,
+        id: note.id ?? note._id, // Use legacy id if available, otherwise use Convex _id
+        content,
+        plainText: plainTextOf(content),
+        wordCount: wordCountOf(content),
+      };
+    });
+  },
+});
+
+export const listAllForTherapist = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .first();
+    if (!therapist) return [];
+
+    const therapistId = therapist.id ?? therapist._id;
+    const patients = await ctx.db
+      .query("patients")
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapistId))
+      .filter((q) => q.eq(q.field("deleted_at"), undefined))
+      .collect();
+
+    const notesByPatient = await Promise.all(patients.map(async (patient) => {
+      const notes = await ctx.db
+        .query("medical_history_notes")
+        .withIndex("by_patient_id", (q) => q.eq("patient_id", patient.id))
+        .filter((q) => q.eq(q.field("deleted_at"), undefined))
+        .collect();
+      return notes.map((note) => {
+        const content = parseContent(note.content);
+        return {
+          ...note,
+          id: note.id ?? note._id,
+          patientName: patient.name,
+          patientInitials: patient.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase(),
+          patientColor: patient.avatar_color,
+          content,
+          plainText: plainTextOf(content),
+          wordCount: wordCountOf(content),
+        };
+      });
     }));
+
+    return notesByPatient.flat().sort((a, b) => (b.date || b.created_at).localeCompare(a.date || a.created_at));
   },
 });
 
@@ -43,7 +128,7 @@ export const get = query({
     // Parse content if it's a JSON string
     return {
       ...note,
-      content: note.content ? JSON.parse(note.content) : undefined,
+      content: parseContent(note.content),
     };
   },
 });
@@ -120,11 +205,7 @@ export const update = mutation({
     // If not found by legacy id, try finding by Convex _id
     if (!note) {
       try {
-        const doc = await ctx.db.get(args.id as any);
-        // Verify it's a medical_history_note by checking for patient_id field
-        if (doc && 'patient_id' in doc) {
-          note = doc as any;
-        }
+        note = await ctx.db.get(args.id as Id<"medical_history_notes">);
       } catch {
         // Invalid ID format or not found
         note = null;
@@ -155,7 +236,7 @@ export const update = mutation({
     }
 
     // Update the note
-    const updates: any = {
+    const updates: Partial<Pick<Doc<"medical_history_notes">, "title" | "description" | "date" | "content" | "updated_at">> = {
       updated_at: new Date().toISOString(),
     };
     if (args.title !== undefined) updates.title = args.title;
@@ -185,11 +266,7 @@ export const remove = mutation({
     // If not found by legacy id, try finding by Convex _id
     if (!note) {
       try {
-        const doc = await ctx.db.get(args.id as any);
-        // Verify it's a medical_history_note by checking for patient_id field
-        if (doc && 'patient_id' in doc) {
-          note = doc as any;
-        }
+        note = await ctx.db.get(args.id as Id<"medical_history_notes">);
       } catch {
         // Invalid ID format or not found
         note = null;

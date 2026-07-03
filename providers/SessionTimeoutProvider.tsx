@@ -160,7 +160,7 @@ export function SessionTimeoutProvider({
   };
 
   // Handle activity events
-  const handleActivity = (event: Event) => {
+  const handleActivity = () => {
     // If warning dialog is showing, ignore ALL activity
     if (showWarning) {
       return;
@@ -195,6 +195,8 @@ export function SessionTimeoutProvider({
       });
       clearAllTimers();
     };
+    // The timer helpers intentionally share this effect's auth lifecycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
   // Format time display
@@ -216,9 +218,9 @@ export function SessionTimeoutProvider({
 
       {/* Session Warning Dialog */}
       <Dialog open={showWarning} onOpenChange={() => { }}>
-        <DialogContent className="sm:max-w-md" showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md" showCloseButton={false}>
+          <DialogHeader className="border-b border-border px-6 py-5">
+            <DialogTitle className="flex items-center text-[17px] font-extrabold">
               <svg
                 className="h-5 w-5 text-amber-500 mr-2"
                 viewBox="0 0 20 20"
@@ -244,7 +246,7 @@ export function SessionTimeoutProvider({
               </span>
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          <DialogFooter className="flex-col-reverse px-6 py-4 sm:flex-row sm:justify-end sm:space-x-2">
             <Button
               variant="outline"
               onClick={handleLogout}

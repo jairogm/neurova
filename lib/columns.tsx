@@ -24,11 +24,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-const avatarColors = ["#0E96B8", "#2C8FB0", "#5C8A7A", "#8A6BA8", "#B5803A", "#3F7E8C"];
-
-function initialsFor(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
-}
+import { avatarColorFor, initialsFor, statusToneFor } from "@/lib/nv";
 
 function formatShortDate(value?: string, fallback = "—") {
   if (!value) return fallback;
@@ -120,7 +116,7 @@ export const columns: ColumnDef<Patient>[] = [
       const patient = row.original;
       return (
         <div className="flex min-w-[210px] items-center gap-3">
-          <div className="flex size-[38px] flex-none items-center justify-center rounded-[11px] text-[13px] font-bold text-white" style={{ background: avatarColors[row.index % avatarColors.length] }}>
+          <div className="flex size-[38px] flex-none items-center justify-center rounded-[11px] text-[13px] font-bold text-white" style={{ background: avatarColorFor(patient.avatar_color, row.index) }}>
             {initialsFor(patient.name)}
           </div>
           <div className="min-w-0">
@@ -134,7 +130,10 @@ export const columns: ColumnDef<Patient>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <span className="rounded-full bg-[#e2f1ea] px-2.5 py-1 text-[11px] font-bold text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]">{row.original.status === "intake" ? "Intake" : "Active"}</span>,
+    cell: ({ row }) => {
+      const tone = statusToneFor(row.original.status);
+      return <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tone.label}</span>;
+    },
   },
   {
     accessorKey: "next_session",
@@ -154,7 +153,15 @@ export const columns: ColumnDef<Patient>[] = [
   {
     accessorKey: "outstanding_balance",
     header: () => <div className="text-right">Balance</div>,
-    cell: ({ row }) => <div className={`text-right font-mono text-[13px] font-semibold ${(row.original.outstanding_balance || 0) > 0 ? "text-[#be7c16]" : "text-foreground/80"}`}>{formatCurrency(row.original.outstanding_balance)}</div>,
+    cell: ({ row }) => {
+      const state = row.original.balance_state || ((row.original.outstanding_balance || 0) > 0 ? "pending" : "ok");
+      const colorClass = state === "overdue"
+        ? "text-[#d2574f] dark:text-[#e0726a]"
+        : state === "pending"
+          ? "text-[#be7c16] dark:text-[#d29a3a]"
+          : "text-muted-foreground";
+      return <div className={`text-right font-mono text-[13px] font-semibold ${colorClass}`}>{formatCurrency(row.original.outstanding_balance)}</div>;
+    },
   },
   {
     id: "actions",

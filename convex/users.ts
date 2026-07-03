@@ -68,6 +68,40 @@ export const checkTherapistByEmail = query({
   },
 });
 
+export const updateProfile = mutation({
+  args: {
+    full_name: v.optional(v.string()),
+    title: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    specialization: v.optional(v.string()),
+    license_number: v.optional(v.string()),
+    office_address: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    country_code: v.optional(v.string()), // JSON string
+    emergency_contact: v.optional(v.string()), // JSON string
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .first();
+    if (!therapist) {
+      throw new Error("Therapist profile not found");
+    }
+
+    await ctx.db.patch(therapist._id, {
+      ...args,
+      updated_at: new Date().toISOString(),
+    });
+    return await ctx.db.get(therapist._id);
+  },
+});
+
 export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {

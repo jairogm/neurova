@@ -1,5 +1,7 @@
 "use client";
 
+import { BillingPrototypeProvider } from "@/components/BillingPrototypeProvider";
+import { CommandPaletteProvider } from "@/components/CommandPalette";
 import Navbar from "@/components/navbar";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useTranslations } from "next-intl";
@@ -10,6 +12,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <OnboardingProvider>
+    <BillingPrototypeProvider>
+    <CommandPaletteProvider>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-sky-600 focus:px-4 focus:py-2 focus:text-white focus:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-offset-2"
@@ -26,6 +30,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+    </CommandPaletteProvider>
+    </BillingPrototypeProvider>
     </OnboardingProvider>
   );
 }

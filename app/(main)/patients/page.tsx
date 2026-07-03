@@ -1,26 +1,33 @@
 "use client";
 
 import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 import { DataTable } from "@/components/data-table";
 import { AddPatient } from "@/components/modals/AddPatient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTutorial } from "@/hooks/useTutorial";
 import { columns } from "@/lib/columns";
+import { avatarColorFor, initialsFor, statusToneFor } from "@/lib/nv";
 import type { Patient } from "@/lib/types";
-import { useQuery } from "convex/react";
-import { HelpCircle, LayoutGrid, List, Plus, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { AlertTriangle, HelpCircle, LayoutGrid, List, Plus, Search, Trash2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const filters = ["all", "active", "intake", "paused", "discharged"] as const;
 type Filter = typeof filters[number];
-
-const avatarColors = ["#0E96B8", "#2C8FB0", "#5C8A7A", "#8A6BA8", "#B5803A", "#3F7E8C"];
-
-function initialsFor(name: string) {
-  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
-}
 
 function shortDate(value?: string) {
   if (!value) return "—";
@@ -31,14 +38,21 @@ function shortDate(value?: string) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-export default function Patients() {
+function PatientsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const data = useQuery(api.patients.list);
+  const softDeletePatient = useMutation(api.trash.softDeletePatient);
   const [addOpen, setAddOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [view, setView] = useState<"table" | "cards">("table");
   const [filter, setFilter] = useState<Filter>("all");
-  const { startPatientsTour, currentTourPage, tutorialCompleted, replayTutorial, startRecordsTour: _startRecordsTour } = useTutorial();
+  const [deleteTarget, setDeleteTarget] = useState<Patient | null>(null);
+  const { startPatientsTour, currentTourPage, tutorialCompleted, replayTutorial } = useTutorial();
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setAddOpen(true);
+  }, [searchParams]);
 
   useEffect(() => {
     if (currentTourPage !== "dashboard") return;
@@ -69,6 +83,18 @@ export default function Patients() {
     });
   }, [data, filter, searchQuery]);
 
+  const confirmDelete = async () => {
+    if (!deleteTarget?._id) return;
+    try {
+      await softDeletePatient({ id: deleteTarget._id as Id<"patients"> });
+      toast.success("Patient moved to trash");
+    } catch {
+      toast.error("Failed to delete patient");
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
       <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -91,7 +117,7 @@ export default function Patients() {
         {filters.map((item) => {
           const active = filter === item;
           return (
-            <button key={item} type="button" onClick={() => setFilter(item)} className={`flex items-center gap-2 rounded-full border px-[13px] py-[7px] text-[12.5px] font-bold capitalize transition-colors ${active ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-foreground/80 hover:border-primary/50"}`}>
+            <button key={item} type="button" onClick={() => setFilter(item)} className={`flex items-center gap-2 rounded-full border px-[13px] py-[7px] text-[12.5px] font-bold capitalize transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground/80 hover:border-primary/50"}`}>
               {item} <span className="font-mono text-[11px] opacity-70">{counts[item]}</span>
             </button>
           );
@@ -105,20 +131,34 @@ export default function Patients() {
           <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-48 animate-pulse rounded-2xl border border-border bg-card" />)}</div>
         ) : filteredData.length ? (
           <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
-            {filteredData.map((patient, index) => (
-              <button key={patient.id} type="button" onClick={() => router.push(`/patients/${patient.id}`)} className="rounded-2xl border border-border bg-card p-[18px] text-left shadow-sm transition-all hover:-translate-y-px hover:border-primary">
-                <div className="mb-[13px] flex items-center justify-between">
-                  <div className="flex size-11 items-center justify-center rounded-[13px] text-[15px] font-bold text-white" style={{ background: avatarColors[index % avatarColors.length] }}>{initialsFor(patient.name)}</div>
-                  <span className="rounded-full bg-[#e2f1ea] px-2.5 py-1 text-[11px] font-bold text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]">Active</span>
+            {filteredData.map((patient, index) => {
+              const tone = statusToneFor(patient.status);
+              return (
+                <div key={patient.id} role="button" tabIndex={0} onClick={() => router.push(`/patients/${patient.id}`)} onKeyDown={(event) => { if (event.key === "Enter") router.push(`/patients/${patient.id}`); }} className="cursor-pointer rounded-2xl border border-border bg-card p-[18px] text-left shadow-sm transition-all hover:-translate-y-px hover:border-primary">
+                  <div className="mb-[13px] flex items-center justify-between">
+                    <div className="flex size-11 items-center justify-center rounded-[13px] text-[15px] font-bold text-white" style={{ background: avatarColorFor(patient.avatar_color, index) }}>{initialsFor(patient.name)}</div>
+                    <div className="flex items-center gap-[7px]">
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tone.label}</span>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${patient.name}`}
+                        title="Delete patient"
+                        onClick={(event) => { event.stopPropagation(); setDeleteTarget(patient as Patient); }}
+                        className="flex size-7 items-center justify-center rounded-lg border border-border bg-card text-[var(--nv-faint)] transition-colors hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]"
+                      >
+                        <Trash2 size={13} strokeWidth={2} />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="text-[15px] font-extrabold text-foreground">{patient.name}</div>
+                  <div className="mb-3.5 truncate text-[12.5px] text-muted-foreground">{patient.focus || patient.email || "General care"}</div>
+                  <div className="flex justify-between border-t border-border pt-[13px] text-[11.5px]">
+                    <div><div className="text-[var(--nv-faint)]">Next</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{shortDate(patient.next_session)}</div></div>
+                    <div className="text-right"><div className="text-[var(--nv-faint)]">Sessions</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{patient.session_count || 0}</div></div>
+                  </div>
                 </div>
-                <div className="text-[15px] font-extrabold text-foreground">{patient.name}</div>
-                <div className="mb-3.5 truncate text-[12.5px] text-muted-foreground">{patient.focus || patient.email || "General care"}</div>
-                <div className="flex justify-between border-t border-border pt-[13px] text-[11.5px]">
-                  <div><div className="text-[var(--nv-faint)]">Next</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{shortDate(patient.next_session)}</div></div>
-                  <div className="text-right"><div className="text-[var(--nv-faint)]">Sessions</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{patient.session_count || 0}</div></div>
-                </div>
-              </button>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center text-sm text-muted-foreground shadow-sm">No patients match your filters.</div>
@@ -126,6 +166,30 @@ export default function Patients() {
       </div>
 
       <AddPatient open={addOpen} onOpenChange={setAddOpen} />
+
+      <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-3">
+              <span className="flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]"><AlertTriangle size={20} strokeWidth={2} /></span>
+              Move to trash?
+            </AlertDialogTitle>
+            <AlertDialogDescription>Delete {deleteTarget?.name}? This moves the patient to Trash.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+export default function Patients() {
+  return (
+    <Suspense>
+      <PatientsContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,14 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/patients(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/patients(.*)",
+  "/schedule(.*)",
+  "/notes(.*)",
+  "/billing(.*)",
+  "/profile(.*)",
+  "/trash(.*)",
+]);
 
 // LOCAL DEV ONLY: set BYPASS_AUTH=true in .env.local to view protected routes
 // without signing in. Defaults to OFF, so any environment without the flag

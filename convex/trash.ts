@@ -122,9 +122,17 @@ export const listTrash = query({
       .filter((q) => q.neq(q.field("deleted_at"), undefined))
       .collect();
 
+    const recordsWithPatient = await Promise.all(records.map(async (record) => {
+      const patient = await ctx.db
+        .query("patients")
+        .filter((q) => q.eq(q.field("id"), record.patient_id))
+        .first();
+      return { ...record, patientName: patient?.name ?? "Patient" };
+    }));
+
     return {
       patients,
-      records,
+      records: recordsWithPatient,
     };
   },
 });

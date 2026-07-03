@@ -138,34 +138,31 @@ export const getUpcomingSessions = query({
       return [];
     }
 
-    const today = new Date().toISOString();
-    
-    // Get all sessions scheduled in future (Index scan if possible, or filter)
-    // Optimization: filtering everything then checking patient ownership is slow.
-    // Better: Get patients -> Get their sessions. 
-    // BUT dashboard needs "soonest across all patients".
-    // So scan future sessions -> filter by therapist's patient IDs -> sort -> take 5.
-    
+    // Include everything from the start of today so completed morning
+    // sessions still show on the agenda (matches the NEUROVA design).
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+
     const patients = await ctx.db
       .query("patients")
       .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!))
       .collect();
-    
+
     const patientMap = new Map();
     patients.forEach(p => patientMap.set(p.id, p));
 
     const sessions = await ctx.db
       .query("sessions")
-      .filter((q) => q.gte(q.field("scheduled_date"), today))
+      .filter((q) => q.gte(q.field("scheduled_date"), startOfToday))
       .collect();
 
     // Filter sessions that belong to our patients
     const mySessions = sessions.filter(s => patientMap.has(s.patient_id));
 
-    // Sort by date ascending (nearest first) and take top 5
+    // Sort by date ascending (nearest first)
     const upcomingSessions = mySessions
       .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
-      .slice(0, 5);
+      .slice(0, 20);
 
     // Enhance with patient details
     const sessionsWithPatient = upcomingSessions.map((session) => {
@@ -174,10 +171,62 @@ export const getUpcomingSessions = query({
         ...session,
         patientName: patient?.name || "Unknown Patient",
         patientImage: patient?.profile_img,
+        patientColor: patient?.avatar_color,
+        patientFocus: patient?.focus,
       };
     });
 
     return sessionsWithPatient;
+  },
+});
+
+export const getWeekSessions = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+
+    const therapist = await ctx.db
+      .query("therapists")
+      .withIndex("by_clerk_id", (q) => q.eq("clerk_user_id", identity.subject))
+      .first();
+    if (!therapist) return [];
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const monday = new Date(startOfToday);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const nextMonday = new Date(monday);
+    nextMonday.setDate(nextMonday.getDate() + 7);
+
+    const patients = await ctx.db
+      .query("patients")
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!))
+      .collect();
+    const patientMap = new Map();
+    patients.forEach(p => patientMap.set(p.id, p));
+
+    const sessions = await ctx.db
+      .query("sessions")
+      .filter((q) =>
+        q.and(
+          q.gte(q.field("scheduled_date"), monday.toISOString()),
+          q.lt(q.field("scheduled_date"), nextMonday.toISOString()),
+        ),
+      )
+      .collect();
+
+    return sessions
+      .filter((session) => patientMap.has(session.patient_id))
+      .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))
+      .map((session) => {
+        const patient = patientMap.get(session.patient_id);
+        return {
+          ...session,
+          patientName: patient?.name || "Unknown Patient",
+          patientColor: patient?.avatar_color,
+        };
+      });
   },
 });
 
