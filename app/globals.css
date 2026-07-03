@@ -239,80 +239,100 @@
 
 /* =========================
    Driver.js Tutorial Styles
+   NEUROVA design language
    ========================= */
 .driver-popover.neurova-popover {
-  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-  border: 1px solid #0ea5e9;
-  border-radius: 12px;
-  box-shadow: 0 20px 50px -10px rgba(14, 165, 233, 0.25);
-  padding: 20px;
-  max-width: 400px;
-}
-
-.dark .driver-popover.neurova-popover {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-color: #38bdf8;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -20px rgba(12, 30, 36, 0.35);
+  padding: 18px 20px;
+  max-width: 380px;
+  font-family: inherit;
+  color: var(--foreground);
 }
 
 .driver-popover.neurova-popover .driver-popover-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #0369a1;
-  margin-bottom: 8px;
-}
-
-.dark .driver-popover.neurova-popover .driver-popover-title {
-  color: #38bdf8;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  margin-bottom: 6px;
 }
 
 .driver-popover.neurova-popover .driver-popover-description {
-  font-size: 0.875rem;
-  color: #475569;
-  line-height: 1.5;
-}
-
-.dark .driver-popover.neurova-popover .driver-popover-description {
-  color: #cbd5e1;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  line-height: 1.55;
 }
 
 .driver-popover.neurova-popover .driver-popover-progress-text {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-family: var(--font-mono, ui-monospace), monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+
+.driver-popover.neurova-popover .driver-popover-footer {
+  margin-top: 14px;
+  gap: 8px;
 }
 
 .driver-popover.neurova-popover button {
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  border-radius: 9px;
+  padding: 8px 15px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-shadow: none;
+  transition: all 0.15s ease;
 }
 
 .driver-popover.neurova-popover .driver-popover-prev-btn {
-  background: transparent;
-  color: #0ea5e9;
-  border: 1px solid #0ea5e9;
+  background: var(--card);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
 }
 
 .driver-popover.neurova-popover .driver-popover-prev-btn:hover {
-  background: #e0f2fe;
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--card);
 }
 
-.driver-popover.neurova-popover .driver-popover-next-btn,
-.driver-popover.neurova-popover .driver-popover-close-btn {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-  color: white;
+.driver-popover.neurova-popover .driver-popover-next-btn {
+  background: var(--primary);
+  color: var(--primary-foreground);
   border: none;
+  box-shadow: 0 4px 14px -4px rgba(11, 90, 95, 0.4);
 }
 
-.driver-popover.neurova-popover .driver-popover-next-btn:hover,
+.driver-popover.neurova-popover .driver-popover-next-btn:hover {
+  background: var(--accent-foreground);
+  color: var(--primary-foreground);
+}
+
+.driver-popover.neurova-popover .driver-popover-close-btn {
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  padding: 4px;
+}
+
 .driver-popover.neurova-popover .driver-popover-close-btn:hover {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  transform: translateY(-1px);
+  color: var(--foreground);
 }
 
-.driver-popover-arrow {
-  border-color: #0ea5e9 !important;
+.driver-popover.neurova-popover .driver-popover-arrow-side-left.driver-popover-arrow {
+  border-left-color: var(--card);
+}
+.driver-popover.neurova-popover .driver-popover-arrow-side-right.driver-popover-arrow {
+  border-right-color: var(--card);
+}
+.driver-popover.neurova-popover .driver-popover-arrow-side-top.driver-popover-arrow {
+  border-top-color: var(--card);
+}
+.driver-popover.neurova-popover .driver-popover-arrow-side-bottom.driver-popover-arrow {
+  border-bottom-color: var(--card);
 }
 
 /* NEUROVA design system — aligned with the supplied product mockups. */

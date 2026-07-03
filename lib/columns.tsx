@@ -69,7 +69,7 @@ function ActionsCell({ patient }: { patient: Patient }) {
   return (
     <>
       <div className="flex justify-end gap-1.5" onClick={(event) => event.stopPropagation()}>
-        <Button id="action-records" variant="outline" size="icon" className={actionClass} onClick={() => router.push(`/patients/${patient.id}/records`)} title="Open notes and records">
+        <Button id="action-records" variant="outline" size="icon" className={actionClass} onClick={() => router.push(`/patients/${patient.id}?tab=notes`)} title="Open notes and records">
           <FolderOpen size={14} strokeWidth={2} />
         </Button>
         <Button id="action-edit" variant="outline" size="icon" className={actionClass} onClick={() => setEditOpen(true)} title="Edit patient">

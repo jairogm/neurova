@@ -58,7 +58,7 @@ export default function Navbar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { open: openPalette } = useCommandPalette();
-  const { billingEnabled, subscriptionActive, toggleBilling, toggleSubscription } = useBillingPrototype();
+  const { subscriptionActive, toggleSubscription } = useBillingPrototype();
 
   const therapist = useQuery(api.users.getCurrentUser);
   const displayName = therapist?.full_name || user?.fullName || user?.primaryEmailAddress?.emailAddress || "Your practice";
@@ -136,13 +136,11 @@ export default function Navbar() {
         </nav>
 
         <div className="mt-auto flex flex-col gap-[3px]">
-          {billingEnabled && (
-            <Link href="/billing" className={`relative flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-colors ${pathname === "/billing" ? "bg-primary/10 text-primary" : "text-[#5a6f77] hover:bg-primary/5 hover:text-foreground dark:text-[#a9bec2]"}`}>
-              {pathname === "/billing" && <span className="absolute -left-3.5 inset-y-[9px] w-[3px] rounded-r bg-primary" />}
-              <CreditCard size={16} strokeWidth={1.8} className={pathname === "/billing" ? "text-primary" : "text-[#90a4ab] dark:text-[#748c91]"} />Billing
-            </Link>
-          )}
-          <Link href="/trash" className={`relative flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-colors ${pathname === "/trash" ? "bg-primary/10 text-primary" : "text-[#5a6f77] hover:bg-primary/5 hover:text-foreground dark:text-[#a9bec2]"}`}>
+          <Link href="/billing" className={`relative flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-colors ${pathname === "/billing" ? "bg-primary/10 text-primary" : "text-[#5a6f77] hover:bg-primary/5 hover:text-foreground dark:text-[#a9bec2]"}`}>
+            {pathname === "/billing" && <span className="absolute -left-3.5 inset-y-[9px] w-[3px] rounded-r bg-primary" />}
+            <CreditCard size={16} strokeWidth={1.8} className={pathname === "/billing" ? "text-primary" : "text-[#90a4ab] dark:text-[#748c91]"} />Billing
+          </Link>
+          <Link id="nav-trash" href="/trash" className={`relative flex items-center gap-[11px] rounded-[10px] px-3 py-2.5 text-[13px] font-semibold transition-colors ${pathname === "/trash" ? "bg-primary/10 text-primary" : "text-[#5a6f77] hover:bg-primary/5 hover:text-foreground dark:text-[#a9bec2]"}`}>
             {pathname === "/trash" && <span className="absolute -left-3.5 inset-y-[9px] w-[3px] rounded-r bg-primary" />}
             <Trash2 size={16} strokeWidth={1.8} className={pathname === "/trash" ? "text-primary" : "text-[#90a4ab] dark:text-[#748c91]"} />Trash
           </Link>
@@ -184,24 +182,13 @@ export default function Navbar() {
 
         <button
           type="button"
-          onClick={toggleBilling}
-          title="Toggle app billing view"
-          className={`hidden items-center gap-[7px] rounded-[10px] border px-[11px] py-2 text-xs font-extrabold lg:flex ${billingEnabled ? "border-primary bg-primary/10 text-primary" : "border-border bg-secondary text-muted-foreground"}`}
+          onClick={toggleSubscription}
+          title="Preview paid vs unpaid account"
+          className={`hidden items-center gap-[7px] rounded-[10px] border px-[11px] py-2 text-xs font-extrabold lg:flex ${subscriptionActive ? "border-[#15986a] bg-[#e2f1ea] text-[#15986a] dark:border-[#2ba378] dark:bg-[#11302a] dark:text-[#2ba378]" : "border-[#be7c16] bg-[#f6ecd8] text-[#be7c16] dark:border-[#d29a3a] dark:bg-[#33280f] dark:text-[#d29a3a]"}`}
         >
-          <span className={`size-[7px] rounded-full ${billingEnabled ? "bg-primary" : "bg-[var(--nv-faint)]"}`} />
-          Billing {billingEnabled ? "On" : "Off"}
+          <span className={`size-[7px] rounded-full ${subscriptionActive ? "bg-[#15986a] dark:bg-[#2ba378]" : "bg-[#be7c16] dark:bg-[#d29a3a]"}`} />
+          {subscriptionActive ? "Plan Active" : "Payment Required"}
         </button>
-        {billingEnabled && (
-          <button
-            type="button"
-            onClick={toggleSubscription}
-            title="Preview paid vs unpaid account"
-            className={`hidden items-center gap-[7px] rounded-[10px] border px-[11px] py-2 text-xs font-extrabold lg:flex ${subscriptionActive ? "border-[#15986a] bg-[#e2f1ea] text-[#15986a] dark:border-[#2ba378] dark:bg-[#11302a] dark:text-[#2ba378]" : "border-[#be7c16] bg-[#f6ecd8] text-[#be7c16] dark:border-[#d29a3a] dark:bg-[#33280f] dark:text-[#d29a3a]"}`}
-          >
-            <span className={`size-[7px] rounded-full ${subscriptionActive ? "bg-[#15986a] dark:bg-[#2ba378]" : "bg-[#be7c16] dark:bg-[#d29a3a]"}`} />
-            {subscriptionActive ? "Plan Active" : "Payment Required"}
-          </button>
-        )}
         <ThemeSwitcher dashboard />
         <div id="quick-actions"><ScheduleAppointment variant="topbar" /></div>
       </header>

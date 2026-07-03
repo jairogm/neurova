@@ -4,8 +4,8 @@ import { DriveStep } from "driver.js";
 export const dashboardTourSteps: DriveStep[] = [
   {
     popover: {
-      title: "👋 Welcome to Neurova!",
-      description: "Let's take a quick tour to help you get started. This will only take a minute!",
+      title: "Welcome to NEUROVA",
+      description: "Let's take a quick tour of your clinical workspace. It only takes a minute.",
       side: "over" as const,
       align: "center" as const,
     },
@@ -13,8 +13,8 @@ export const dashboardTourSteps: DriveStep[] = [
   {
     element: "#stats-overview",
     popover: {
-      title: "📊 Your Practice Overview",
-      description: "Here you can see key metrics at a glance: total patients, sessions conducted, monthly sessions, and currently active sessions.",
+      title: "Your practice at a glance",
+      description: "Active patients, sessions this week, attendance rate, and outstanding balances — updated live from your caseload.",
       side: "bottom" as const,
       align: "center" as const,
     },
@@ -22,26 +22,35 @@ export const dashboardTourSteps: DriveStep[] = [
   {
     element: "#quick-actions",
     popover: {
-      title: "⚡ Quick Actions",
-      description: "Use these buttons to quickly schedule a new appointment or add a new patient to your practice.",
+      title: "New appointment",
+      description: "Schedule a session from anywhere. Pick the patient, session type, and recurrence — it syncs to Google Calendar automatically.",
       side: "bottom" as const,
-      align: "start" as const,
+      align: "end" as const,
     },
   },
   {
     element: "#upcoming-appointments",
     popover: {
-      title: "📅 Upcoming Appointments",
-      description: "View your upcoming sessions here. Click on any appointment to see details or join the video call.",
+      title: "Up next & today's agenda",
+      description: "Your next session is highlighted at the top, with the rest of today's agenda below. Click any row to open that patient's chart.",
+      side: "right" as const,
+      align: "start" as const,
+    },
+  },
+  {
+    element: "#tasks-card",
+    popover: {
+      title: "Tasks",
+      description: "Keep track of sign-offs, treatment plans, and reminders. Add a task below, check it off when done, or remove it.",
       side: "left" as const,
       align: "start" as const,
     },
   },
   {
-    element: "#recent-patients",
+    element: "#payments-card",
     popover: {
-      title: "👥 Recent Patients",
-      description: "See your newest patients here. Click on any patient to view their full profile and medical records.",
+      title: "Payments this month",
+      description: "A snapshot of collected, unpaid, and overdue amounts across your sessions.",
       side: "left" as const,
       align: "start" as const,
     },
@@ -49,8 +58,8 @@ export const dashboardTourSteps: DriveStep[] = [
   {
     element: "#nav-patients",
     popover: {
-      title: "📋 Patients Page",
-      description: "Let's continue to the Patients page where you can manage all your patients. Click Next to continue!",
+      title: "Patients",
+      description: "Next stop: your caseload. Click Next to open the Patients page.",
       side: "right" as const,
       align: "center" as const,
     },
@@ -61,8 +70,8 @@ export const dashboardTourSteps: DriveStep[] = [
 export const patientsTourSteps: DriveStep[] = [
   {
     popover: {
-      title: "📋 Patient Management",
-      description: "This is where you manage all your patients. Let's see what you can do here!",
+      title: "Patient management",
+      description: "Everything about your caseload lives here. Let's look around.",
       side: "over" as const,
       align: "center" as const,
     },
@@ -70,17 +79,35 @@ export const patientsTourSteps: DriveStep[] = [
   {
     element: "#patients-search",
     popover: {
-      title: "🔍 Search Patients",
-      description: "Quickly find any patient by searching their name, email, or phone number.",
+      title: "Search your caseload",
+      description: "Find any patient by name, presenting focus, or email. You can also press ⌘K anywhere for the global search.",
       side: "bottom" as const,
       align: "start" as const,
     },
   },
   {
+    element: "#patients-filters",
+    popover: {
+      title: "Filter by status",
+      description: "Narrow the list to Active, Intake, Paused, or Discharged patients — the counts update as your caseload changes.",
+      side: "bottom" as const,
+      align: "start" as const,
+    },
+  },
+  {
+    element: "#patients-view-toggle",
+    popover: {
+      title: "Table or cards",
+      description: "Switch between the detailed table and a card grid — whichever fits how you work.",
+      side: "bottom" as const,
+      align: "end" as const,
+    },
+  },
+  {
     element: "#add-patient-btn",
     popover: {
-      title: "➕ Add New Patient",
-      description: "Click here to add a new patient to your practice. You can enter their details and medical history.",
+      title: "Add patient",
+      description: "Create a patient with their contact details, status, presenting focus, first treatment goal, and emergency contact.",
       side: "left" as const,
       align: "center" as const,
     },
@@ -88,26 +115,26 @@ export const patientsTourSteps: DriveStep[] = [
   {
     element: "#patients-table",
     popover: {
-      title: "📋 Patient List",
-      description: "Here you see all your patients. Each row has action buttons on the right side. Let me explain each one...",
+      title: "Your patient list",
+      description: "Status, next session, last seen, session count, and balance for every patient. Each row also has quick actions on the right.",
       side: "top" as const,
-      align: "center" as const,
-    },
-  },
-  {
-    element: "#action-edit",
-    popover: {
-      title: "✏️ Edit Patient",
-      description: "Click the pencil icon to edit patient details like name, phone number, or email address.",
-      side: "left" as const,
       align: "center" as const,
     },
   },
   {
     element: "#action-records",
     popover: {
-      title: "📂 Patient Records",
-      description: "Click the folder icon to access the patient's medical records. We'll visit this page next!",
+      title: "Notes & records",
+      description: "The folder icon opens the patient workspace on the Notes & records tab — we'll visit it at the end of the tour.",
+      side: "left" as const,
+      align: "center" as const,
+    },
+  },
+  {
+    element: "#action-edit",
+    popover: {
+      title: "Edit patient",
+      description: "The pencil icon opens the patient's details for quick edits.",
       side: "left" as const,
       align: "center" as const,
     },
@@ -115,18 +142,18 @@ export const patientsTourSteps: DriveStep[] = [
   {
     element: "#action-delete",
     popover: {
-      title: "🗑️ Delete Patient",
-      description: "Click the trash icon to move a patient to trash. Don't worry, you can recover them within 30 days!",
+      title: "Move to trash",
+      description: "The trash icon moves a patient to Trash. Nothing is lost right away — items stay recoverable for 30 days.",
       side: "left" as const,
       align: "center" as const,
     },
   },
   {
-    element: "#view-trash-btn",
+    element: "#nav-trash",
     popover: {
-      title: "🗑️ View Trash",
-      description: "Now let's check the Trash page where you can recover deleted items. Click Next to continue!",
-      side: "left" as const,
+      title: "Trash",
+      description: "Deleted patients and records wait here before permanent removal. Click Next to take a look.",
+      side: "right" as const,
       align: "center" as const,
     },
   },
@@ -136,8 +163,8 @@ export const patientsTourSteps: DriveStep[] = [
 export const trashTourSteps: DriveStep[] = [
   {
     popover: {
-      title: "🗑️ Trash Management",
-      description: "Welcome to the Trash. Deleted items stay here for 30 days before permanent deletion.",
+      title: "Trash",
+      description: "Deleted patients and records stay here before permanent removal, so nothing disappears by accident.",
       side: "over" as const,
       align: "center" as const,
     },
@@ -145,91 +172,90 @@ export const trashTourSteps: DriveStep[] = [
   {
     element: "#trash-tabs",
     popover: {
-      title: "📑 Tabs",
-      description: "Switch between deleted Patients and deleted Medical Records using these tabs.",
-      side: "bottom" as const,
-      align: "start" as const,
+      title: "Patients and records",
+      description: "Deleted items are grouped into two panels — patients on the left, clinical records on the right.",
+      side: "top" as const,
+      align: "center" as const,
     },
   },
   {
     element: "#trash-table",
     popover: {
-      title: "📋 Deleted Items",
-      description: "See all deleted items here with their deletion date and remaining days before permanent deletion.",
-      side: "top" as const,
+      title: "Restore or delete forever",
+      description: "Every item here has two actions: Restore brings it back exactly as it was, and Delete permanently removes it after a confirmation.",
+      side: "bottom" as const,
       align: "center" as const,
     },
   },
   {
-    element: "#trash-restore-btn",
     popover: {
-      title: "♻️ Restore Item",
-      description: "Click Restore to bring back a deleted patient or record to your active list.",
-      side: "left" as const,
-      align: "center" as const,
-    },
-  },
-  {
-    element: "#trash-delete-btn",
-    popover: {
-      title: "⚠️ Delete Forever",
-      description: "Click Delete Forever to permanently remove an item. This action cannot be undone!",
-      side: "left" as const,
-      align: "center" as const,
-    },
-  },
-  {
-    element: "#trash-back-btn",
-    popover: {
-      title: "📂 Records Page",
-      description: "Now let's check out the medical Records page. Click the button to go back and we'll continue!",
-      side: "right" as const,
+      title: "One more stop",
+      description: "Finally, let's open a patient's workspace to see clinical notes and records. Click Next to continue.",
+      side: "over" as const,
       align: "center" as const,
     },
   },
 ];
 
-// Records page tour steps
+// Patient workspace (Notes & records) tour steps
 export const recordsTourSteps: DriveStep[] = [
   {
     popover: {
-      title: "📂 Medical Records",
-      description: "This is where you manage a patient's medical records and clinical notes.",
+      title: "The patient workspace",
+      description: "Every patient has a workspace with their profile, notes, sessions, and medical history in one place.",
       side: "over" as const,
       align: "center" as const,
     },
   },
   {
-    element: "#records-back-btn",
+    element: "#patient-rail",
     popover: {
-      title: "⬅️ Back to Patients",
-      description: "Click here to go back to the patients list anytime.",
+      title: "Patient profile",
+      description: "The profile rail shows who you're working with — status, contact details, and emergency contact. Use Edit details to update anything in place.",
       side: "right" as const,
-      align: "center" as const,
+      align: "start" as const,
     },
   },
   {
-    element: "#add-record-btn",
+    element: "#patient-tabs",
     popover: {
-      title: "➕ Add New Record",
-      description: "Click here to add a new medical record, clinical note, or session summary for this patient.",
+      title: "Workspace tabs",
+      description: "Switch between the Overview, Notes & records, Sessions (with payment tracking), and Medical history.",
+      side: "bottom" as const,
+      align: "start" as const,
+    },
+  },
+  {
+    element: "#records-list",
+    popover: {
+      title: "Clinical records",
+      description: "All of this patient's notes, newest first. Select one to read or edit it, or start a fresh note with New note.",
+      side: "right" as const,
+      align: "start" as const,
+    },
+  },
+  {
+    element: "#note-editor",
+    popover: {
+      title: "The note editor",
+      description: "Write directly here — the title, date, and content save automatically as you type.",
       side: "left" as const,
-      align: "center" as const,
+      align: "start" as const,
     },
   },
   {
-    element: "#records-table",
+    element: "#ai-assist",
     popover: {
-      title: "📋 Records List",
-      description: "All medical records are listed here with date, title, and description. Click any row to view or edit.",
+      title: "AI session summary",
+      description: "Generate a structured draft from your session notes. You review, edit, and approve before anything is saved.",
       side: "top" as const,
       align: "center" as const,
     },
   },
   {
     popover: {
-      title: "🎉 You're All Set!",
-      description: "That's everything! You now know how to navigate Neurova. Replay this tutorial anytime using the ❓ button. Happy practicing!",
+      title: "You're all set",
+      description: "That's the tour. Replay it anytime with the help button on the Dashboard. Happy practicing!",
       side: "over" as const,
       align: "center" as const,
     },
@@ -242,12 +268,13 @@ export const driverConfig = {
   smoothScroll: true,
   allowClose: true,
   overlayClickNext: false,
-  stagePadding: 10,
-  stageRadius: 8,
+  overlayColor: "rgba(6, 17, 21, .6)",
+  stagePadding: 8,
+  stageRadius: 14,
   popoverClass: "neurova-popover",
   showProgress: true,
   progressText: "{{current}} of {{total}}",
-  nextBtnText: "Next →",
-  prevBtnText: "← Back",
-  doneBtnText: "Finish! 🎉",
+  nextBtnText: "Next",
+  prevBtnText: "Back",
+  doneBtnText: "Finish",
 };

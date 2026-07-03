@@ -16,6 +16,7 @@ import {
   statusToneFor,
 } from "@/lib/nv";
 import type { PatientGoal } from "@/lib/types";
+import { useTutorial } from "@/hooks/useTutorial";
 import { useMutation, useQuery } from "convex/react";
 import {
   AlertTriangle,
@@ -102,6 +103,14 @@ function PatientWorkbench({ id }: { id: string }) {
     const tab = searchParams.get("tab");
     return (TABS.some((item) => item.key === tab) ? tab : "overview") as TabKey;
   });
+  const { startRecordsTour, currentTourPage } = useTutorial();
+
+  useEffect(() => {
+    if (currentTourPage !== "pre-records" || patient === undefined) return;
+    setActiveTab("notes");
+    const timer = window.setTimeout(startRecordsTour, 800);
+    return () => window.clearTimeout(timer);
+  }, [currentTourPage, patient, startRecordsTour]);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -192,7 +201,7 @@ function PatientWorkbench({ id }: { id: string }) {
       <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* ===== Profile rail ===== */}
         <aside className="flex flex-col gap-4">
-          <div className={`${cardClass} p-5 text-center`}>
+          <div id="patient-rail" className={`${cardClass} p-5 text-center`}>
             <div className="mx-auto mb-3 flex size-[72px] items-center justify-center rounded-[20px] text-[26px] font-extrabold text-white" style={{ background: color }}>
               {initialsFor(patient.name)}
             </div>
@@ -268,7 +277,7 @@ function PatientWorkbench({ id }: { id: string }) {
 
         {/* ===== Main column ===== */}
         <main className="min-w-0">
-          <div className="mb-[18px] flex w-max max-w-full gap-1 overflow-auto rounded-xl border border-border bg-secondary p-1">
+          <div id="patient-tabs" className="mb-[18px] flex w-max max-w-full gap-1 overflow-auto rounded-xl border border-border bg-secondary p-1">
             {TABS.map((tab) => (
               <button
                 key={tab.key}
@@ -576,7 +585,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
 
   return (
     <div className="grid items-start gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
-      <div className={`${cardClass} overflow-hidden`}>
+      <div id="records-list" className={`${cardClass} overflow-hidden`}>
         <div className="flex items-center justify-between border-b border-border px-4 py-[13px]">
           <span className="text-[13px] font-extrabold text-foreground">Records</span>
           <button type="button" onClick={addNote} className="flex items-center gap-1.5 rounded-[9px] bg-primary px-[11px] py-1.5 text-[11.5px] font-bold text-primary-foreground transition-colors hover:bg-[#0b7693]">
@@ -604,7 +613,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       </div>
 
       <div className="flex flex-col gap-4">
-        <div className={`${cardClass} overflow-hidden`}>
+        <div id="note-editor" className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center gap-2 border-b border-border bg-secondary px-3.5 py-2.5">
             <div className="flex gap-0.5">
               <span className={`${toolButton} text-[13px] font-extrabold`}>B</span>
@@ -655,7 +664,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
           )}
         </div>
 
-        <div className="rounded-2xl border border-[#8acfe0] bg-[linear-gradient(180deg,rgba(14,150,184,.08),transparent)] p-[18px] shadow-sm dark:border-[#1f5664]">
+        <div id="ai-assist" className="rounded-2xl border border-[#8acfe0] bg-[linear-gradient(180deg,rgba(14,150,184,.08),transparent)] p-[18px] shadow-sm dark:border-[#1f5664]">
           <div className="flex items-start gap-3">
             <div className="flex size-[34px] flex-none items-center justify-center rounded-[10px] bg-primary text-white"><Sparkles size={18} strokeWidth={1.8} /></div>
             <div className="flex-1">

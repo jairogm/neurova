@@ -229,7 +229,7 @@ export default function Dashboard() {
         </div>
 
         <div className="flex min-w-0 flex-col gap-[18px]">
-          <section className="flex h-[370px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
+          <section id="tasks-card" className="flex h-[370px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-[18px] py-4">
               <h2 className="text-[15px] font-extrabold text-foreground">Tasks</h2>
               <span className="rounded-full bg-primary/10 px-[9px] py-[3px] text-[11.5px] font-bold text-primary">{tasksLeft} left</span>
@@ -264,7 +264,7 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section className="rounded-[18px] border border-border bg-card p-[18px] shadow-sm">
+          <section id="payments-card" className="rounded-[18px] border border-border bg-card p-[18px] shadow-sm">
             <h2 className="mb-3.5 text-[15px] font-extrabold text-foreground">Payments · this month</h2>
             <div className="mb-3.5 flex h-2.5 overflow-hidden rounded-md bg-muted">
               <div className="bg-[#15986a] dark:bg-[#2ba378]" style={{ width: `${paymentWidths.collected}%` }} />

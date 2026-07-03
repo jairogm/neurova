@@ -3,21 +3,17 @@
 import { Lock } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
-// Prototype-review controls from NEUROVA.dc.html: toggle the billing feature
-// on/off and preview the paid vs unpaid account states (paywall).
+// Prototype-review control from NEUROVA.dc.html: preview the paid vs unpaid
+// account states (paywall).
 
 type BillingPrototypeValue = {
-  billingEnabled: boolean;
   subscriptionActive: boolean;
-  toggleBilling: () => void;
   toggleSubscription: () => void;
   activatePlan: () => void;
 };
 
 const BillingPrototypeContext = createContext<BillingPrototypeValue>({
-  billingEnabled: true,
   subscriptionActive: true,
-  toggleBilling: () => {},
   toggleSubscription: () => {},
   activatePlan: () => {},
 });
@@ -29,15 +25,13 @@ export function useBillingPrototype() {
 const STORAGE_KEY = "nv-billing-prototype";
 
 export function BillingPrototypeProvider({ children }: { children: React.ReactNode }) {
-  const [billingEnabled, setBillingEnabled] = useState(true);
   const [subscriptionActive, setSubscriptionActive] = useState(true);
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as { billingEnabled?: boolean; subscriptionActive?: boolean };
-        if (typeof parsed.billingEnabled === "boolean") setBillingEnabled(parsed.billingEnabled);
+        const parsed = JSON.parse(stored) as { subscriptionActive?: boolean };
         if (typeof parsed.subscriptionActive === "boolean") setSubscriptionActive(parsed.subscriptionActive);
       }
     } catch {
@@ -45,44 +39,35 @@ export function BillingPrototypeProvider({ children }: { children: React.ReactNo
     }
   }, []);
 
-  const persist = useCallback((billing: boolean, subscription: boolean) => {
+  const persist = useCallback((subscription: boolean) => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ billingEnabled: billing, subscriptionActive: subscription }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ subscriptionActive: subscription }));
     } catch {
       // Storage unavailable — state stays in memory
     }
   }, []);
 
-  const toggleBilling = useCallback(() => {
-    setBillingEnabled((current) => {
-      persist(!current, subscriptionActive);
-      return !current;
-    });
-  }, [persist, subscriptionActive]);
-
   const toggleSubscription = useCallback(() => {
     setSubscriptionActive((current) => {
-      persist(true, !current);
+      persist(!current);
       return !current;
     });
-    setBillingEnabled(true);
   }, [persist]);
 
   const activatePlan = useCallback(() => {
-    setBillingEnabled(true);
     setSubscriptionActive(true);
-    persist(true, true);
+    persist(true);
   }, [persist]);
 
   const value = useMemo(
-    () => ({ billingEnabled, subscriptionActive, toggleBilling, toggleSubscription, activatePlan }),
-    [activatePlan, billingEnabled, subscriptionActive, toggleBilling, toggleSubscription],
+    () => ({ subscriptionActive, toggleSubscription, activatePlan }),
+    [activatePlan, subscriptionActive, toggleSubscription],
   );
 
   return (
     <BillingPrototypeContext.Provider value={value}>
       {children}
-      {billingEnabled && !subscriptionActive && <PaywallOverlay onActivate={activatePlan} />}
+      {!subscriptionActive && <PaywallOverlay onActivate={activatePlan} />}
     </BillingPrototypeContext.Provider>
   );
 }

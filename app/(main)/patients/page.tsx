@@ -62,7 +62,7 @@ function PatientsContent() {
 
   useEffect(() => {
     if (currentTourPage !== "pre-records" || !data?.length) return;
-    const timer = window.setTimeout(() => router.push(`/patients/${data[0].id}/records`), 500);
+    const timer = window.setTimeout(() => router.push(`/patients/${data[0].id}?tab=notes`), 500);
     return () => window.clearTimeout(timer);
   }, [currentTourPage, data, router]);
 
@@ -104,7 +104,7 @@ function PatientsContent() {
           <Input id="patients-search-input" type="search" placeholder="Search by name, focus, email…" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-[42px] rounded-[11px] pl-[38px] text-[13.5px]" />
         </div>
 
-        <div className="ml-auto flex items-center rounded-[10px] border border-border bg-secondary p-[3px]">
+        <div id="patients-view-toggle" className="ml-auto flex items-center rounded-[10px] border border-border bg-secondary p-[3px]">
           <button type="button" onClick={() => setView("table")} aria-label="Table view" className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "table" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><List size={16} /></button>
           <button type="button" onClick={() => setView("cards")} aria-label="Card view" className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "cards" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><LayoutGrid size={16} /></button>
         </div>
@@ -113,7 +113,7 @@ function PatientsContent() {
         <Button id="add-patient-btn" onClick={() => setAddOpen(true)} className="h-[42px] rounded-[11px] px-[15px]"><Plus size={15} strokeWidth={2.4} />Add patient</Button>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div id="patients-filters" className="mb-4 flex flex-wrap gap-2">
         {filters.map((item) => {
           const active = filter === item;
           return (
