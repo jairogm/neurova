@@ -232,29 +232,35 @@ export default function Dashboard() {
                   const date = safeDate(session.scheduled_date);
                   const isToday = date?.toDateString() === new Date(now).toDateString();
                   return (
-                    <button
+                    <div
                       key={session._id}
-                      type="button"
-                      onClick={() => setSelectedSession(session as SessionDetails)}
-                      className="flex w-full items-center gap-3 border-b border-border px-3.5 py-2.5 text-left transition-colors last:border-b-0 hover:bg-secondary sm:px-4 wide:gap-3.5 wide:px-5 wide:py-3.5"
+                      className="flex w-full items-stretch border-b border-border transition-colors last:border-b-0 hover:bg-secondary"
                     >
-                      <div className="w-[68px] flex-none text-right wide:w-[72px]">
-                        <div className="whitespace-nowrap font-mono text-[13px] font-semibold text-foreground wide:text-sm">{sessionTime(session.scheduled_date)}</div>
-                        <div className="text-[10.5px] text-[var(--nv-faint)]">{isToday ? `${session.duration || 50} min` : date?.toLocaleDateString([], { weekday: "short", day: "numeric" })}</div>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedSession(session as SessionDetails)}
+                        className="flex min-w-0 flex-1 items-center gap-3 px-3.5 py-2.5 text-left sm:px-4 wide:gap-3.5 wide:px-5 wide:py-3.5"
+                      >
+                        <div className="w-[68px] flex-none text-right wide:w-[72px]">
+                          <div className="whitespace-nowrap font-mono text-[13px] font-semibold text-foreground wide:text-sm">{sessionTime(session.scheduled_date)}</div>
+                          <div className="text-[10.5px] text-[var(--nv-faint)]">{isToday ? `${session.duration || 50} min` : date?.toLocaleDateString([], { weekday: "short", day: "numeric" })}</div>
+                        </div>
+                        <div className="w-px self-stretch bg-border" />
+                        <div className="flex size-8 flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white wide:size-[34px]" style={{ background: avatarColorFor(session.patientColor, index) }}>
+                          {initialsFor(session.patientName)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[13.5px] font-bold text-foreground">{session.patientName}</div>
+                          <div className="truncate text-xs text-muted-foreground">{modeLabel(session.mode)} · {session.session_type || "Therapy session"}</div>
+                        </div>
+                        <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline ${tone.className}`}>
+                          {tone.label}
+                        </span>
+                      </button>
+                      <div className="flex flex-none items-center pr-3.5 sm:pr-4 wide:pr-5">
+                        <CancelSessionButton session={session} />
                       </div>
-                      <div className="w-px self-stretch bg-border" />
-                      <div className="flex size-8 flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white wide:size-[34px]" style={{ background: avatarColorFor(session.patientColor, index) }}>
-                        {initialsFor(session.patientName)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-[13.5px] font-bold text-foreground">{session.patientName}</div>
-                        <div className="truncate text-xs text-muted-foreground">{modeLabel(session.mode)} · {session.session_type || "Therapy session"}</div>
-                      </div>
-                      <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline ${tone.className}`}>
-                        {tone.label}
-                      </span>
-                      <CancelSessionButton session={session} />
-                    </button>
+                    </div>
                   );
                 })}
               </div>
