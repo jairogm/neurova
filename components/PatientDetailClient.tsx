@@ -205,7 +205,7 @@ function PatientWorkbench({ id }: { id: string }) {
   const viewGoals = editing && draft ? draft.goals : goals;
 
   return (
-    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px]">
+    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-5 sm:py-[22px] wide:px-[30px]">
       <Link href="/patients" className="mb-4 flex w-max items-center gap-1.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary"><ArrowLeft size={15} strokeWidth={2.4} />All patients</Link>
 
       <div className={`grid items-start gap-5 transition-[grid-template-columns,column-gap] duration-500 ease-[cubic-bezier(.25,1,.3,1)] ${railHidden ? "lg:grid-cols-[0px_minmax(0,1fr)] lg:gap-x-0" : "lg:grid-cols-[280px_minmax(0,1fr)]"}`}>
@@ -821,7 +821,7 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
 
   return (
     <div className={`${cardClass} overflow-x-auto`}>
-      <div className="grid min-w-[760px] grid-cols-[.6fr_1.3fr_1fr_.8fr_1fr_1.8fr] gap-3 border-b border-border bg-secondary px-5 py-[11px] text-[11px] font-bold uppercase tracking-[.06em] text-muted-foreground">
+      <div className="grid min-w-[640px] grid-cols-[.5fr_1.2fr_.9fr_.7fr_1fr_2fr] gap-2.5 border-b border-border bg-secondary px-4 py-[11px] text-[11px] font-bold uppercase tracking-[.06em] text-muted-foreground wide:grid-cols-[.6fr_1.3fr_1fr_.8fr_1fr_1.8fr] wide:gap-3 wide:px-5">
         <div>#</div><div>Date</div><div>Mode</div><div>Duration</div><div>Status</div><div className="text-right">Payment</div>
       </div>
       {rows.length ? rows.map((session, index) => {
@@ -831,7 +831,7 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
         const waived = payStatus === "waived";
         const amount = waived ? 0 : Number(session.payment_amount) || 0;
         return (
-          <div key={String(session._id)} className="grid min-w-[760px] grid-cols-[.6fr_1.3fr_1fr_.8fr_1fr_1.8fr] items-center gap-3 border-b border-border px-5 py-3.5 last:border-b-0">
+          <div key={String(session._id)} className="grid min-w-[640px] grid-cols-[.5fr_1.2fr_.9fr_.7fr_1fr_2fr] items-center gap-2.5 border-b border-border px-4 py-3.5 last:border-b-0 wide:grid-cols-[.6fr_1.3fr_1fr_.8fr_1fr_1.8fr] wide:gap-3 wide:px-5">
             <div className="font-mono text-[13px] font-semibold text-foreground">{total - index}</div>
             <div className="font-mono text-[12.5px] text-foreground/80">{new Date(session.scheduled_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
             <div className="text-[12.5px] text-foreground/80">{modeLabel(session.mode)}</div>
