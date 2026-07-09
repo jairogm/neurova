@@ -51,6 +51,7 @@ export const create = mutation({
     event_id: v.optional(v.string()),
     mode: v.optional(v.string()),
     session_type: v.optional(v.string()),
+    meet_link: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -96,6 +97,7 @@ export const create = mutation({
       event_id: args.event_id,
       mode: args.mode,
       session_type: args.session_type,
+      meet_link: args.meet_link,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -115,6 +117,9 @@ export const update = mutation({
     payment_amount: v.optional(v.number()),
     notes: v.optional(v.string()),
     event_id: v.optional(v.string()),
+    meet_link: v.optional(v.string()),
+    mode: v.optional(v.string()),
+    session_type: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -134,11 +139,18 @@ export const update = mutation({
 
     const therapistId = therapist.id ?? therapist._id;
 
-    // Find session by legacy ID
-    const session = await ctx.db
+    // Find session by legacy id, falling back to Convex _id
+    let session = await ctx.db
       .query("sessions")
       .filter(q => q.eq(q.field("id"), args.id))
       .first();
+    if (!session) {
+      try {
+        session = await ctx.db.get(args.id as import("./_generated/dataModel").Id<"sessions">);
+      } catch {
+        session = null;
+      }
+    }
 
     if (!session) {
       throw new Error("Session not found");

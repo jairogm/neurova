@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { avatarColorFor, initialsFor, modeLabel } from "@/lib/nv";
-import { createAppointment } from "@/lib/google-calendar";
+import { createAppointment, meetLinkOf } from "@/lib/google-calendar";
 import { useMutation, useQuery } from "convex/react";
 import { CalendarIcon, ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -29,17 +29,37 @@ const RECURRENCES = [
   { key: "monthly", label: "Monthly", repeats: 3, stepDays: 28 },
 ] as const;
 
-const TIME_OPTIONS = Array.from({ length: 13 * 2 }, (_, index) => {
-  const totalMinutes = 7 * 60 + index * 30;
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
-});
+const DEFAULT_START_TIME = "10:00";
+const DEFAULT_DURATION_MINUTES = 60;
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
-function endTimeOf(start: string, durationMinutes = 50) {
-  const [hours, minutes] = start.split(":").map(Number);
-  const total = hours * 60 + minutes + durationMinutes;
-  return `${Math.floor(total / 60).toString().padStart(2, "0")}:${(total % 60).toString().padStart(2, "0")}`;
+function isValidTime(value: string) {
+  return TIME_PATTERN.test(value);
+}
+
+function timeToMinutes(time: string) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function minutesToTime(minutes: number) {
+  const normalized = ((minutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  return `${Math.floor(normalized / 60).toString().padStart(2, "0")}:${(normalized % 60).toString().padStart(2, "0")}`;
+}
+
+function addMinutes(time: string, durationMinutes: number) {
+  if (!isValidTime(time)) return "";
+  return minutesToTime(timeToMinutes(time) + durationMinutes);
+}
+
+function durationBetween(start: string, end: string) {
+  if (!isValidTime(start) || !isValidTime(end)) return null;
+  const duration = timeToMinutes(end) - timeToMinutes(start);
+  return duration > 0 ? duration : null;
+}
+
+function buildDateTime(dateISO: string, time: string) {
+  return `${dateISO}T${time}:00`;
 }
 
 const labelClass = "mb-[7px] block text-xs font-bold text-foreground/80";
@@ -58,11 +78,13 @@ export const ScheduleAppointment = ({
   const [saving, setSaving] = useState(false);
   const patients = useQuery(api.patients.list) || [];
   const createSession = useMutation(api.sessions.create);
+  const updateSession = useMutation(api.sessions.update);
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const [patientId, setPatientId] = useState(defaultPatientId ?? "");
   const [dateISO, setDateISO] = useState(todayISO);
-  const [startTime, setStartTime] = useState("10:00");
+  const [startTime, setStartTime] = useState(DEFAULT_START_TIME);
+  const [endTime, setEndTime] = useState(addMinutes(DEFAULT_START_TIME, DEFAULT_DURATION_MINUTES));
   const [mode, setMode] = useState<string>("video");
   const [recurrence, setRecurrence] = useState<string>("none");
   const [notes, setNotes] = useState("");
@@ -71,7 +93,8 @@ export const ScheduleAppointment = ({
     if (!open) return;
     setPatientId(defaultPatientId ?? "");
     setDateISO(new Date().toISOString().slice(0, 10));
-    setStartTime("10:00");
+    setStartTime(DEFAULT_START_TIME);
+    setEndTime(addMinutes(DEFAULT_START_TIME, DEFAULT_DURATION_MINUTES));
     setMode("video");
     setRecurrence("none");
     setNotes("");
@@ -79,6 +102,15 @@ export const ScheduleAppointment = ({
 
   const selectedPatient = patients.find((patient) => patient.id === patientId) ?? patients.find((patient) => patient.id === defaultPatientId);
   const selectedIndex = Math.max(0, patients.findIndex((patient) => patient.id === selectedPatient?.id));
+  const currentDuration = durationBetween(startTime, endTime);
+
+  // Moving the start slides the end along, preserving the session length.
+  const handleStartTimeChange = (value: string) => {
+    setStartTime(value);
+    if (isValidTime(value)) {
+      setEndTime(addMinutes(value, currentDuration ?? DEFAULT_DURATION_MINUTES));
+    }
+  };
 
   const save = async () => {
     const targetId = selectedPatient?.id;
@@ -86,16 +118,28 @@ export const ScheduleAppointment = ({
       toast.error("Please select a patient");
       return;
     }
+    if (!isValidTime(startTime) || !isValidTime(endTime)) {
+      toast.error("Please enter valid appointment times");
+      return;
+    }
+    const parsedStartTime = startTime;
+    const parsedEndTime = endTime;
+    const duration = durationBetween(parsedStartTime, parsedEndTime);
+    if (!duration) {
+      toast.error("End time must be after start time");
+      return;
+    }
     setSaving(true);
     const recurrenceConfig = RECURRENCES.find((item) => item.key === recurrence) ?? RECURRENCES[0];
     try {
+      const createdSessionIds: string[] = [];
       for (let occurrence = 0; occurrence < recurrenceConfig.repeats; occurrence++) {
-        const date = new Date(`${dateISO}T${startTime}:00`);
+        const date = new Date(buildDateTime(dateISO, parsedStartTime));
         date.setDate(date.getDate() + occurrence * recurrenceConfig.stepDays);
-        await createSession({
+        const created = await createSession({
           patient_id: targetId,
           scheduled_date: date.toISOString(),
-          duration: 50,
+          duration,
           session_status: "scheduled",
           payment_status: "unpaid",
           payment_amount: 120000,
@@ -103,20 +147,31 @@ export const ScheduleAppointment = ({
           mode,
           session_type: "Therapy session",
         });
+        if (created?.id) createdSessionIds.push(created.id);
       }
       toast.success("Appointment scheduled");
       setOpen(false);
 
       // Best-effort Google Calendar sync — the session already exists in Convex.
+      // When the event comes back with a Meet link, attach it to the session so
+      // "Start session" can jump straight into the call.
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       createAppointment({
         summary: `Therapy session — ${selectedPatient.name}`,
         description: notes || `${modeLabel(mode)} session`,
-        start: { dateTime: `${dateISO}T${startTime}:00`, timeZone: timezone },
-        end: { dateTime: `${dateISO}T${endTimeOf(startTime)}:00`, timeZone: timezone },
+        start: { dateTime: buildDateTime(dateISO, parsedStartTime), timeZone: timezone },
+        end: { dateTime: buildDateTime(dateISO, parsedEndTime), timeZone: timezone },
         attendees: selectedPatient.email ? [{ email: selectedPatient.email, displayName: selectedPatient.name }] : undefined,
         patient_id: targetId,
-      }).catch((error) => console.warn("Google Calendar sync skipped:", error));
+      })
+        .then(async (event) => {
+          const meetLink = meetLinkOf(event);
+          const sessionId = createdSessionIds[0];
+          if (sessionId && (meetLink || event?.id)) {
+            await updateSession({ id: sessionId, event_id: event?.id, meet_link: meetLink });
+          }
+        })
+        .catch((error) => console.warn("Google Calendar sync skipped:", error));
     } catch {
       toast.error("Failed to schedule appointment");
     } finally {
@@ -173,7 +228,7 @@ export const ScheduleAppointment = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-[13px]">
+          <div className="grid grid-cols-1 gap-[13px] sm:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
             <div>
               <label className={labelClass} htmlFor="appointment-date">Date</label>
               <input
@@ -181,26 +236,29 @@ export const ScheduleAppointment = ({
                 type="date"
                 value={dateISO}
                 onChange={(event) => setDateISO(event.target.value)}
-                className="w-full rounded-[11px] border border-border bg-card px-[13px] py-[11px] font-mono text-[13px] text-foreground outline-none focus:border-primary"
+                className="w-full min-w-0 rounded-[11px] border border-border bg-card px-2.5 py-[11px] font-mono text-[12.5px] text-foreground outline-none focus:border-primary"
               />
             </div>
-            <div>
-              <label className={labelClass} htmlFor="appointment-time">Time</label>
-              <div className="relative">
-                <div className="pointer-events-none w-full rounded-[11px] border border-border px-[13px] py-[11px] font-mono text-[13px] text-foreground">
-                  {startTime} – {endTimeOf(startTime)}
-                </div>
-                <select
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className={labelClass} htmlFor="appointment-time">Start</label>
+                <input
                   id="appointment-time"
-                  aria-label="Start time"
+                  type="time"
                   value={startTime}
-                  onChange={(event) => setStartTime(event.target.value)}
-                  className="absolute inset-0 size-full cursor-pointer opacity-0"
-                >
-                  {TIME_OPTIONS.map((time) => (
-                    <option key={time} value={time}>{time} – {endTimeOf(time)}</option>
-                  ))}
-                </select>
+                  onChange={(event) => handleStartTimeChange(event.target.value)}
+                  className="w-full min-w-0 rounded-[11px] border border-border bg-card px-2 py-[11px] font-mono text-[12.5px] text-foreground outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className={labelClass} htmlFor="appointment-end-time">End</label>
+                <input
+                  id="appointment-end-time"
+                  type="time"
+                  value={endTime}
+                  onChange={(event) => setEndTime(event.target.value)}
+                  className="w-full min-w-0 rounded-[11px] border border-border bg-card px-2 py-[11px] font-mono text-[12.5px] text-foreground outline-none focus:border-primary"
+                />
               </div>
             </div>
           </div>

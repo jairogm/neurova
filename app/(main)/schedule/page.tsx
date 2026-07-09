@@ -1,20 +1,31 @@
 "use client";
 
 import { api } from "@/convex/_generated/api";
+import { CancelSessionButton } from "@/components/CancelSessionButton";
 import { ScheduleAppointment } from "@/components/modals/ScheduleAppointment";
+import { SessionDetailsModal, type SessionDetails } from "@/components/modals/SessionDetailsModal";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apptToneFor, avatarColorFor, initialsFor, modeLabel } from "@/lib/nv";
+import { useNow } from "@/hooks/useNow";
 import { useQuery } from "convex/react";
 import { CalendarCheck2 } from "lucide-react";
-import Link from "next/link";
 import { useMemo, useState } from "react";
+
+function sessionTime(date: Date) {
+  const hours = date.getHours();
+  const hour12 = hours % 12 || 12;
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const suffix = hours >= 12 ? "PM" : "AM";
+  return `${hour12}:${minutes} ${suffix}`;
+}
 
 export default function SchedulePage() {
   const sessions = useQuery(api.dashboard.getWeekSessions);
   const weekSessions = useMemo(() => sessions || [], [sessions]);
   const today = new Date();
   const [selectedDay, setSelectedDay] = useState(() => today.toDateString());
+  const [selectedSession, setSelectedSession] = useState<SessionDetails | null>(null);
 
   const week = useMemo(() => {
     const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -35,13 +46,13 @@ export default function SchedulePage() {
   const videoCount = weekSessions.filter((session) => (session.mode || "video") === "video").length;
   const inPersonCount = weekSessions.length - videoCount;
 
+  const now = useNow();
   const nextUpId = useMemo(() => {
-    const now = Date.now();
     return dayAgenda.find((session) => {
       const status = session.session_status?.toLowerCase() || "";
       return !["completed", "complete", "cancelled", "canceled", "no_show", "no-show"].includes(status) && new Date(session.scheduled_date).getTime() >= now - 15 * 60000;
     })?._id;
-  }, [dayAgenda]);
+  }, [dayAgenda, now]);
 
   return (
     <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-6">
@@ -75,17 +86,23 @@ export default function SchedulePage() {
             const date = new Date(session.scheduled_date);
             const tone = apptToneFor(session.session_status, session._id === nextUpId);
             return (
-              <Link key={session._id} href={`/patients/${session.patient_id}`} className="flex gap-4 border-b border-border px-5 py-3.5 last:border-0 hover:bg-secondary">
-                <div className="w-[46px] flex-none pt-0.5 font-mono text-[13px] font-semibold text-muted-foreground">{date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+              <button
+                key={session._id}
+                type="button"
+                onClick={() => setSelectedSession(session as SessionDetails)}
+                className="flex w-full gap-4 border-b border-border px-5 py-3.5 text-left last:border-0 hover:bg-secondary"
+              >
+                <div className="w-[68px] flex-none whitespace-nowrap pt-0.5 text-right font-mono text-[13px] font-semibold text-muted-foreground">{sessionTime(date)}</div>
                 <div className="min-w-0 flex-1 border-l-[3px] pl-3.5" style={{ borderColor: tone.barColor }}>
                   <div className="flex flex-wrap items-center gap-[9px]">
                     <span className="flex size-7 items-center justify-center rounded-lg text-[11px] font-bold text-white" style={{ background: avatarColorFor(session.patientColor, index) }}>{initialsFor(session.patientName)}</span>
                     <span className="text-[13.5px] font-bold text-foreground">{session.patientName}</span>
                     <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tone.label}</span>
+                    <span className="ml-auto"><CancelSessionButton session={session} /></span>
                   </div>
                   <div className="mt-1 pl-[37px] text-xs text-muted-foreground">{session.session_type || "Therapy session"} · {session.duration || 50} min · {modeLabel(session.mode)}</div>
                 </div>
-              </Link>
+              </button>
             );
           }) : <div className="px-5 py-14 text-center text-sm text-muted-foreground">No sessions on this day.</div>}
         </Card>
@@ -104,6 +121,12 @@ export default function SchedulePage() {
           </div>
         </Card>
       </div>
+
+      <SessionDetailsModal
+        session={selectedSession}
+        open={Boolean(selectedSession)}
+        onOpenChange={(open) => { if (!open) setSelectedSession(null); }}
+      />
     </div>
   );
 }

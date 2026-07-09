@@ -81,6 +81,7 @@ export default defineSchema({
     // NEUROVA workspace fields
     mode: v.optional(v.string()), // video | inperson | phone
     session_type: v.optional(v.string()), // e.g. "Follow-up · CBT"
+    meet_link: v.optional(v.string()), // Google Meet URL from the calendar event
   }).index("by_patient_id", ["patient_id"]),
 
   medical_history_notes: defineTable({

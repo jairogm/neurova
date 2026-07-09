@@ -12,6 +12,19 @@ export interface CalendarEvent {
     dateTime?: string;
     date?: string;
   };
+  hangoutLink?: string;
+  conferenceData?: {
+    entryPoints?: Array<{ entryPointType?: string; uri?: string }>;
+  };
+}
+
+// Extract the Google Meet URL from a calendar event, if one was created.
+export function meetLinkOf(event?: CalendarEvent | null): string | undefined {
+  if (!event) return undefined;
+  return (
+    event.hangoutLink ||
+    event.conferenceData?.entryPoints?.find((entry) => entry.entryPointType === "video")?.uri
+  );
 }
 
 export interface CreateAppointmentData {

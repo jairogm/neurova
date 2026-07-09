@@ -80,7 +80,12 @@ function ActionsCell({ patient }: { patient: Patient }) {
         </Button>
       </div>
 
-      <ViewPatientModal open={editOpen} onOpenChange={setEditOpen} patient={patient} isEditMode />
+      {/* Dialogs portal to <body>, but React still bubbles their events through
+          this tree — stop them so clicks inside the modal don't trigger the
+          row's navigate-to-profile handler. */}
+      <span onClick={(event) => event.stopPropagation()}>
+        <ViewPatientModal open={editOpen} onOpenChange={setEditOpen} patient={patient} isEditMode />
+      </span>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent onClick={(event) => event.stopPropagation()}>

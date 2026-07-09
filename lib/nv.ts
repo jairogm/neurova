@@ -40,6 +40,7 @@ export const apptTone: Record<string, { label: string; className: string; barCol
   upcoming: { label: "Scheduled", className: "bg-[#e2eef3] text-[#2c8fb0] dark:bg-[#12262e] dark:text-[#4faacb]", barColor: "#2c8fb0" },
   confirmed: { label: "Confirmed", className: "bg-[#e2f1ea] text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]", barColor: "#15986a" },
   no_show: { label: "No-show", className: "bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]", barColor: "#d2574f" },
+  cancelled: { label: "Cancelled", className: "bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]", barColor: "#d2574f" },
 };
 
 export function apptToneFor(status?: string, isNext = false) {
@@ -47,7 +48,8 @@ export function apptToneFor(status?: string, isNext = false) {
   const normalized = status?.toLowerCase().replace("-", "_") || "upcoming";
   if (["completed", "complete"].includes(normalized)) return apptTone.completed;
   if (["confirmed", "active"].includes(normalized)) return apptTone.confirmed;
-  if (["no_show", "missed", "cancelled", "canceled"].includes(normalized)) return apptTone.no_show;
+  if (["cancelled", "canceled"].includes(normalized)) return apptTone.cancelled;
+  if (["no_show", "missed"].includes(normalized)) return apptTone.no_show;
   return apptTone.upcoming;
 }
 

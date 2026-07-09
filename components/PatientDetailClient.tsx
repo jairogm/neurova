@@ -17,17 +17,19 @@ import {
 } from "@/lib/nv";
 import type { PatientGoal } from "@/lib/types";
 import { useTutorial } from "@/hooks/useTutorial";
+import { EDITOR_TOOLS } from "@/lib/tool";
+import EditorJS, { type OutputData } from "@editorjs/editorjs";
 import { useMutation, useQuery } from "convex/react";
 import {
   AlertTriangle,
   ArrowLeft,
   Check,
   CheckCheck,
+  ChevronDown,
   ClipboardCheck,
   DollarSign,
   FileDown,
   FileText,
-  List,
   Loader2,
   Mail,
   MapPin,
@@ -480,6 +482,36 @@ type NotesTabProps = {
   softDeleteRecord: ReturnType<typeof useMutation<typeof api.trash.softDeleteRecord>>;
 };
 
+function editorPlainText(data: OutputData): string {
+  return (data.blocks || [])
+    .map((block) => {
+      const blockData = (block.data ?? {}) as { text?: string; items?: unknown[] };
+      if (typeof blockData.text === "string") return blockData.text;
+      if (Array.isArray(blockData.items)) {
+        return blockData.items
+          .map((item) => (typeof item === "string" ? item : ((item as { content?: string })?.content ?? "")))
+          .join(" ");
+      }
+      return "";
+    })
+    .join("\n")
+    .replace(/<[^>]+>/g, " ");
+}
+
+function toEditorData(note: { content?: unknown; plainText?: string }): OutputData {
+  const content = note.content;
+  if (content && typeof content === "object" && Array.isArray((content as OutputData).blocks)) {
+    return content as OutputData;
+  }
+  const text = note.plainText || "";
+  return {
+    time: Date.now(),
+    blocks: text
+      ? text.split(/\n+/).filter(Boolean).map((paragraph) => ({ type: "paragraph", data: { text: paragraph } }))
+      : [],
+  };
+}
+
 function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }: NotesTabProps) {
   const sorted = useMemo(
     () => [...(notes ?? [])].sort((a, b) => (b.date || b.created_at).localeCompare(a.date || a.created_at)),
@@ -490,46 +522,88 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
 
   const [title, setTitle] = useState("");
   const [dateISO, setDateISO] = useState("");
-  const [content, setContent] = useState("");
+  const [words, setWords] = useState(0);
   const [saveState, setSaveState] = useState<"saved" | "saving">("saved");
   const [aiState, setAiState] = useState<"idle" | "busy" | "ready">("idle");
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const metaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedId = useRef<string | null>(null);
+  const editorRef = useRef<EditorJS | null>(null);
 
+  // (Re)mount the EditorJS instance whenever the selected note changes.
   useEffect(() => {
-    if (!active || String(active._id) === loadedId.current) return;
+    if (!active) {
+      if (editorRef.current?.destroy) {
+        editorRef.current.destroy();
+        editorRef.current = null;
+      }
+      loadedId.current = null;
+      return;
+    }
+    if (String(active._id) === loadedId.current) return;
     loadedId.current = String(active._id);
     setTitle(active.title || "");
     setDateISO((active.date || "").slice(0, 10));
-    setContent(active.plainText || "");
+    setWords(active.wordCount ?? 0);
     setSaveState("saved");
     setAiState("idle");
-  }, [active]);
+
+    if (editorRef.current?.destroy) {
+      editorRef.current.destroy();
+      editorRef.current = null;
+    }
+    const noteKey = String(active.id ?? active._id);
+    const editor: EditorJS = new EditorJS({
+      holder: "editorjs",
+      tools: EDITOR_TOOLS,
+      placeholder: "Write the session note… Type / for blocks",
+      data: toEditorData(active),
+      minHeight: 120,
+      onChange: () => {
+        setSaveState("saving");
+        if (contentTimer.current) clearTimeout(contentTimer.current);
+        contentTimer.current = setTimeout(async () => {
+          try {
+            const output = await editor.save();
+            const text = editorPlainText(output).trim();
+            setWords(text ? text.split(/\s+/).filter(Boolean).length : 0);
+            await updateNote({ id: noteKey, content: output, description: text.slice(0, 120) });
+            setSaveState("saved");
+          } catch {
+            toast.error("Failed to save note");
+          }
+        }, 800);
+      },
+    });
+    editorRef.current = editor;
+  }, [active, updateNote]);
 
   useEffect(() => () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (metaTimer.current) clearTimeout(metaTimer.current);
+    if (contentTimer.current) clearTimeout(contentTimer.current);
     if (aiTimer.current) clearTimeout(aiTimer.current);
+    if (editorRef.current?.destroy) {
+      editorRef.current.destroy();
+      editorRef.current = null;
+    }
   }, []);
 
-  const scheduleSave = (next: { title?: string; dateISO?: string; content?: string }) => {
+  const scheduleSave = (next: { title?: string; dateISO?: string }) => {
     if (!active) return;
     setSaveState("saving");
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (metaTimer.current) clearTimeout(metaTimer.current);
     const noteKey = String(active.id ?? active._id);
     const payload = {
       title: next.title ?? title,
       dateISO: next.dateISO ?? dateISO,
-      content: next.content ?? content,
     };
-    saveTimer.current = setTimeout(async () => {
+    metaTimer.current = setTimeout(async () => {
       try {
         await updateNote({
           id: noteKey,
           title: payload.title || "Untitled note",
           date: payload.dateISO,
-          description: payload.content.slice(0, 120),
-          content: payload.content,
         });
         setSaveState("saved");
       } catch {
@@ -564,8 +638,6 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     }
   };
 
-  const words = content.trim() ? content.trim().split(/\s+/).filter(Boolean).length : 0;
-
   const runAi = () => {
     setAiState("busy");
     if (aiTimer.current) clearTimeout(aiTimer.current);
@@ -574,14 +646,17 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
 
   const aiDraft = "Summary draft. Client reported reduced anticipatory anxiety and no panic episodes this week. Engaged well with exposure homework. Cognitive restructuring progressing. Suggested focus: graded exposure to crowded transit, continue thought records.";
 
-  const approveAi = () => {
-    const next = content ? `${content}\n\n${aiDraft}` : aiDraft;
-    setContent(next);
-    scheduleSave({ content: next });
+  const approveAi = async () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    try {
+      await editor.isReady;
+      editor.blocks.insert("paragraph", { text: aiDraft }, undefined, editor.blocks.getBlocksCount(), true);
+    } catch {
+      toast.error("Failed to insert the draft");
+    }
     setAiState("idle");
   };
-
-  const toolButton = "flex size-7 cursor-pointer items-center justify-center rounded-[7px] text-muted-foreground hover:bg-muted";
 
   return (
     <div className="grid items-start gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
@@ -615,11 +690,9 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       <div className="flex flex-col gap-4">
         <div id="note-editor" className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center gap-2 border-b border-border bg-secondary px-3.5 py-2.5">
-            <div className="flex gap-0.5">
-              <span className={`${toolButton} text-[13px] font-extrabold`}>B</span>
-              <span className={`${toolButton} text-[13px] font-bold italic`}>I</span>
-              <span className={toolButton}><List size={15} strokeWidth={2} /></span>
-              <span className={`${toolButton} text-xs font-extrabold`}>H2</span>
+            <div className="flex items-center gap-2">
+              <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
+              <span className="hidden text-[11.5px] text-muted-foreground sm:inline">for blocks · select text to format</span>
             </div>
             <div className="ml-auto flex items-center gap-1.5 text-[11.5px] font-bold text-[#15986a] dark:text-[#2ba378]">
               {saveState === "saving" ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
@@ -652,12 +725,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
                 />
                 <span className="font-mono text-xs text-[var(--nv-faint)]">{words} words</span>
               </div>
-              <textarea
-                value={content}
-                onChange={(event) => { setContent(event.target.value); scheduleSave({ content: event.target.value }); }}
-                placeholder="Write the session note, intake summary, treatment update, or clinical record..."
-                className="min-h-[220px] w-full resize-y border-0 bg-transparent text-sm leading-[1.65] text-foreground/80 outline-none placeholder:text-muted-foreground"
-              />
+              <div id="editorjs" className="min-h-[220px] text-sm leading-[1.65] text-foreground/80" />
             </div>
           ) : (
             <div className="px-6 py-14 text-center text-sm text-muted-foreground">Select or create a note to start writing.</div>
@@ -725,26 +793,13 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
     return apptToneFor(status);
   };
 
-  const togglePay = async (session: typeof rows[number]) => {
-    const paid = session.payment_status?.toLowerCase() === "paid";
+  const setPayment = async (session: typeof rows[number], nextStatus: string) => {
+    const currentAmount = Number(session.payment_amount) || 0;
     try {
       await updatePayment({
         id: String(session.id ?? session._id),
-        payment_status: paid ? "unpaid" : "paid",
-        payment_amount: Number(session.payment_amount) || 120000,
-      });
-    } catch {
-      toast.error("Failed to update payment");
-    }
-  };
-
-  const toggleWaived = async (session: typeof rows[number]) => {
-    const waived = session.payment_status?.toLowerCase() === "waived";
-    try {
-      await updatePayment({
-        id: String(session.id ?? session._id),
-        payment_status: waived ? "unpaid" : "waived",
-        payment_amount: waived ? 120000 : 0,
+        payment_status: nextStatus,
+        payment_amount: nextStatus === "waived" ? 0 : currentAmount || 120000,
       });
     } catch {
       toast.error("Failed to update payment");
@@ -775,13 +830,21 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
             <div><span className={`rounded-full px-2.5 py-[3px] text-[11px] font-bold ${status.className}`}>{status.label}</span></div>
             <div className="flex items-center justify-end gap-2">
               <span className="font-mono text-xs font-bold text-foreground">{formatCOP(amount)}</span>
-              <span className={`rounded-full px-[9px] py-1 text-[11px] font-bold ${pay.className}`}>{pay.label}</span>
-              <button type="button" onClick={() => togglePay(session)} title="Toggle paid / unpaid" className="rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] font-bold text-primary transition-colors hover:border-primary hover:bg-primary/10">
-                {payStatus === "paid" ? "Mark unpaid" : "Mark paid"}
-              </button>
-              <button type="button" onClick={() => toggleWaived(session)} title="Mark session waived" className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold transition-colors hover:border-[#be7c16] hover:bg-[#f6ecd8] dark:hover:bg-[#33280f] ${waived ? "border-[#be7c16] bg-[#f6ecd8] text-[#be7c16] dark:bg-[#33280f] dark:text-[#d29a3a]" : "border-border bg-card text-muted-foreground"}`}>
-                {waived ? "Undo waive" : "Waive"}
-              </button>
+              <div className="relative">
+                <select
+                  aria-label="Payment status"
+                  title="Payment status"
+                  value={["paid", "unpaid", "waived", "overdue"].includes(payStatus) ? payStatus : "unpaid"}
+                  onChange={(event) => setPayment(session, event.target.value)}
+                  className={`cursor-pointer appearance-none rounded-full border border-transparent py-1.5 pl-3 pr-[26px] text-[11px] font-bold outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-primary ${pay.className}`}
+                >
+                  <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option>
+                  <option value="waived">Waived</option>
+                  {payStatus === "overdue" && <option value="overdue">Overdue</option>}
+                </select>
+                <ChevronDown size={12} strokeWidth={2.4} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              </div>
             </div>
           </div>
         );

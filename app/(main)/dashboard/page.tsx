@@ -2,8 +2,11 @@
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { CancelSessionButton } from "@/components/CancelSessionButton";
+import { SessionDetailsModal, type SessionDetails } from "@/components/modals/SessionDetailsModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNow } from "@/hooks/useNow";
 import { useTutorial } from "@/hooks/useTutorial";
 import { apptToneFor, avatarColorFor, formatCOP, initialsFor, modeLabel } from "@/lib/nv";
 import { useUser } from "@clerk/nextjs";
@@ -19,15 +22,19 @@ function safeDate(value: string) {
 
 function sessionTime(value: string) {
   const date = safeDate(value);
-  return date
-    ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    : "—";
+  if (!date) return "—";
+
+  const hours = date.getHours();
+  const hour12 = hours % 12 || 12;
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const suffix = hours >= 12 ? "PM" : "AM";
+  return `${hour12}:${minutes} ${suffix}`;
 }
 
-function nextSessionCountdown(value: string) {
+function nextSessionCountdown(value: string, now: number) {
   const date = safeDate(value);
   if (!date) return "upcoming";
-  const minutes = Math.round((date.getTime() - Date.now()) / 60000);
+  const minutes = Math.round((date.getTime() - now) / 60000);
   if (minutes <= 0) return "now";
   if (minutes < 60) return `in ${minutes} min`;
   if (minutes < 24 * 60) return `in ${Math.round(minutes / 60)} hr`;
@@ -44,6 +51,8 @@ export default function Dashboard() {
   const removeTask = useMutation(api.tasks.remove);
   const { startDashboardTour, shouldShowTutorial, tutorialCompleted, replayTutorial, isLoading } = useTutorial();
   const [newTask, setNewTask] = useState("");
+  const [selectedSession, setSelectedSession] = useState<SessionDetails | null>(null);
+  const now = useNow();
 
   useEffect(() => {
     if (!shouldShowTutorial || isLoading) return;
@@ -52,24 +61,31 @@ export default function Dashboard() {
   }, [shouldShowTutorial, isLoading, startDashboardTour]);
 
   const firstName = user?.firstName || user?.fullName?.split(" ")[0] || "there";
-  const hour = new Date().getHours();
+  const hour = new Date(now).getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  const agenda = useMemo(() => {
-    const today = new Date().toDateString();
-    return (upcomingSessions ?? []).filter(
-      (session) => safeDate(session.scheduled_date)?.toDateString() === today,
-    );
-  }, [upcomingSessions]);
-
+  // The soonest upcoming session across the coming days — powers the banner.
   const nextSession = useMemo(() => {
-    const now = Date.now();
-    return agenda.find((session) => {
+    return (upcomingSessions ?? []).find((session) => {
       const status = session.session_status?.toLowerCase() || "";
       const time = safeDate(session.scheduled_date)?.getTime() ?? 0;
       return !["completed", "complete", "cancelled", "canceled", "no_show", "no-show"].includes(status) && time >= now - 15 * 60000;
     });
-  }, [agenda]);
+  }, [upcomingSessions, now]);
+
+  // Today's sessions, always including whatever the banner shows —
+  // the "Up next" appointment is never missing from the agenda table.
+  const agenda = useMemo(() => {
+    const today = new Date(now).toDateString();
+    const list = (upcomingSessions ?? []).filter(
+      (session) => safeDate(session.scheduled_date)?.toDateString() === today,
+    );
+    if (nextSession && !list.some((session) => session._id === nextSession._id)) {
+      list.push(nextSession);
+      list.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
+    }
+    return list;
+  }, [upcomingSessions, now, nextSession]);
 
   const tasksLeft = (tasks ?? []).filter((task) => !task.done).length;
 
@@ -158,7 +174,7 @@ export default function Dashboard() {
               <div className="absolute -right-[30px] -top-[30px] size-40 rounded-full bg-white/[.07]" />
               <div className="relative flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.1em] opacity-85">
                 <span className="size-[7px] rounded-full bg-white shadow-[0_0_0_3px_rgba(255,255,255,.22)]" />
-                Up next · {nextSessionCountdown(nextSession.scheduled_date)}
+                Up next · {nextSessionCountdown(nextSession.scheduled_date, now)}
               </div>
               <div className="relative mt-3.5 flex flex-wrap items-center gap-3.5 sm:flex-nowrap">
                 <div className="flex size-12 flex-none items-center justify-center rounded-[14px] border-[1.5px] border-white/30 bg-white/[.18] text-[17px] font-bold">
@@ -174,9 +190,21 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="relative mt-[18px] flex flex-wrap gap-[9px]">
-                <Link href={`/patients/${nextSession.patient_id}`} className="flex items-center gap-2 rounded-[9px] bg-white px-[15px] py-[9px] text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px">
-                  <Video size={15} strokeWidth={2.2} />Start session
-                </Link>
+                {nextSession.meet_link ? (
+                  <a
+                    href={nextSession.meet_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Join the Google Meet call"
+                    className="flex items-center gap-2 rounded-[9px] bg-white px-[15px] py-[9px] text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px"
+                  >
+                    <Video size={15} strokeWidth={2.2} />Start session
+                  </a>
+                ) : (
+                  <Link href={`/patients/${nextSession.patient_id}`} className="flex items-center gap-2 rounded-[9px] bg-white px-[15px] py-[9px] text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px">
+                    <Video size={15} strokeWidth={2.2} />Start session
+                  </Link>
+                )}
                 <Link href={`/patients/${nextSession.patient_id}`} className="rounded-[9px] border border-white/40 bg-white/[.12] px-[15px] py-[9px] text-[13px] font-bold text-white transition-colors hover:bg-white/20">
                   Open chart
                 </Link>
@@ -201,11 +229,18 @@ export default function Dashboard() {
               <div>
                 {agenda.map((session, index) => {
                   const tone = apptToneFor(session.session_status, session._id === nextSession?._id);
+                  const date = safeDate(session.scheduled_date);
+                  const isToday = date?.toDateString() === new Date(now).toDateString();
                   return (
-                    <Link key={session._id} href={`/patients/${session.patient_id}`} className="flex items-center gap-3.5 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-secondary sm:px-5">
-                      <div className="w-[52px] flex-none text-right">
-                        <div className="font-mono text-sm font-semibold text-foreground">{sessionTime(session.scheduled_date)}</div>
-                        <div className="text-[10.5px] text-[var(--nv-faint)]">{session.duration || 50} min</div>
+                    <button
+                      key={session._id}
+                      type="button"
+                      onClick={() => setSelectedSession(session as SessionDetails)}
+                      className="flex w-full items-center gap-3.5 border-b border-border px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-secondary sm:px-5"
+                    >
+                      <div className="w-[72px] flex-none text-right">
+                        <div className="whitespace-nowrap font-mono text-sm font-semibold text-foreground">{sessionTime(session.scheduled_date)}</div>
+                        <div className="text-[10.5px] text-[var(--nv-faint)]">{isToday ? `${session.duration || 50} min` : date?.toLocaleDateString([], { weekday: "short", day: "numeric" })}</div>
                       </div>
                       <div className="w-px self-stretch bg-border" />
                       <div className="flex size-[34px] flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white" style={{ background: avatarColorFor(session.patientColor, index) }}>
@@ -218,7 +253,8 @@ export default function Dashboard() {
                       <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline ${tone.className}`}>
                         {tone.label}
                       </span>
-                    </Link>
+                      <CancelSessionButton session={session} />
+                    </button>
                   );
                 })}
               </div>
@@ -287,6 +323,12 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
+
+      <SessionDetailsModal
+        session={selectedSession}
+        open={Boolean(selectedSession)}
+        onOpenChange={(open) => { if (!open) setSelectedSession(null); }}
+      />
     </div>
   );
 }
