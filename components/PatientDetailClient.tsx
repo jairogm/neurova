@@ -36,7 +36,6 @@ import {
   Pencil,
   Phone,
   Plus,
-  Printer,
   Sparkles,
   Trash2,
   X,
@@ -700,9 +699,6 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
               {saveState === "saving" ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
               {saveState === "saving" ? "Saving…" : "Saved · just now"}
             </div>
-            <button type="button" onClick={() => window.print()} className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-[11px] py-1.5 text-[11.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
-              <Printer size={13} strokeWidth={2} />Print
-            </button>
             {active && (
               <button type="button" onClick={() => removeNote(String(active._id))} aria-label="Delete note" className="flex size-[30px] items-center justify-center rounded-lg border border-border bg-card text-[var(--nv-faint)] transition-colors hover:border-[#d2574f] hover:text-[#d2574f]">
                 <Trash2 size={14} strokeWidth={2} />

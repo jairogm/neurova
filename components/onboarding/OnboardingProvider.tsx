@@ -14,7 +14,7 @@ interface OnboardingContextType {
   currentTourPage: TourPage;
   setCurrentTourPage: (page: TourPage) => void;
   shouldShowTutorial: boolean;
-  dismissTutorialForSession: () => void;
+  dismissTutorialForSession: () => Promise<void>;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -43,10 +43,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setDismissedForSession(false);
   }, [resetTutorialMutation]);
 
-  const dismissTutorialForSession = useCallback(() => {
+  const dismissTutorialForSession = useCallback(async () => {
+    // Hide immediately for a snappy UI, then persist so it stays skipped
+    // across refreshes. Replay still works because resetTutorial clears this.
     setDismissedForSession(true);
     setCurrentTourPage(null);
-  }, []);
+    await completeTutorialMutation();
+  }, [completeTutorialMutation]);
 
   return (
     <OnboardingContext.Provider

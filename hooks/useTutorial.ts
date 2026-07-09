@@ -47,8 +47,10 @@ export function useTutorial() {
       ...driverConfig,
       steps: dashboardTourSteps,
       onDestroyStarted: () => {
-        // Just destroy; don't nag with a confirm
+        // User closed the tour (X / Esc / overlay) — treat as skip and
+        // persist it so the tour stays gone after a refresh.
         driverObj.destroy();
+        void dismissTutorialForSession();
       },
       onNextClick: (element, step, opts) => {
         if (opts.state.activeIndex === dashboardTourSteps.length - 1) {
@@ -75,7 +77,9 @@ export function useTutorial() {
       ...driverConfig,
       steps: patientsTourSteps,
       onDestroyStarted: () => {
+        // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
+        void dismissTutorialForSession();
       },
       onNextClick: (element, step, opts) => {
         // Last step points to trash
@@ -103,7 +107,9 @@ export function useTutorial() {
       ...driverConfig,
       steps: trashTourSteps,
       onDestroyStarted: () => {
+        // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
+        void dismissTutorialForSession();
       },
       onNextClick: (element, step, opts) => {
         // Last step navigates to a sample records page
@@ -134,7 +140,9 @@ export function useTutorial() {
       ...driverConfig,
       steps: recordsTourSteps,
       onDestroyStarted: () => {
+        // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
+        void dismissTutorialForSession();
       },
       onNextClick: (element, step, opts) => {
         if (opts.state.activeIndex === recordsTourSteps.length - 1) {
@@ -151,11 +159,11 @@ export function useTutorial() {
     setTimeout(() => driverObj.drive(), 500);
   }, [setCurrentTourPage, dismissTutorialForSession, completeTutorial]);
 
-  const skipTutorial = useCallback(() => {
+  const skipTutorial = useCallback(async () => {
     if (driverRef.current) {
       driverRef.current.destroy();
     }
-    dismissTutorialForSession();
+    await dismissTutorialForSession();
   }, [dismissTutorialForSession]);
 
   const replayTutorial = useCallback(async () => {
