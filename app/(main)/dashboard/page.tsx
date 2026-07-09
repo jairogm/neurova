@@ -134,13 +134,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
-      <div className="mb-[22px] flex items-start justify-between gap-4">
+    <div className="mx-auto max-w-[1280px] px-3.5 py-4 sm:px-5 sm:py-[18px] wide:px-[30px] wide:py-[26px]">
+      <div className="mb-3 flex items-start justify-between gap-4 wide:mb-[22px]">
         <div>
-          <h1 className="m-0 text-[24px] font-extrabold tracking-[-.02em] text-foreground">
+          <h1 className="m-0 text-[21px] font-extrabold tracking-[-.02em] text-foreground wide:text-[24px]">
             {greeting}, {firstName}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-0.5 text-[13px] text-muted-foreground wide:mt-1 wide:text-sm">
             You have <strong className="font-bold text-primary">{stats?.sessionsToday ?? "—"} sessions</strong> today · {tasksLeft} tasks left.
           </p>
         </div>
@@ -151,67 +151,67 @@ export default function Dashboard() {
         )}
       </div>
 
-      <section id="stats-overview" className="mb-[18px] grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Practice statistics">
+      <section id="stats-overview" className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 wide:mb-[18px] wide:gap-3.5" aria-label="Practice statistics">
         {statCards.map((stat) => (
-          <div key={stat.label} className="rounded-2xl border border-border bg-card px-[17px] py-4 shadow-sm">
-            <div className="mb-[9px] text-[12.5px] font-semibold text-muted-foreground">{stat.label}</div>
+          <div key={stat.label} className="rounded-2xl border border-border bg-card px-3.5 py-3 shadow-sm wide:px-[17px] wide:py-4">
+            <div className="mb-1.5 text-[12px] font-semibold text-muted-foreground wide:mb-[9px] wide:text-[12.5px]">{stat.label}</div>
             {stat.value === undefined ? (
-              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-7 w-24 wide:h-8" />
             ) : (
-              <div className={`font-mono text-[27px] font-extrabold tracking-[-.02em] ${stat.warning ? "text-[#be7c16] dark:text-[#d29a3a]" : "text-foreground"}`}>{stat.value}</div>
+              <div className={`font-mono text-[22px] font-extrabold tracking-[-.02em] wide:text-[27px] ${stat.warning ? "text-[#be7c16] dark:text-[#d29a3a]" : "text-foreground"}`}>{stat.value}</div>
             )}
-            <div className="mt-1 text-[11.5px] text-muted-foreground">{stat.delta}</div>
+            <div className="mt-0.5 text-[11px] text-muted-foreground wide:mt-1 wide:text-[11.5px]">{stat.delta}</div>
           </div>
         ))}
       </section>
 
-      <div className="grid grid-cols-1 items-start gap-[18px] xl:grid-cols-[1.7fr_1fr]">
-        <div id="upcoming-appointments" className="flex min-w-0 flex-col gap-[18px]">
+      <div className="grid grid-cols-1 items-start gap-3.5 xl:grid-cols-[1.7fr_1fr] wide:gap-[18px]">
+        <div id="upcoming-appointments" className="flex min-w-0 flex-col gap-3.5 wide:gap-[18px]">
           {upcomingSessions === undefined ? (
-            <Skeleton className="h-[190px] rounded-[18px]" />
+            <Skeleton className="h-[160px] rounded-[18px] wide:h-[190px]" />
           ) : nextSession ? (
-            <section className="relative overflow-hidden rounded-[18px] bg-[linear-gradient(135deg,#0e96b8,#0b7693)] px-[22px] py-5 text-white shadow-[0_16px_40px_-16px_rgba(11,90,95,.45)]">
+            <section className="relative overflow-hidden rounded-[18px] bg-[linear-gradient(135deg,#0e96b8,#0b7693)] px-[18px] py-4 text-white shadow-[0_16px_40px_-16px_rgba(11,90,95,.45)] wide:px-[22px] wide:py-5">
               <div className="absolute -right-[30px] -top-[30px] size-40 rounded-full bg-white/[.07]" />
               <div className="relative flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.1em] opacity-85">
                 <span className="size-[7px] rounded-full bg-white shadow-[0_0_0_3px_rgba(255,255,255,.22)]" />
                 Up next · {nextSessionCountdown(nextSession.scheduled_date, now)}
               </div>
-              <div className="relative mt-3.5 flex flex-wrap items-center gap-3.5 sm:flex-nowrap">
-                <div className="flex size-12 flex-none items-center justify-center rounded-[14px] border-[1.5px] border-white/30 bg-white/[.18] text-[17px] font-bold">
+              <div className="relative mt-2.5 flex flex-wrap items-center gap-3.5 sm:flex-nowrap wide:mt-3.5">
+                <div className="flex size-11 flex-none items-center justify-center rounded-xl border-[1.5px] border-white/30 bg-white/[.18] text-[16px] font-bold wide:size-12 wide:rounded-[14px] wide:text-[17px]">
                   {initialsFor(nextSession.patientName)}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[19px] font-extrabold tracking-[-.01em]">{nextSession.patientName}</div>
+                  <div className="truncate text-[17px] font-extrabold tracking-[-.01em] wide:text-[19px]">{nextSession.patientName}</div>
                   <div className="text-[13px] opacity-90">{nextSession.session_type || "Therapy session"} · {nextSession.duration || 50} min</div>
                 </div>
-                <div className="w-full pl-[62px] text-left sm:w-auto sm:pl-0 sm:text-right">
-                  <div className="font-mono text-[22px] font-bold">{sessionTime(nextSession.scheduled_date)}</div>
+                <div className="w-full pl-[58px] text-left sm:w-auto sm:pl-0 sm:text-right">
+                  <div className="font-mono text-[19px] font-bold wide:text-[22px]">{sessionTime(nextSession.scheduled_date)}</div>
                   <div className="text-[11px] capitalize opacity-85">{modeLabel(nextSession.mode)}</div>
                 </div>
               </div>
-              <div className="relative mt-[18px] flex flex-wrap gap-[9px]">
+              <div className="relative mt-3 flex flex-wrap gap-[9px] wide:mt-[18px]">
                 {nextSession.meet_link ? (
                   <a
                     href={nextSession.meet_link}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Join the Google Meet call"
-                    className="flex items-center gap-2 rounded-[9px] bg-white px-[15px] py-[9px] text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px"
+                    className="flex items-center gap-2 rounded-[9px] bg-white px-3 py-2 text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px wide:px-[15px] wide:py-[9px]"
                   >
                     <Video size={15} strokeWidth={2.2} />Start session
                   </a>
                 ) : (
-                  <Link href={`/patients/${nextSession.patient_id}`} className="flex items-center gap-2 rounded-[9px] bg-white px-[15px] py-[9px] text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px">
+                  <Link href={`/patients/${nextSession.patient_id}`} className="flex items-center gap-2 rounded-[9px] bg-white px-3 py-2 text-[13px] font-bold text-[#0b7693] transition-transform hover:-translate-y-px wide:px-[15px] wide:py-[9px]">
                     <Video size={15} strokeWidth={2.2} />Start session
                   </Link>
                 )}
-                <Link href={`/patients/${nextSession.patient_id}`} className="rounded-[9px] border border-white/40 bg-white/[.12] px-[15px] py-[9px] text-[13px] font-bold text-white transition-colors hover:bg-white/20">
+                <Link href={`/patients/${nextSession.patient_id}`} className="rounded-[9px] border border-white/40 bg-white/[.12] px-3 py-2 text-[13px] font-bold text-white transition-colors hover:bg-white/20 wide:px-[15px] wide:py-[9px]">
                   Open chart
                 </Link>
               </div>
             </section>
           ) : (
-            <section className="rounded-[18px] border border-primary/20 bg-[linear-gradient(135deg,#0e96b8,#0b7693)] px-[22px] py-8 text-white shadow-[0_16px_40px_-16px_rgba(11,90,95,.45)]">
+            <section className="rounded-[18px] border border-primary/20 bg-[linear-gradient(135deg,#0e96b8,#0b7693)] px-[18px] py-6 text-white shadow-[0_16px_40px_-16px_rgba(11,90,95,.45)] wide:px-[22px] wide:py-8">
               <div className="text-[11px] font-bold uppercase tracking-[.1em] opacity-80">Your day is clear</div>
               <div className="mt-2 text-xl font-extrabold">No upcoming sessions yet.</div>
               <p className="mt-1 text-[13px] text-white/80">Create an appointment when you are ready.</p>
@@ -219,8 +219,8 @@ export default function Dashboard() {
           )}
 
           <section id="agenda" className="overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
-              <h2 className="text-[15px] font-extrabold text-foreground">Today&apos;s agenda</h2>
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 wide:px-5 wide:py-4">
+              <h2 className="text-sm font-extrabold text-foreground wide:text-[15px]">Today&apos;s agenda</h2>
               <Link href="/schedule" className="flex items-center gap-1 text-[12.5px] font-bold text-primary">Week view <ChevronRight size={13} strokeWidth={2.4} /></Link>
             </div>
             {upcomingSessions === undefined ? (
@@ -236,14 +236,14 @@ export default function Dashboard() {
                       key={session._id}
                       type="button"
                       onClick={() => setSelectedSession(session as SessionDetails)}
-                      className="flex w-full items-center gap-3.5 border-b border-border px-4 py-3.5 text-left transition-colors last:border-b-0 hover:bg-secondary sm:px-5"
+                      className="flex w-full items-center gap-3 border-b border-border px-3.5 py-2.5 text-left transition-colors last:border-b-0 hover:bg-secondary sm:px-4 wide:gap-3.5 wide:px-5 wide:py-3.5"
                     >
-                      <div className="w-[72px] flex-none text-right">
-                        <div className="whitespace-nowrap font-mono text-sm font-semibold text-foreground">{sessionTime(session.scheduled_date)}</div>
+                      <div className="w-[68px] flex-none text-right wide:w-[72px]">
+                        <div className="whitespace-nowrap font-mono text-[13px] font-semibold text-foreground wide:text-sm">{sessionTime(session.scheduled_date)}</div>
                         <div className="text-[10.5px] text-[var(--nv-faint)]">{isToday ? `${session.duration || 50} min` : date?.toLocaleDateString([], { weekday: "short", day: "numeric" })}</div>
                       </div>
                       <div className="w-px self-stretch bg-border" />
-                      <div className="flex size-[34px] flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white" style={{ background: avatarColorFor(session.patientColor, index) }}>
+                      <div className="flex size-8 flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white wide:size-[34px]" style={{ background: avatarColorFor(session.patientColor, index) }}>
                         {initialsFor(session.patientName)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -264,10 +264,10 @@ export default function Dashboard() {
           </section>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-[18px]">
-          <section id="tasks-card" className="flex h-[370px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
-            <div className="flex items-center justify-between border-b border-border px-[18px] py-4">
-              <h2 className="text-[15px] font-extrabold text-foreground">Tasks</h2>
+        <div className="flex min-w-0 flex-col gap-3.5 wide:gap-[18px]">
+          <section id="tasks-card" className="flex h-[280px] flex-col overflow-hidden rounded-[18px] border border-border bg-card shadow-sm wide:h-[370px]">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3 wide:px-[18px] wide:py-4">
+              <h2 className="text-sm font-extrabold text-foreground wide:text-[15px]">Tasks</h2>
               <span className="rounded-full bg-primary/10 px-[9px] py-[3px] text-[11.5px] font-bold text-primary">{tasksLeft} left</span>
             </div>
             <div className="min-h-0 flex-1 overflow-auto px-2 py-1.5">
@@ -300,14 +300,14 @@ export default function Dashboard() {
             </div>
           </section>
 
-          <section id="payments-card" className="rounded-[18px] border border-border bg-card p-[18px] shadow-sm">
-            <h2 className="mb-3.5 text-[15px] font-extrabold text-foreground">Payments · this month</h2>
-            <div className="mb-3.5 flex h-2.5 overflow-hidden rounded-md bg-muted">
+          <section id="payments-card" className="rounded-[18px] border border-border bg-card p-4 shadow-sm wide:p-[18px]">
+            <h2 className="mb-2.5 text-sm font-extrabold text-foreground wide:mb-3.5 wide:text-[15px]">Payments · this month</h2>
+            <div className="mb-2.5 flex h-2.5 overflow-hidden rounded-md bg-muted wide:mb-3.5">
               <div className="bg-[#15986a] dark:bg-[#2ba378]" style={{ width: `${paymentWidths.collected}%` }} />
               <div className="bg-[#be7c16] dark:bg-[#d29a3a]" style={{ width: `${paymentWidths.unpaid}%` }} />
               <div className="bg-[#d2574f] dark:bg-[#e0726a]" style={{ width: `${paymentWidths.overdue}%` }} />
             </div>
-            <div className="flex flex-col gap-[9px]">
+            <div className="flex flex-col gap-[7px] wide:gap-[9px]">
               {[
                 ["Collected", stats?.paymentCollected, "#15986a"],
                 ["Unpaid", stats?.paymentUnpaid, "#be7c16"],

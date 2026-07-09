@@ -96,7 +96,7 @@ function PatientsContent() {
   };
 
   return (
-    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
+    <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-5 sm:py-[22px] wide:px-[30px] wide:py-[26px]">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div id="patients-search" className="relative min-w-[240px] max-w-[380px] flex-1">
           <label htmlFor="patients-search-input" className="sr-only">Search patients</label>

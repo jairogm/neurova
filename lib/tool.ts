@@ -1,3 +1,4 @@
+import type { OutputData } from "@editorjs/editorjs";
 import List from "@editorjs/list";
 import Image from "@editorjs/image";
 import Warning from "@editorjs/warning";
@@ -6,6 +7,23 @@ import Header from "@editorjs/header";
 import Underline from "@editorjs/underline";
 // @ts-expect-error - Package lacks proper type definitions
 import AlignmentTune from "editorjs-text-alignment-blocktune";
+
+// Flatten EditorJS output into plain text (mirrors plainTextOf in convex/medical_history_notes.ts).
+export function editorPlainText(data: OutputData): string {
+  return (data.blocks || [])
+    .map((block) => {
+      const blockData = (block.data ?? {}) as { text?: string; items?: unknown[] };
+      if (typeof blockData.text === "string") return blockData.text;
+      if (Array.isArray(blockData.items)) {
+        return blockData.items
+          .map((item) => (typeof item === "string" ? item : ((item as { content?: string })?.content ?? "")))
+          .join(" ");
+      }
+      return "";
+    })
+    .join("\n")
+    .replace(/<[^>]+>/g, " ");
+}
 
 // Type assertion needed due to incompatible type definitions in @editorjs/header
 // The Header class requires 'config' to be non-optional in its constructor,

@@ -115,6 +115,9 @@
 }
 
 @theme inline {
+  /* Roomy-desktop breakpoint: compact spacing below, full spacing at >=1440px */
+  --breakpoint-wide: 90rem;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -199,13 +202,14 @@
 
 /* =========================
    EditorJS heading styles
+   (.nv-editor goes on each EditorJS holder element)
    ========================= */
-#editorjs h1,
-#editorjs h2,
-#editorjs h3,
-#editorjs h4,
-#editorjs h5,
-#editorjs h6 {
+.nv-editor h1,
+.nv-editor h2,
+.nv-editor h3,
+.nv-editor h4,
+.nv-editor h5,
+.nv-editor h6 {
   font-weight: 700;
   line-height: 1.2;
   margin-top: 1em;
@@ -213,27 +217,27 @@
   color: #111827; /* Tailwind's gray-900 */
 }
 
-#editorjs h1 {
+.nv-editor h1 {
   font-size: 2.25rem; /* ~36px */
 }
 
-#editorjs h2 {
+.nv-editor h2 {
   font-size: 1.875rem; /* ~30px */
 }
 
-#editorjs h3 {
+.nv-editor h3 {
   font-size: 1.5rem; /* ~24px */
 }
 
-#editorjs h4 {
+.nv-editor h4 {
   font-size: 1.25rem; /* ~20px */
 }
 
-#editorjs h5 {
+.nv-editor h5 {
   font-size: 1.125rem; /* ~18px */
 }
 
-#editorjs h6 {
+.nv-editor h6 {
   font-size: 1rem; /* ~16px */
 }
 
@@ -243,44 +247,59 @@
    ========================= */
 /* Fill the card instead of centering at 650px — keeps the block toolbar
    aligned with the content. */
-#editorjs .ce-block__content,
-#editorjs .ce-toolbar__content {
+.nv-editor .ce-block__content,
+.nv-editor .ce-toolbar__content {
   max-width: 100%;
 }
 
-/* Even if EditorJS flags the container as "narrow", keep the +/drag block
-   actions on the left next to the content instead of jumping to the right edge. */
-#editorjs .codex-editor--narrow .ce-toolbar__actions {
-  right: auto;
-  left: -8px;
+/* Park the + (add block) and the drag/settings handle at the right edge —
+   the end of the line — so they never sit on top of the text being typed.
+   Reserve a right gutter for them so text wraps before it reaches the buttons.
+   Not scoped to "narrow" so it holds in every editor width. */
+.nv-editor .ce-toolbar__content {
+  position: relative;
+}
+
+.nv-editor .ce-toolbar__plus {
+  position: absolute;
+  left: auto;
+  right: 36px;
+}
+
+.nv-editor .ce-toolbar__actions {
+  position: absolute;
+  left: auto;
+  right: 2px;
+  margin: 0;
+  padding: 0;
   background: transparent;
 }
 
-#editorjs .codex-editor--narrow .codex-editor__redactor {
-  margin-right: 0;
+.nv-editor .codex-editor__redactor {
+  margin-right: 76px;
 }
 
 /* Trim the huge default bottom padding so the note doesn't end in a void,
    while leaving room for the block popover to open. */
-#editorjs .codex-editor__redactor {
+.nv-editor .codex-editor__redactor {
   padding-bottom: 100px !important;
 }
 
 /* The block toolbox / settings popover floats above surrounding cards. */
-#editorjs .ce-popover__container {
+.nv-editor .ce-popover__container {
   z-index: 60;
 }
 
-#editorjs ::placeholder {
+.nv-editor ::placeholder {
   color: var(--muted-foreground);
 }
 
-.dark #editorjs h1,
-.dark #editorjs h2,
-.dark #editorjs h3,
-.dark #editorjs h4,
-.dark #editorjs h5,
-.dark #editorjs h6 {
+.dark .nv-editor h1,
+.dark .nv-editor h2,
+.dark .nv-editor h3,
+.dark .nv-editor h4,
+.dark .nv-editor h5,
+.dark .nv-editor h6 {
   color: var(--foreground);
 }
 

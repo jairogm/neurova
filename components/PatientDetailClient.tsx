@@ -17,7 +17,7 @@ import {
 } from "@/lib/nv";
 import type { PatientGoal } from "@/lib/types";
 import { useTutorial } from "@/hooks/useTutorial";
-import { EDITOR_TOOLS } from "@/lib/tool";
+import { EDITOR_TOOLS, editorPlainText } from "@/lib/tool";
 import EditorJS, { type OutputData } from "@editorjs/editorjs";
 import { useMutation, useQuery } from "convex/react";
 import {
@@ -33,6 +33,8 @@ import {
   Loader2,
   Mail,
   MapPin,
+  PanelLeftClose,
+  PanelLeftOpen,
   Pencil,
   Phone,
   Plus,
@@ -105,6 +107,13 @@ function PatientWorkbench({ id }: { id: string }) {
     return (TABS.some((item) => item.key === tab) ? tab : "overview") as TabKey;
   });
   const { startRecordsTour, currentTourPage } = useTutorial();
+
+  // The profile rail tucks itself away on Notes & records so the editor gets
+  // the full width; the panel toggle next to the tabs brings it back anytime.
+  const [railHidden, setRailHidden] = useState(activeTab === "notes");
+  useEffect(() => {
+    setRailHidden(activeTab === "notes");
+  }, [activeTab]);
 
   useEffect(() => {
     if (currentTourPage !== "pre-records" || patient === undefined) return;
@@ -199,9 +208,12 @@ function PatientWorkbench({ id }: { id: string }) {
     <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px]">
       <Link href="/patients" className="mb-4 flex w-max items-center gap-1.5 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary"><ArrowLeft size={15} strokeWidth={2.4} />All patients</Link>
 
-      <div className="grid items-start gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className={`grid items-start gap-5 transition-[grid-template-columns,column-gap] duration-500 ease-[cubic-bezier(.25,1,.3,1)] ${railHidden ? "lg:grid-cols-[0px_minmax(0,1fr)] lg:gap-x-0" : "lg:grid-cols-[280px_minmax(0,1fr)]"}`}>
         {/* ===== Profile rail ===== */}
-        <aside className="flex flex-col gap-4">
+        <aside
+          inert={railHidden}
+          className={`flex-col gap-4 overflow-hidden transition-opacity duration-300 ${railHidden ? "hidden opacity-0 lg:flex" : "flex opacity-100"}`}
+        >
           <div id="patient-rail" className={`${cardClass} p-5 text-center`}>
             <div className="mx-auto mb-3 flex size-[72px] items-center justify-center rounded-[20px] text-[26px] font-extrabold text-white" style={{ background: color }}>
               {initialsFor(patient.name)}
@@ -278,17 +290,28 @@ function PatientWorkbench({ id }: { id: string }) {
 
         {/* ===== Main column ===== */}
         <main className="min-w-0">
-          <div id="patient-tabs" className="mb-[18px] flex w-max max-w-full gap-1 overflow-auto rounded-xl border border-border bg-secondary p-1">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={`whitespace-nowrap rounded-[9px] px-4 py-2 text-[13px] font-bold transition-colors ${activeTab === tab.key ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="mb-[18px] flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setRailHidden((current) => !current)}
+              title={railHidden ? "Show patient info" : "Hide patient info"}
+              aria-label={railHidden ? "Show patient info" : "Hide patient info"}
+              className="hidden size-9 flex-none items-center justify-center rounded-xl border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:border-primary hover:text-primary lg:flex"
+            >
+              {railHidden ? <PanelLeftOpen size={16} strokeWidth={2} /> : <PanelLeftClose size={16} strokeWidth={2} />}
+            </button>
+            <div id="patient-tabs" className="flex w-max max-w-full gap-1 overflow-auto rounded-xl border border-border bg-secondary p-1">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`whitespace-nowrap rounded-[9px] px-4 py-2 text-[13px] font-bold transition-colors ${activeTab === tab.key ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {activeTab === "overview" && (
@@ -480,22 +503,6 @@ type NotesTabProps = {
   updateNote: ReturnType<typeof useMutation<typeof api.medical_history_notes.update>>;
   softDeleteRecord: ReturnType<typeof useMutation<typeof api.trash.softDeleteRecord>>;
 };
-
-function editorPlainText(data: OutputData): string {
-  return (data.blocks || [])
-    .map((block) => {
-      const blockData = (block.data ?? {}) as { text?: string; items?: unknown[] };
-      if (typeof blockData.text === "string") return blockData.text;
-      if (Array.isArray(blockData.items)) {
-        return blockData.items
-          .map((item) => (typeof item === "string" ? item : ((item as { content?: string })?.content ?? "")))
-          .join(" ");
-      }
-      return "";
-    })
-    .join("\n")
-    .replace(/<[^>]+>/g, " ");
-}
 
 function toEditorData(note: { content?: unknown; plainText?: string }): OutputData {
   const content = note.content;
@@ -726,7 +733,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
               {/* Scroll long notes inside the card; the small horizontal padding
                   keeps the left-side block actions from being clipped. */}
               <div className="-mx-3 max-h-[440px] overflow-y-auto px-3">
-                <div id="editorjs" className="min-h-[320px] text-sm leading-[1.65] text-foreground/80" />
+                <div id="editorjs" className="nv-editor min-h-[320px] text-sm leading-[1.65] text-foreground/80" />
               </div>
             </div>
           ) : (

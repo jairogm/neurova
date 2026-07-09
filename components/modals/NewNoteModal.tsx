@@ -9,10 +9,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { avatarColorFor, initialsFor } from "@/lib/nv";
+import { EDITOR_TOOLS, editorPlainText } from "@/lib/tool";
+import EditorJS from "@editorjs/editorjs";
 import { useMutation, useQuery } from "convex/react";
-import { ChevronDown, List, Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface NewNoteModalProps {
@@ -29,15 +31,26 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
   const [patientId, setPatientId] = useState(defaultPatientId ?? "");
   const [dateISO, setDateISO] = useState("");
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
+  const editorRef = useRef<EditorJS | null>(null);
 
+  // Reset the form and mount a fresh EditorJS instance each time the modal opens.
   useEffect(() => {
     if (!open) return;
     setPatientId(defaultPatientId ?? "");
     setDateISO(new Date().toISOString().slice(0, 10));
     setTitle("");
-    setContent("");
+    const editor = new EditorJS({
+      holder: "new-note-editor",
+      tools: EDITOR_TOOLS,
+      placeholder: "Write the session note… Type / for blocks",
+      minHeight: 180,
+    });
+    editorRef.current = editor;
+    return () => {
+      editorRef.current = null;
+      editor.isReady.then(() => editor.destroy()).catch(() => {});
+    };
   }, [open, defaultPatientId]);
 
   const selected = patients.find((patient) => patient.id === patientId) ?? patients[0];
@@ -50,12 +63,14 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
     }
     setSaving(true);
     try {
+      const output = await editorRef.current?.save();
+      const text = output ? editorPlainText(output).trim() : "";
       await createNote({
         patient_id: selected.id,
         title: title.trim() || "Untitled note",
-        description: content.trim().slice(0, 120) || "New clinical note created from the records workspace.",
+        description: text.slice(0, 120) || "New clinical note created from the records workspace.",
         date: dateISO || new Date().toISOString().slice(0, 10),
-        content: content.trim(),
+        content: output ?? "",
       });
       toast.success("Note saved");
       onOpenChange(false);
@@ -66,8 +81,6 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
       setSaving(false);
     }
   };
-
-  const toolSpan = "flex size-7 items-center justify-center rounded-[7px] text-[13px] text-muted-foreground";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,12 +125,12 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-border bg-card">
-            <div className="flex items-center gap-2 border-b border-border bg-secondary px-3.5 py-2.5">
-              <span className={`${toolSpan} font-extrabold`}>B</span>
-              <span className={`${toolSpan} font-bold italic`}>I</span>
-              <span className={toolSpan}><List size={15} strokeWidth={2} /></span>
-              <span className={`${toolSpan} text-xs font-extrabold`}>H2</span>
+          {/* No overflow-hidden here: the EditorJS block popover must be able to
+              overlay the card edge instead of being clipped. */}
+          <div className="rounded-2xl border border-border bg-card">
+            <div className="flex items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
+              <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
+              <span className="text-[11.5px] text-muted-foreground">for blocks · select text to format</span>
               <span className="ml-auto text-[11.5px] text-muted-foreground">Draft</span>
             </div>
             <div className="px-[22px] py-5">
@@ -127,12 +140,7 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
                 placeholder="Note title"
                 className="mb-3 w-full border-0 bg-transparent text-[21px] font-extrabold tracking-[-.01em] text-foreground outline-none placeholder:text-muted-foreground"
               />
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Write the session note, intake summary, treatment update, or clinical record..."
-                className="min-h-[210px] w-full resize-y border-0 bg-transparent text-sm leading-[1.65] text-foreground/80 outline-none placeholder:text-muted-foreground"
-              />
+              <div id="new-note-editor" className="nv-editor min-h-[210px] text-sm leading-[1.65] text-foreground/80" />
             </div>
           </div>
         </div>
