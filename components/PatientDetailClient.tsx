@@ -559,7 +559,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       tools: EDITOR_TOOLS,
       placeholder: "Write the session note… Type / for blocks",
       data: toEditorData(active),
-      minHeight: 120,
+      minHeight: 240,
       onChange: () => {
         setSaveState("saving");
         if (contentTimer.current) clearTimeout(contentTimer.current);
@@ -688,8 +688,10 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       </div>
 
       <div className="flex flex-col gap-4">
-        <div id="note-editor" className={`${cardClass} overflow-hidden`}>
-          <div className="flex items-center gap-2 border-b border-border bg-secondary px-3.5 py-2.5">
+        {/* No overflow-hidden here: the EditorJS block popover must be able to
+            overlay the card edge instead of being clipped. */}
+        <div id="note-editor" className={cardClass}>
+          <div className="flex items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
             <div className="flex items-center gap-2">
               <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
               <span className="hidden text-[11.5px] text-muted-foreground sm:inline">for blocks · select text to format</span>
@@ -725,7 +727,11 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
                 />
                 <span className="font-mono text-xs text-[var(--nv-faint)]">{words} words</span>
               </div>
-              <div id="editorjs" className="min-h-[220px] text-sm leading-[1.65] text-foreground/80" />
+              {/* Scroll long notes inside the card; the small horizontal padding
+                  keeps the left-side block actions from being clipped. */}
+              <div className="-mx-3 max-h-[440px] overflow-y-auto px-3">
+                <div id="editorjs" className="min-h-[320px] text-sm leading-[1.65] text-foreground/80" />
+              </div>
             </div>
           ) : (
             <div className="px-6 py-14 text-center text-sm text-muted-foreground">Select or create a note to start writing.</div>

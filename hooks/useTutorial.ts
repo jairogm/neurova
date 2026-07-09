@@ -47,14 +47,8 @@ export function useTutorial() {
       ...driverConfig,
       steps: dashboardTourSteps,
       onDestroyStarted: () => {
-        if (driverObj.hasNextStep()) {
-          if (confirm("Are you sure you want to skip the tutorial?")) {
-            dismissTutorialForSession();
-            driverObj.destroy();
-          }
-        } else {
-          driverObj.destroy();
-        }
+        // Just destroy; don't nag with a confirm
+        driverObj.destroy();
       },
       onNextClick: (element, step, opts) => {
         if (opts.state.activeIndex === dashboardTourSteps.length - 1) {
@@ -81,14 +75,7 @@ export function useTutorial() {
       ...driverConfig,
       steps: patientsTourSteps,
       onDestroyStarted: () => {
-        if (driverObj.hasNextStep()) {
-          if (confirm("Are you sure you want to skip the tutorial?")) {
-            dismissTutorialForSession();
-            driverObj.destroy();
-          }
-        } else {
-          driverObj.destroy();
-        }
+        driverObj.destroy();
       },
       onNextClick: (element, step, opts) => {
         // Last step points to trash
@@ -116,14 +103,7 @@ export function useTutorial() {
       ...driverConfig,
       steps: trashTourSteps,
       onDestroyStarted: () => {
-        if (driverObj.hasNextStep()) {
-          if (confirm("Are you sure you want to skip the tutorial?")) {
-            dismissTutorialForSession();
-            driverObj.destroy();
-          }
-        } else {
-          driverObj.destroy();
-        }
+        driverObj.destroy();
       },
       onNextClick: (element, step, opts) => {
         // Last step navigates to a sample records page
@@ -154,15 +134,15 @@ export function useTutorial() {
       ...driverConfig,
       steps: recordsTourSteps,
       onDestroyStarted: () => {
-        if (driverObj.hasNextStep()) {
-          if (confirm("Are you sure you want to skip the tutorial?")) {
-            dismissTutorialForSession();
-            driverObj.destroy();
-          }
-        } else {
+        driverObj.destroy();
+      },
+      onNextClick: (element, step, opts) => {
+        if (opts.state.activeIndex === recordsTourSteps.length - 1) {
           // Tour completed!
           completeTutorial();
           driverObj.destroy();
+        } else {
+          driverObj.moveNext();
         }
       },
     });

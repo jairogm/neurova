@@ -157,7 +157,7 @@ export function SessionDetailsModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[90vh] w-[520px] max-w-[94vw] gap-0 overflow-y-auto p-0">
+        <DialogContent className="max-h-[70vh] w-[520px] max-w-[94vw] gap-0 overflow-y-auto p-0">
           <DialogHeader className="border-b border-border px-[22px] py-5 pr-12 text-left">
             <div className="flex items-center gap-2.5">
               <DialogTitle className="text-[17px] font-extrabold text-foreground">Session details</DialogTitle>

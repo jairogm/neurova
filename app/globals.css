@@ -238,6 +238,53 @@
 }
 
 /* =========================
+   EditorJS layout fixes
+   (workbench notes editor)
+   ========================= */
+/* Fill the card instead of centering at 650px — keeps the block toolbar
+   aligned with the content. */
+#editorjs .ce-block__content,
+#editorjs .ce-toolbar__content {
+  max-width: 100%;
+}
+
+/* Even if EditorJS flags the container as "narrow", keep the +/drag block
+   actions on the left next to the content instead of jumping to the right edge. */
+#editorjs .codex-editor--narrow .ce-toolbar__actions {
+  right: auto;
+  left: -8px;
+  background: transparent;
+}
+
+#editorjs .codex-editor--narrow .codex-editor__redactor {
+  margin-right: 0;
+}
+
+/* Trim the huge default bottom padding so the note doesn't end in a void,
+   while leaving room for the block popover to open. */
+#editorjs .codex-editor__redactor {
+  padding-bottom: 100px !important;
+}
+
+/* The block toolbox / settings popover floats above surrounding cards. */
+#editorjs .ce-popover__container {
+  z-index: 60;
+}
+
+#editorjs ::placeholder {
+  color: var(--muted-foreground);
+}
+
+.dark #editorjs h1,
+.dark #editorjs h2,
+.dark #editorjs h3,
+.dark #editorjs h4,
+.dark #editorjs h5,
+.dark #editorjs h6 {
+  color: var(--foreground);
+}
+
+/* =========================
    Driver.js Tutorial Styles
    NEUROVA design language
    ========================= */
