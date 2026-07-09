@@ -247,9 +247,9 @@ export const recordsTourSteps: DriveStep[] = [
     element: "#ai-assist",
     popover: {
       title: "AI session summary",
-      description: "Generate a structured draft from your session notes. You review, edit, and approve before anything is saved.",
-      side: "top" as const,
-      align: "center" as const,
+      description: "This header action drafts a concise session summary from the current note. The draft appears inside the editor for your review, and nothing is inserted until you choose to add it.",
+      side: "bottom" as const,
+      align: "end" as const,
     },
   },
   {

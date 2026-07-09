@@ -645,6 +645,10 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
   };
 
   const runAi = () => {
+    if (!active) {
+      toast.error("Select or create a note first");
+      return;
+    }
     setAiState("busy");
     if (aiTimer.current) clearTimeout(aiTimer.current);
     aiTimer.current = setTimeout(() => setAiState("ready"), 1500);
@@ -697,7 +701,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
         {/* No overflow-hidden here: the EditorJS block popover must be able to
             overlay the card edge instead of being clipped. */}
         <div id="note-editor" className={cardClass}>
-          <div className="flex items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
+          <div className="flex flex-wrap items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
             <div className="flex items-center gap-2">
               <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
               <span className="hidden text-[11.5px] text-muted-foreground sm:inline">for blocks · select text to format</span>
@@ -706,12 +710,46 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
               {saveState === "saving" ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
               {saveState === "saving" ? "Saving…" : "Saved · just now"}
             </div>
+            <button
+              id="ai-assist"
+              type="button"
+              onClick={runAi}
+              disabled={!active || aiState === "busy"}
+              className="flex h-[30px] items-center gap-1.5 rounded-lg border border-primary/25 bg-card px-[10px] text-[11.5px] font-bold text-primary transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {aiState === "busy" ? <Loader2 size={13} strokeWidth={2.4} className="animate-spin" /> : <Sparkles size={13} strokeWidth={2.2} />}
+              {aiState === "busy" ? "Drafting..." : aiState === "ready" ? "Draft ready" : "AI summary"}
+            </button>
             {active && (
               <button type="button" onClick={() => removeNote(String(active._id))} aria-label="Delete note" className="flex size-[30px] items-center justify-center rounded-lg border border-border bg-card text-[var(--nv-faint)] transition-colors hover:border-[#d2574f] hover:text-[#d2574f]">
                 <Trash2 size={14} strokeWidth={2} />
               </button>
             )}
           </div>
+          {aiState === "ready" && active && (
+            <div className="border-b border-[#8acfe0] bg-[linear-gradient(180deg,rgba(14,150,184,.09),rgba(14,150,184,.03))] px-[26px] py-3.5 dark:border-[#1f5664]">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-[10px] bg-primary text-white">
+                  <Sparkles size={16} strokeWidth={1.9} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-[12.5px] font-extrabold text-foreground">AI summary draft</span>
+                    <span className="rounded-full border border-[#8acfe0] bg-card px-[7px] py-0.5 text-[10.5px] font-bold text-primary dark:border-[#1f5664]">Review required</span>
+                  </div>
+                  <div className="mt-1 text-[12.5px] leading-[1.55] text-foreground/80">
+                    {aiDraft}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button type="button" onClick={approveAi} className="flex items-center gap-1.5 rounded-lg bg-[#15986a] px-[13px] py-2 text-xs font-bold text-white">
+                      <Check size={13} strokeWidth={2.6} />Insert into note
+                    </button>
+                    <button type="button" onClick={() => setAiState("idle")} className="rounded-lg border border-border bg-card px-[13px] py-2 text-xs font-bold text-muted-foreground">Discard</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {active ? (
             <div className="px-[26px] py-[22px]">
               <input
@@ -739,44 +777,6 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
           ) : (
             <div className="px-6 py-14 text-center text-sm text-muted-foreground">Select or create a note to start writing.</div>
           )}
-        </div>
-
-        <div id="ai-assist" className="rounded-2xl border border-[#8acfe0] bg-[linear-gradient(180deg,rgba(14,150,184,.08),transparent)] p-[18px] shadow-sm dark:border-[#1f5664]">
-          <div className="flex items-start gap-3">
-            <div className="flex size-[34px] flex-none items-center justify-center rounded-[10px] bg-primary text-white"><Sparkles size={18} strokeWidth={1.8} /></div>
-            <div className="flex-1">
-              <div className="text-sm font-extrabold text-foreground">
-                AI session summary
-                <span className="ml-1.5 rounded-full border border-[#8acfe0] bg-card px-[7px] py-0.5 align-middle text-[10.5px] font-bold text-primary dark:border-[#1f5664]">Draft · review required</span>
-              </div>
-              <p className="mt-[5px] text-[12.5px] leading-normal text-muted-foreground">
-                Generates a structured draft from session notes. Clinician review and sign-off required before saving. Not a diagnostic tool.
-              </p>
-
-              {aiState === "idle" && (
-                <button type="button" onClick={runAi} className="mt-[13px] flex items-center gap-[7px] rounded-[9px] bg-primary px-[15px] py-[9px] text-[12.5px] font-bold text-primary-foreground transition-colors hover:bg-[#0b7693]">
-                  <Sparkles size={14} strokeWidth={2} />Generate draft
-                </button>
-              )}
-              {aiState === "busy" && (
-                <div className="mt-3.5 flex items-center gap-[9px] text-[12.5px] font-bold text-primary">
-                  <Loader2 size={15} strokeWidth={2.4} className="animate-spin" />Drafting summary from session notes…
-                </div>
-              )}
-              {aiState === "ready" && (
-                <div className="mt-[13px] rounded-[11px] border border-border bg-card p-3.5">
-                  <div className="text-[12.5px] leading-[1.6] text-foreground/80"><strong className="text-foreground">Summary draft.</strong> {aiDraft.replace("Summary draft. ", "")}</div>
-                  <div className="mt-[13px] flex flex-wrap gap-2">
-                    <button type="button" onClick={approveAi} className="flex items-center gap-1.5 rounded-lg bg-[#15986a] px-[13px] py-2 text-xs font-bold text-white">
-                      <Check size={13} strokeWidth={2.6} />Approve &amp; insert
-                    </button>
-                    <button type="button" onClick={approveAi} className="rounded-lg border border-border bg-card px-[13px] py-2 text-xs font-bold text-foreground/80">Edit</button>
-                    <button type="button" onClick={() => setAiState("idle")} className="rounded-lg border border-border bg-card px-[13px] py-2 text-xs font-bold text-muted-foreground">Discard</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
     </div>
