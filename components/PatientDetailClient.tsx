@@ -16,6 +16,7 @@ import {
   statusToneFor,
 } from "@/lib/nv";
 import type { PatientGoal } from "@/lib/types";
+import { exportPatientMedicalHistoryPDF } from "@/lib/pdf-generator";
 import { useTutorial } from "@/hooks/useTutorial";
 import { EDITOR_TOOLS, editorPlainText } from "@/lib/tool";
 import EditorJS, { type OutputData } from "@editorjs/editorjs";
@@ -179,6 +180,20 @@ function PatientWorkbench({ id }: { id: string }) {
     setDraft((current) => (current ? { ...current, [key]: value } : current));
   };
 
+  const exportPdf = () => {
+    if (!patient) return;
+    if (notes === undefined) {
+      toast.info("Notes are still loading — try again in a moment");
+      return;
+    }
+    try {
+      exportPatientMedicalHistoryPDF(patient, notes);
+      toast.success("Medical history PDF downloaded");
+    } catch {
+      toast.error("Failed to generate PDF");
+    }
+  };
+
   const confirmDelete = async () => {
     if (!patient?._id) return;
     setDeleting(true);
@@ -236,7 +251,7 @@ function PatientWorkbench({ id }: { id: string }) {
 
             <div className="mt-4"><ScheduleAppointment variant="rail" defaultPatientId={id} /></div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => router.push(`/patients/${id}/records`)} className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
+              <button type="button" onClick={exportPdf} className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
                 <FileDown size={13} />Export PDF
               </button>
               <button type="button" onClick={toggleEdit} className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
@@ -531,9 +546,9 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
   const [words, setWords] = useState(0);
   const [saveState, setSaveState] = useState<"saved" | "saving">("saved");
   const [aiState, setAiState] = useState<"idle" | "busy" | "ready">("idle");
+  const [aiDraft, setAiDraft] = useState("");
   const metaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const aiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loadedId = useRef<string | null>(null);
   const editorRef = useRef<EditorJS | null>(null);
 
@@ -588,7 +603,6 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
   useEffect(() => () => {
     if (metaTimer.current) clearTimeout(metaTimer.current);
     if (contentTimer.current) clearTimeout(contentTimer.current);
-    if (aiTimer.current) clearTimeout(aiTimer.current);
     if (editorRef.current?.destroy) {
       editorRef.current.destroy();
       editorRef.current = null;
@@ -644,17 +658,36 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     }
   };
 
-  const runAi = () => {
-    if (!active) {
+  const runAi = async () => {
+    const editor = editorRef.current;
+    if (!active || !editor) {
       toast.error("Select or create a note first");
       return;
     }
     setAiState("busy");
-    if (aiTimer.current) clearTimeout(aiTimer.current);
-    aiTimer.current = setTimeout(() => setAiState("ready"), 1500);
+    try {
+      await editor.isReady;
+      const output = await editor.save();
+      const noteText = editorPlainText(output).trim();
+      if (!noteText) {
+        toast.info("Write the session record first — the AI drafts the summary from your note");
+        setAiState("idle");
+        return;
+      }
+      const res = await fetch("/api/ai/summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noteText, noteTitle: title }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.draft) throw new Error(data.error || "AI summary failed");
+      setAiDraft(data.draft);
+      setAiState("ready");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "AI summary failed");
+      setAiState("idle");
+    }
   };
-
-  const aiDraft = "Summary draft. Client reported reduced anticipatory anxiety and no panic episodes this week. Engaged well with exposure homework. Cognitive restructuring progressing. Suggested focus: graded exposure to crowded transit, continue thought records.";
 
   const approveAi = async () => {
     const editor = editorRef.current;

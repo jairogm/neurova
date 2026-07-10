@@ -7,6 +7,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@clerk/nextjs": "^6.36.5",
     "@editorjs/delimiter": "^1.4.2",
     "@editorjs/editorjs": "^2.30.8",

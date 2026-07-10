@@ -53,6 +53,11 @@ export function SessionTimeoutProvider({
   const warningRef = useRef<NodeJS.Timeout | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
+  // Wall-clock deadline for the session. setTimeout/setInterval are suspended
+  // while the tab sleeps, so every check derives from this instead of trusting
+  // timers to have fired.
+  const deadlineRef = useRef<number>(Date.now());
+  const showWarningRef = useRef(false);
 
   // Convert minutes to milliseconds
   const TIMEOUT_MS = timeoutMinutes * 60 * 1000;
@@ -77,6 +82,7 @@ export function SessionTimeoutProvider({
   // Handle logout
   const handleLogout = async () => {
     clearAllTimers();
+    showWarningRef.current = false;
     setShowWarning(false);
 
     try {
@@ -101,22 +107,26 @@ export function SessionTimeoutProvider({
     }
   };
 
-  // Start countdown in warning dialog
+  // Start countdown in warning dialog — derived from the wall-clock deadline,
+  // so sleeping through part of the warning doesn't stretch the countdown.
   const startCountdown = () => {
-    const warningDurationMs = warningMinutes * 60 * 1000;
-    let timeLeft = warningDurationMs;
-
-    setRemainingTime(Math.floor(timeLeft / 1000));
-
-    countdownRef.current = setInterval(() => {
-      timeLeft -= 1000;
-      setRemainingTime(Math.floor(timeLeft / 1000));
-
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    const tick = () => {
+      const timeLeft = deadlineRef.current - Date.now();
+      setRemainingTime(Math.max(0, Math.ceil(timeLeft / 1000)));
       if (timeLeft <= 0) {
         clearInterval(countdownRef.current!);
         handleLogout();
       }
-    }, 1000);
+    };
+    tick();
+    countdownRef.current = setInterval(tick, 1000);
+  };
+
+  const openWarning = () => {
+    showWarningRef.current = true;
+    setShowWarning(true);
+    startCountdown();
   };
 
   // Reset inactivity timer
@@ -124,21 +134,37 @@ export function SessionTimeoutProvider({
     if (!isSignedIn) return;
 
     lastActivityRef.current = Date.now();
+    deadlineRef.current = Date.now() + TIMEOUT_MS;
     clearAllTimers();
+    showWarningRef.current = false;
     setShowWarning(false);
 
     // Set warning timer
-    warningRef.current = setTimeout(() => {
-      console.log("Showing warning dialog");
-      setShowWarning(true);
-      startCountdown();
-    }, WARNING_MS);
+    warningRef.current = setTimeout(openWarning, WARNING_MS);
 
     // Set logout timer (backup in case warning is dismissed)
     timeoutRef.current = setTimeout(() => {
-      console.log("Auto logout triggered");
       handleLogout();
     }, TIMEOUT_MS);
+  };
+
+  // Timers don't fire while the machine sleeps or the tab is suspended, which
+  // used to leave a dead session rendering "Patient not found". On wake,
+  // reconcile against the wall-clock deadline: past it → log out; inside the
+  // warning window → show the countdown with the true remaining time.
+  const syncWithClock = () => {
+    if (!isSignedIn) return;
+    const now = Date.now();
+    if (now >= deadlineRef.current) {
+      handleLogout();
+      return;
+    }
+    if (now >= deadlineRef.current - warningMinutes * 60 * 1000) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (warningRef.current) clearTimeout(warningRef.current);
+      timeoutRef.current = setTimeout(handleLogout, deadlineRef.current - now);
+      openWarning();
+    }
   };
 
   // Extend session (reset timer and close warning)
@@ -161,8 +187,10 @@ export function SessionTimeoutProvider({
 
   // Handle activity events
   const handleActivity = () => {
-    // If warning dialog is showing, ignore ALL activity
-    if (showWarning) {
+    // If warning dialog is showing, ignore ALL activity — staying signed in
+    // requires the explicit "Keep me signed in" click. (Read via ref: this
+    // listener is registered once, so state would be a stale closure.)
+    if (showWarningRef.current) {
       return;
     }
 
@@ -185,6 +213,13 @@ export function SessionTimeoutProvider({
       document.addEventListener(eventName, handleActivity, true);
     });
 
+    // Reconcile with the wall clock when the tab wakes up or regains focus.
+    const handleWake = () => {
+      if (document.visibilityState === "visible") syncWithClock();
+    };
+    document.addEventListener("visibilitychange", handleWake);
+    window.addEventListener("focus", handleWake);
+
     // Start initial timer
     resetTimer();
 
@@ -193,6 +228,8 @@ export function SessionTimeoutProvider({
       ACTIVITY_EVENTS.forEach(eventName => {
         document.removeEventListener(eventName, handleActivity, true);
       });
+      document.removeEventListener("visibilitychange", handleWake);
+      window.removeEventListener("focus", handleWake);
       clearAllTimers();
     };
     // The timer helpers intentionally share this effect's auth lifecycle.
@@ -233,13 +270,13 @@ export function SessionTimeoutProvider({
                   clipRule="evenodd"
                 />
               </svg>
-              Session Expiring Soon
+              Still there?
             </DialogTitle>
             <DialogDescription className="space-y-2">
               <span className="block">
-                Your session will expire in <strong className="text-amber-600 dark:text-amber-400">
+                You&apos;ve been inactive for a while, so we&apos;ll sign you out in <strong className="font-mono text-amber-600 dark:text-amber-400">
                   {formatTime(remainingTime)}
-                </strong> for security purposes.
+                </strong>.
               </span>
               <span className="block text-sm text-muted-foreground">
                 This helps protect sensitive patient information when devices are left unattended.
@@ -252,13 +289,13 @@ export function SessionTimeoutProvider({
               onClick={handleLogout}
               className="w-full sm:w-auto"
             >
-              Sign Out Now
+              Sign out now
             </Button>
             <Button
               onClick={extendSession}
-              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700"
+              className="w-full sm:w-auto"
             >
-              Extend Session
+              Keep me signed in
             </Button>
           </DialogFooter>
         </DialogContent>

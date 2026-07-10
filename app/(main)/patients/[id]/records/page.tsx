@@ -6,8 +6,9 @@ import { AddRecordModal } from "@/components/modals/AddRecordModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTutorial } from "@/hooks/useTutorial";
+import { exportPatientMedicalHistoryPDF } from "@/lib/pdf-generator";
 import { useQuery } from "convex/react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, FileDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
@@ -35,7 +36,10 @@ export default function PatientRecordsPage({ params }: { params: Promise<{ id: s
           <Button id="records-back-btn" variant="outline" size="icon" onClick={() => router.push(`/patients/${patientId}`)} className="size-9"><ArrowLeft size={15} /></Button>
           <div><h1 className="text-[22px] font-extrabold tracking-[-.02em] text-foreground">Notes & records</h1><p className="mt-0.5 text-[12.5px] text-muted-foreground">{patient.name} · Clinical documentation</p></div>
         </div>
-        <Button id="add-record-btn" onClick={() => setAddOpen(true)}><Plus size={15} />New note</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" disabled={notes === undefined} onClick={() => exportPatientMedicalHistoryPDF(patient, notes ?? [])}><FileDown size={15} />Export PDF</Button>
+          <Button id="add-record-btn" onClick={() => setAddOpen(true)}><Plus size={15} />New note</Button>
+        </div>
       </div>
 
       <div id="records-table"><MedicalNotesTable notes={notes || []} patientId={patientId} loading={notes === undefined} /></div>
