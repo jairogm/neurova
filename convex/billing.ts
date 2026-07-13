@@ -129,6 +129,18 @@ export const listInvoices = query({
 
 const PLAN_NAME = "Individual therapist";
 
+// Comp accounts: COMP_ACCOUNT_EMAILS (Convex env var) is a comma-separated
+// allowlist granting free full access. Matched against the account email
+// only — never billing_email, which users can edit themselves.
+function isComplimentary(therapist: { email?: string }) {
+  const allowlist = (process.env.COMP_ACCOUNT_EMAILS ?? "")
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+  const email = therapist.email?.trim().toLowerCase();
+  return Boolean(email && allowlist.includes(email));
+}
+
 // The webhook mutations below are called by our Next.js server (never the
 // browser), authenticated with a shared secret instead of a Clerk identity —
 // Mercado Pago notifications carry no user session.
@@ -144,14 +156,16 @@ export const getSubscription = query({
   handler: async (ctx) => {
     const therapist = await currentTherapist(ctx);
     if (!therapist) return null;
+    const complimentary = isComplimentary(therapist);
     return {
       therapistRef: String(therapist._id),
       email: therapist.billing_email ?? therapist.email ?? "",
-      plan: therapist.subscription_plan ?? PLAN_NAME,
-      status: therapist.subscription_status ?? "none",
+      plan: complimentary ? "Complimentary" : therapist.subscription_plan ?? PLAN_NAME,
+      status: complimentary ? "active" : therapist.subscription_status ?? "none",
       provider: therapist.payment_provider ?? null,
       subscriptionId: therapist.subscription_id ?? null,
       expiresAt: (therapist.subscription_expires_at as string | null) ?? null,
+      complimentary,
     };
   },
 });

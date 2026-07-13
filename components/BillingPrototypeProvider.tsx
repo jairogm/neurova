@@ -13,6 +13,7 @@ import { toast } from "sonner";
 type BillingPrototypeValue = {
   subscriptionActive: boolean;
   hasRealSubscription: boolean;
+  complimentary: boolean;
   toggleSubscription: () => void;
   activatePlan: () => void;
 };
@@ -20,6 +21,7 @@ type BillingPrototypeValue = {
 const BillingPrototypeContext = createContext<BillingPrototypeValue>({
   subscriptionActive: true,
   hasRealSubscription: false,
+  complimentary: false,
   toggleSubscription: () => {},
   activatePlan: () => {},
 });
@@ -59,11 +61,14 @@ export function BillingPrototypeProvider({ children }: { children: React.ReactNo
   // Migrated therapist docs can carry stale payment_provider /
   // subscription_status values that must not be trusted on their own.
   const hasRealSubscription = Boolean(subscription?.subscriptionId);
+  const complimentary = Boolean(subscription?.complimentary);
   // past_due keeps access: Mercado Pago retries the charge on its own, and a
   // clinician shouldn't be locked out of patient records mid-dunning.
-  const subscriptionActive = hasRealSubscription
-    ? subscription!.status === "active" || subscription!.status === "past_due"
-    : prototypeActive;
+  const subscriptionActive = complimentary
+    ? true
+    : hasRealSubscription
+      ? subscription!.status === "active" || subscription!.status === "past_due"
+      : prototypeActive;
 
   const toggleSubscription = useCallback(() => {
     setPrototypeActive((current) => {
@@ -99,8 +104,8 @@ export function BillingPrototypeProvider({ children }: { children: React.ReactNo
   }, [persist]);
 
   const value = useMemo(
-    () => ({ subscriptionActive, hasRealSubscription, toggleSubscription, activatePlan }),
-    [activatePlan, hasRealSubscription, subscriptionActive, toggleSubscription],
+    () => ({ subscriptionActive, hasRealSubscription, complimentary, toggleSubscription, activatePlan }),
+    [activatePlan, complimentary, hasRealSubscription, subscriptionActive, toggleSubscription],
   );
 
   // Don't flash the paywall while the subscription query is still loading.

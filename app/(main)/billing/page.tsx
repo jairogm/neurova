@@ -58,15 +58,18 @@ export default function BillingPage() {
   // otherwise. Only the stored preapproval id counts — migrated therapist docs
   // can carry stale payment_provider / subscription_status values.
   const hasRealSubscription = Boolean(subscription?.subscriptionId);
-  const planStatus = hasRealSubscription ? subscription!.status : subscriptionActive ? "active" : "none";
+  const complimentary = Boolean(subscription?.complimentary);
+  const planStatus = complimentary || hasRealSubscription ? subscription!.status : subscriptionActive ? "active" : "none";
   const planStatusLabel =
-    planStatus === "active" ? "Active"
+    complimentary ? "Complimentary"
+    : planStatus === "active" ? "Active"
     : planStatus === "pending" ? "Confirming…"
     : planStatus === "past_due" ? "Payment issue"
     : planStatus === "cancelled" ? "Cancelled"
     : "Payment required";
 
   const renewalLabel = () => {
+    if (complimentary) return "—";
     if (hasRealSubscription && subscription?.expiresAt) {
       const date = new Date(subscription.expiresAt);
       if (!Number.isNaN(date.getTime())) {
@@ -147,8 +150,8 @@ export default function BillingPage() {
             <div className="relative flex items-start justify-between gap-[18px]">
               <div>
                 <div className="text-[11px] font-extrabold uppercase tracking-[.1em] opacity-80">Current plan</div>
-                <div className="mt-2 text-[24px] font-extrabold tracking-[-.02em]">Individual therapist</div>
-                <div className="mt-1 text-[13px] opacity-85">50.000 COP / Monthly</div>
+                <div className="mt-2 text-[24px] font-extrabold tracking-[-.02em]">{complimentary ? "Complimentary" : "Individual therapist"}</div>
+                <div className="mt-1 text-[13px] opacity-85">{complimentary ? "Free — full access" : "50.000 COP / Monthly"}</div>
               </div>
               <span className="rounded-full border border-white/25 bg-white/15 px-[11px] py-1 text-[11px] font-extrabold">{planStatusLabel}</span>
             </div>
@@ -161,7 +164,9 @@ export default function BillingPage() {
               ))}
             </div>
             <div className="relative mt-4 flex flex-wrap items-center gap-2.5">
-              {planStatus === "active" && hasRealSubscription ? (
+              {complimentary ? (
+                <span className="text-[12.5px] font-bold opacity-90">This account has free full access — no payment needed.</span>
+              ) : planStatus === "active" && hasRealSubscription ? (
                 <Button variant="outline" onClick={() => setCancelOpen(true)} className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
                   Cancel plan
                 </Button>

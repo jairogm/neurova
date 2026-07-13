@@ -58,7 +58,7 @@ export default function Navbar() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const { open: openPalette } = useCommandPalette();
-  const { subscriptionActive, hasRealSubscription, toggleSubscription } = useBillingPrototype();
+  const { subscriptionActive, hasRealSubscription, complimentary, toggleSubscription } = useBillingPrototype();
 
   const therapist = useQuery(api.users.getCurrentUser);
   const displayName = therapist?.full_name || user?.fullName || user?.primaryEmailAddress?.emailAddress || "Your practice";
@@ -183,15 +183,16 @@ export default function Navbar() {
         <button
           type="button"
           onClick={() => {
-            // With a real Mercado Pago subscription the pill is a shortcut to
-            // billing; the prototype paid/unpaid toggle only applies before one exists.
-            if (hasRealSubscription) {
+            // With a real Mercado Pago subscription (or a comp account) the
+            // pill is a shortcut to billing; the prototype paid/unpaid toggle
+            // only applies before one exists.
+            if (hasRealSubscription || complimentary) {
               router.push("/billing");
               return;
             }
             toggleSubscription();
           }}
-          title={hasRealSubscription ? "Manage your plan" : "Preview paid vs unpaid account"}
+          title={hasRealSubscription || complimentary ? "Manage your plan" : "Preview paid vs unpaid account"}
           className={`hidden items-center gap-[7px] rounded-[10px] border px-[11px] py-2 text-xs font-extrabold lg:flex ${subscriptionActive ? "border-[#15986a] bg-[#e2f1ea] text-[#15986a] dark:border-[#2ba378] dark:bg-[#11302a] dark:text-[#2ba378]" : "border-[#be7c16] bg-[#f6ecd8] text-[#be7c16] dark:border-[#d29a3a] dark:bg-[#33280f] dark:text-[#d29a3a]"}`}
         >
           <span className={`size-[7px] rounded-full ${subscriptionActive ? "bg-[#15986a] dark:bg-[#2ba378]" : "bg-[#be7c16] dark:bg-[#d29a3a]"}`} />

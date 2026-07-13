@@ -28,6 +28,12 @@ export async function POST(req: NextRequest) {
   if (!subscription) {
     return NextResponse.json({ error: 'Therapist profile not found' }, { status: 404 });
   }
+  if (subscription.complimentary) {
+    return NextResponse.json(
+      { error: 'This account has complimentary access — no subscription needed' },
+      { status: 409 }
+    );
+  }
   // Block double-subscribing only on a real Mercado Pago subscription —
   // migrated therapist docs can carry a stale "active" status with no
   // preapproval behind it.
