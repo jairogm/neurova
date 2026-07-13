@@ -1,19 +1,25 @@
 "use client";
 
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { Lock } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
-// Prototype-review control from NEUROVA.dc.html: preview the paid vs unpaid
-// account states (paywall).
+// Billing gate. Accounts with a real Mercado Pago subscription are gated by
+// its actual status; accounts without one keep the prototype-review toggle
+// from NEUROVA.dc.html (paid vs unpaid preview, persisted in localStorage).
 
 type BillingPrototypeValue = {
   subscriptionActive: boolean;
+  hasRealSubscription: boolean;
   toggleSubscription: () => void;
   activatePlan: () => void;
 };
 
 const BillingPrototypeContext = createContext<BillingPrototypeValue>({
   subscriptionActive: true,
+  hasRealSubscription: false,
   toggleSubscription: () => {},
   activatePlan: () => {},
 });
@@ -25,54 +31,96 @@ export function useBillingPrototype() {
 const STORAGE_KEY = "nv-billing-prototype";
 
 export function BillingPrototypeProvider({ children }: { children: React.ReactNode }) {
-  const [subscriptionActive, setSubscriptionActive] = useState(true);
+  const subscription = useQuery(api.billing.getSubscription);
+  const [prototypeActive, setPrototypeActive] = useState(true);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored) as { subscriptionActive?: boolean };
-        if (typeof parsed.subscriptionActive === "boolean") setSubscriptionActive(parsed.subscriptionActive);
+        if (typeof parsed.subscriptionActive === "boolean") setPrototypeActive(parsed.subscriptionActive);
       }
     } catch {
       // Ignore unparsable stored state
     }
   }, []);
 
-  const persist = useCallback((subscription: boolean) => {
+  const persist = useCallback((subscriptionState: boolean) => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ subscriptionActive: subscription }));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ subscriptionActive: subscriptionState }));
     } catch {
       // Storage unavailable — state stays in memory
     }
   }, []);
 
+  // Only a stored Mercado Pago preapproval id counts as a real subscription.
+  // Migrated therapist docs can carry stale payment_provider /
+  // subscription_status values that must not be trusted on their own.
+  const hasRealSubscription = Boolean(subscription?.subscriptionId);
+  // past_due keeps access: Mercado Pago retries the charge on its own, and a
+  // clinician shouldn't be locked out of patient records mid-dunning.
+  const subscriptionActive = hasRealSubscription
+    ? subscription!.status === "active" || subscription!.status === "past_due"
+    : prototypeActive;
+
   const toggleSubscription = useCallback(() => {
-    setSubscriptionActive((current) => {
+    setPrototypeActive((current) => {
       persist(!current);
       return !current;
     });
   }, [persist]);
 
-  const activatePlan = useCallback(() => {
-    setSubscriptionActive(true);
-    persist(true);
+  // "Pay and enter app": start a real Mercado Pago checkout. If payments
+  // aren't configured yet (no MP credentials), fall back to the prototype
+  // unlock so local review keeps working.
+  const activatePlan = useCallback(async () => {
+    setRedirecting(true);
+    try {
+      const res = await fetch("/api/billing/subscribe", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+        return;
+      }
+      if (res.status === 503) {
+        setPrototypeActive(true);
+        persist(true);
+        toast.info("Payments are not configured yet — unlocked in prototype mode");
+        return;
+      }
+      throw new Error(data.error || "Could not start the checkout");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start the checkout");
+    } finally {
+      setRedirecting(false);
+    }
   }, [persist]);
 
   const value = useMemo(
-    () => ({ subscriptionActive, toggleSubscription, activatePlan }),
-    [activatePlan, subscriptionActive, toggleSubscription],
+    () => ({ subscriptionActive, hasRealSubscription, toggleSubscription, activatePlan }),
+    [activatePlan, hasRealSubscription, subscriptionActive, toggleSubscription],
   );
+
+  // Don't flash the paywall while the subscription query is still loading.
+  const loaded = subscription !== undefined;
 
   return (
     <BillingPrototypeContext.Provider value={value}>
       {children}
-      {!subscriptionActive && <PaywallOverlay onActivate={activatePlan} />}
+      {loaded && !subscriptionActive && (
+        <PaywallOverlay
+          onActivate={activatePlan}
+          busy={redirecting}
+          pending={hasRealSubscription && subscription!.status === "pending"}
+        />
+      )}
     </BillingPrototypeContext.Provider>
   );
 }
 
-function PaywallOverlay({ onActivate }: { onActivate: () => void }) {
+function PaywallOverlay({ onActivate, busy, pending }: { onActivate: () => void; busy: boolean; pending: boolean }) {
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[rgba(6,17,21,.72)] p-[26px] backdrop-blur-lg" role="dialog" aria-modal="true" aria-label="Payment required">
       <div className="w-[900px] max-w-[94vw] overflow-hidden rounded-[22px] border border-border bg-card shadow-[0_24px_60px_-20px_rgba(12,30,36,.35)]">
@@ -90,7 +138,7 @@ function PaywallOverlay({ onActivate }: { onActivate: () => void }) {
               </p>
               <div className="mt-6 flex flex-col gap-2.5 text-[12.5px] text-white/[.94] sm:mt-auto dark:text-[#eaf5f7]">
                 <div className="flex gap-[9px]"><span className="font-extrabold text-white dark:text-[#3fb6d6]">✓</span><span>Plan required before clinical workspace access</span></div>
-                <div className="flex gap-[9px]"><span className="font-extrabold text-white dark:text-[#3fb6d6]">✓</span><span>No close or skip action in production</span></div>
+                <div className="flex gap-[9px]"><span className="font-extrabold text-white dark:text-[#3fb6d6]">✓</span><span>Cancel anytime from the billing page</span></div>
               </div>
             </div>
           </div>
@@ -115,14 +163,15 @@ function PaywallOverlay({ onActivate }: { onActivate: () => void }) {
                 <button
                   type="button"
                   onClick={onActivate}
-                  className="w-full rounded-[10px] bg-primary px-3 py-2.5 text-[12.5px] font-extrabold text-primary-foreground transition-colors hover:bg-[#0b7693]"
+                  disabled={busy}
+                  className="w-full rounded-[10px] bg-primary px-3 py-2.5 text-[12.5px] font-extrabold text-primary-foreground transition-colors hover:bg-[#0b7693] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Pay and enter app
+                  {busy ? "Redirecting…" : pending ? "Resume payment" : "Pay and enter app"}
                 </button>
               </div>
             </div>
             <div className="mt-[18px] border-t border-border pt-4 text-[11.5px] leading-[1.55] text-[var(--nv-faint)]">
-              For prototype review, the individual plan button simulates successful payment and unlocks the app.
+              Payments are processed securely by Mercado Pago — you&apos;ll be redirected to authorize the subscription and returned here when it&apos;s done.
             </div>
           </div>
         </div>

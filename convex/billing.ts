@@ -124,3 +124,108 @@ export const listInvoices = query({
     return invoices.sort((a, b) => b.created_at.localeCompare(a.created_at));
   },
 });
+
+// ===== Subscription (Mercado Pago) =====
+
+const PLAN_NAME = "Individual therapist";
+
+// The webhook mutations below are called by our Next.js server (never the
+// browser), authenticated with a shared secret instead of a Clerk identity —
+// Mercado Pago notifications carry no user session.
+function assertBillingSecret(secret: string) {
+  const expected = process.env.BILLING_WEBHOOK_SECRET;
+  if (!expected || secret !== expected) {
+    throw new Error("Invalid billing webhook secret");
+  }
+}
+
+export const getSubscription = query({
+  args: {},
+  handler: async (ctx) => {
+    const therapist = await currentTherapist(ctx);
+    if (!therapist) return null;
+    return {
+      therapistRef: String(therapist._id),
+      email: therapist.billing_email ?? therapist.email ?? "",
+      plan: therapist.subscription_plan ?? PLAN_NAME,
+      status: therapist.subscription_status ?? "none",
+      provider: therapist.payment_provider ?? null,
+      subscriptionId: therapist.subscription_id ?? null,
+      expiresAt: (therapist.subscription_expires_at as string | null) ?? null,
+    };
+  },
+});
+
+export const applySubscriptionUpdate = mutation({
+  args: {
+    secret: v.string(),
+    therapistRef: v.string(),
+    subscriptionId: v.string(),
+    status: v.string(), // active | pending | past_due | cancelled
+    expiresAt: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    assertBillingSecret(args.secret);
+    const id = ctx.db.normalizeId("therapists", args.therapistRef);
+    if (!id) throw new Error("Unknown therapist reference");
+    const therapist = await ctx.db.get(id);
+    if (!therapist) throw new Error("Therapist not found");
+    await ctx.db.patch(id, {
+      payment_provider: "mercadopago",
+      subscription_id: args.subscriptionId,
+      subscription_plan: PLAN_NAME,
+      subscription_status: args.status,
+      ...(args.expiresAt ? { subscription_expires_at: args.expiresAt } : {}),
+      updated_at: new Date().toISOString(),
+    });
+  },
+});
+
+export const recordSubscriptionPayment = mutation({
+  args: {
+    secret: v.string(),
+    therapistRef: v.string(),
+    paymentId: v.string(),
+    amount: v.string(),
+    status: v.string(), // Paid | Pending
+    date: v.string(),
+    description: v.string(),
+    method: v.string(),
+    paidThrough: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    assertBillingSecret(args.secret);
+    const id = ctx.db.normalizeId("therapists", args.therapistRef);
+    if (!id) throw new Error("Unknown therapist reference");
+    const therapist = await ctx.db.get(id);
+    if (!therapist) throw new Error("Therapist not found");
+    const therapistId = therapist.id ?? therapist._id;
+
+    // Mercado Pago retries webhooks — dedupe on the payment id.
+    const invoiceNo = `MP-${args.paymentId}`;
+    const existing = await ctx.db
+      .query("invoices")
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapistId))
+      .collect();
+    if (existing.some((invoice) => invoice.invoice === invoiceNo)) return;
+
+    await ctx.db.insert("invoices", {
+      therapist_id: therapistId,
+      invoice: invoiceNo,
+      date: args.date,
+      description: args.description,
+      amount: args.amount,
+      status: args.status,
+      method: args.method,
+      created_at: new Date().toISOString(),
+    });
+
+    if (args.status === "Paid") {
+      await ctx.db.patch(id, {
+        subscription_status: "active",
+        ...(args.paidThrough ? { subscription_expires_at: args.paidThrough } : {}),
+        updated_at: new Date().toISOString(),
+      });
+    }
+  },
+});

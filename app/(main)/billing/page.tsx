@@ -18,6 +18,7 @@ import { toast } from "sonner";
 export default function BillingPage() {
   const { subscriptionActive } = useBillingPrototype();
   const profile = useQuery(api.billing.getProfile);
+  const subscription = useQuery(api.billing.getSubscription);
   const paymentMethods = useQuery(api.billing.listPaymentMethods);
   const invoices = useQuery(api.billing.listInvoices);
   const updateProfile = useMutation(api.billing.updateProfile);
@@ -25,6 +26,9 @@ export default function BillingPage() {
   const setPrimary = useMutation(api.billing.setPrimaryPaymentMethod);
   const removeMethod = useMutation(api.billing.removePaymentMethod);
 
+  const [subscribing, setSubscribing] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [methodOpen, setMethodOpen] = useState(false);
   const [cardNumber, setCardNumber] = useState("");
   const [cardExp, setCardExp] = useState("");
@@ -40,10 +44,67 @@ export default function BillingPage() {
     setAddress(profile.billing_address);
   }, [profile]);
 
+  // Coming back from Mercado Pago checkout (?mp=return). Activation itself
+  // arrives via webhook — this is just immediate feedback.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mp") === "return") {
+      toast.info("Payment authorization received — your plan activates as soon as Mercado Pago confirms it.");
+      window.history.replaceState(null, "", "/billing");
+    }
+  }, []);
+
+  // Real Mercado Pago state once a subscription exists; prototype toggle
+  // otherwise. Only the stored preapproval id counts — migrated therapist docs
+  // can carry stale payment_provider / subscription_status values.
+  const hasRealSubscription = Boolean(subscription?.subscriptionId);
+  const planStatus = hasRealSubscription ? subscription!.status : subscriptionActive ? "active" : "none";
+  const planStatusLabel =
+    planStatus === "active" ? "Active"
+    : planStatus === "pending" ? "Confirming…"
+    : planStatus === "past_due" ? "Payment issue"
+    : planStatus === "cancelled" ? "Cancelled"
+    : "Payment required";
+
   const renewalLabel = () => {
+    if (hasRealSubscription && subscription?.expiresAt) {
+      const date = new Date(subscription.expiresAt);
+      if (!Number.isNaN(date.getTime())) {
+        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      }
+    }
+    if (planStatus !== "active") return "Activate to start";
     const date = new Date();
     date.setMonth(date.getMonth() + 1, 23);
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  };
+
+  const startSubscription = async () => {
+    setSubscribing(true);
+    try {
+      const res = await fetch("/api/billing/subscribe", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(data.error || "Could not start the checkout");
+      window.location.href = data.url;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start the checkout");
+      setSubscribing(false);
+    }
+  };
+
+  const cancelSubscription = async () => {
+    setCancelling(true);
+    try {
+      const res = await fetch("/api/billing/cancel", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Could not cancel the subscription");
+      toast.success("Subscription cancelled");
+      setCancelOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not cancel the subscription");
+    } finally {
+      setCancelling(false);
+    }
   };
 
   const saveProfile = async () => {
@@ -89,15 +150,31 @@ export default function BillingPage() {
                 <div className="mt-2 text-[24px] font-extrabold tracking-[-.02em]">Individual therapist</div>
                 <div className="mt-1 text-[13px] opacity-85">50.000 COP / Monthly</div>
               </div>
-              <span className="rounded-full border border-white/25 bg-white/15 px-[11px] py-1 text-[11px] font-extrabold">{subscriptionActive ? "Active" : "Payment required"}</span>
+              <span className="rounded-full border border-white/25 bg-white/15 px-[11px] py-1 text-[11px] font-extrabold">{planStatusLabel}</span>
             </div>
             <div className="relative mt-[22px] grid grid-cols-3 gap-2.5">
-              {[["Renews", subscriptionActive ? renewalLabel() : "Activate to start"], ["Seats", "1 therapist"], ["Currency", "COP"]].map(([label, value]) => (
+              {[["Renews", renewalLabel()], ["Seats", "1 therapist"], ["Currency", "COP"]].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-white/15 bg-white/10 p-3">
                   <div className="text-[10px] font-extrabold uppercase tracking-[.08em] opacity-70">{label}</div>
                   <div className="mt-1 font-mono text-[12.5px] font-bold">{value}</div>
                 </div>
               ))}
+            </div>
+            <div className="relative mt-4 flex flex-wrap items-center gap-2.5">
+              {planStatus === "active" && hasRealSubscription ? (
+                <Button variant="outline" onClick={() => setCancelOpen(true)} className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                  Cancel plan
+                </Button>
+              ) : planStatus === "pending" ? (
+                <span className="text-[12.5px] font-bold opacity-90">Waiting for Mercado Pago to confirm your payment…</span>
+              ) : (
+                <Button onClick={startSubscription} disabled={subscribing} className="bg-white text-[#0b7693] hover:bg-white/90">
+                  {subscribing ? "Redirecting…" : "Subscribe with Mercado Pago"}
+                </Button>
+              )}
+              {planStatus === "past_due" && (
+                <span className="text-[12px] opacity-90">Last charge failed — Mercado Pago retries automatically.</span>
+              )}
             </div>
           </section>
 
@@ -166,6 +243,23 @@ export default function BillingPage() {
           </Card>
         </div>
       </div>
+
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
+          <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+            <DialogTitle className="text-[17px] font-extrabold">Cancel your plan?</DialogTitle>
+            <DialogDescription>
+              Mercado Pago will stop charging you and your plan ends at the close of the current period. You can subscribe again anytime.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="border-t border-border px-6 py-4">
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>Keep plan</Button>
+            <Button variant="destructive" onClick={cancelSubscription} disabled={cancelling}>
+              {cancelling ? "Cancelling…" : "Cancel subscription"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={methodOpen} onOpenChange={setMethodOpen}>
         <DialogContent className="max-w-md gap-0 overflow-hidden p-0">

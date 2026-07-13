@@ -64,6 +64,7 @@ export default defineSchema({
     billing_email: v.optional(v.string()),
     tax_id: v.optional(v.string()),
     billing_address: v.optional(v.string()),
+    subscription_id: v.optional(v.string()), // Mercado Pago preapproval ID
   }).index("by_user_id", ["user_id"]).index("by_clerk_id", ["clerk_user_id"]).index("by_email", ["email"]),
 
   sessions: defineTable({
