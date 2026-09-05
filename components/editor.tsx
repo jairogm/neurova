@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import EditorJS, { OutputData } from "@editorjs/editorjs";
-import { EDITOR_TOOLS } from "@/lib/tool";
+import type EditorJS from "@editorjs/editorjs";
+import type { OutputData } from "@editorjs/editorjs";
+import { createEditor, destroyEditor } from "@/lib/tool";
 import { Button } from "@/components/ui/button";
 import {
   Asterisk,
@@ -67,17 +68,26 @@ export const Editor = ({
 
   // Initialize EditorJS
   useEffect(() => {
+    // EditorJS only loads in the browser, so guard against unmounting before
+    // the dynamic import resolves.
+    let cancelled = false;
+
     if (!ref.current) {
-      const editor = new EditorJS({
+      createEditor({
         holder: "editorjs",
         autofocus: true,
         data: data || { time: new Date().getTime(), blocks: [] },
-        tools: EDITOR_TOOLS,
         onChange: () => setHasChanges(true),
         onReady: () => setIsReady(true),
-      });
-
-      ref.current = editor;
+      })
+        .then((editor) => {
+          if (cancelled) {
+            destroyEditor(editor);
+            return;
+          }
+          ref.current = editor;
+        })
+        .catch(() => toast.error("Failed to load the editor"));
     } else if (data) {
       // If already initialized, load new data when switching sessions
       ref.current.render(data);
@@ -85,11 +95,10 @@ export const Editor = ({
     }
 
     return () => {
-      if (ref.current?.destroy) {
-        ref.current.destroy();
-        ref.current = null;
-        setIsReady(false);
-      }
+      cancelled = true;
+      destroyEditor(ref.current);
+      ref.current = null;
+      setIsReady(false);
     };
   }, [data]);
 

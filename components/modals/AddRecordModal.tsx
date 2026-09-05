@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { FolderPlus } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useRef, useEffect } from "react";
-import EditorJS from "@editorjs/editorjs";
-import { EDITOR_TOOLS } from "@/lib/tool";
+import type EditorJS from "@editorjs/editorjs";
+import { createEditor, destroyEditor } from "@/lib/tool";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
@@ -27,20 +27,28 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
   const createNote = useMutation(api.medical_history_notes.create);
 
   useEffect(() => {
-    if (open && !editorRef.current) {
-      editorRef.current = new EditorJS({
-        holder: "add-record-editor",
-        tools: EDITOR_TOOLS,
-        placeholder: "Start writing your notes...",
-        data: { time: new Date().getTime(), blocks: [] },
-      });
-    }
+    if (!open || editorRef.current) return;
+    // EditorJS only loads in the browser, so guard against the modal closing
+    // before the dynamic import resolves.
+    let cancelled = false;
+    createEditor({
+      holder: "add-record-editor",
+      placeholder: "Start writing your notes...",
+      data: { time: new Date().getTime(), blocks: [] },
+    })
+      .then((editor) => {
+        if (cancelled) {
+          destroyEditor(editor);
+          return;
+        }
+        editorRef.current = editor;
+      })
+      .catch(() => toast.error("Failed to load the editor"));
 
     return () => {
-      if (editorRef.current?.destroy) {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
+      cancelled = true;
+      destroyEditor(editorRef.current);
+      editorRef.current = null;
     };
   }, [open]);
 

@@ -18,8 +18,9 @@ import {
 import type { PatientGoal } from "@/lib/types";
 import { exportPatientMedicalHistoryPDF } from "@/lib/pdf-generator";
 import { useTutorial } from "@/hooks/useTutorial";
-import { EDITOR_TOOLS, editorPlainText } from "@/lib/tool";
-import EditorJS, { type OutputData } from "@editorjs/editorjs";
+import { createEditor, destroyEditor, editorPlainText } from "@/lib/tool";
+import type EditorJS from "@editorjs/editorjs";
+import type { OutputData } from "@editorjs/editorjs";
 import { useMutation, useQuery } from "convex/react";
 import {
   AlertTriangle,
@@ -555,10 +556,8 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
   // (Re)mount the EditorJS instance whenever the selected note changes.
   useEffect(() => {
     if (!active) {
-      if (editorRef.current?.destroy) {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
+      destroyEditor(editorRef.current);
+      editorRef.current = null;
       loadedId.current = null;
       return;
     }
@@ -570,14 +569,15 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     setSaveState("saved");
     setAiState("idle");
 
-    if (editorRef.current?.destroy) {
-      editorRef.current.destroy();
-      editorRef.current = null;
-    }
+    destroyEditor(editorRef.current);
+    editorRef.current = null;
     const noteKey = String(active.id ?? active._id);
-    const editor: EditorJS = new EditorJS({
+    // EditorJS is loaded lazily in the browser, so the instance only exists a
+    // tick later — `cancelled` covers an unmount/note switch in that window.
+    let cancelled = false;
+    let editor: EditorJS | null = null;
+    createEditor({
       holder: "editorjs",
-      tools: EDITOR_TOOLS,
       placeholder: "Write the session note… Type / for blocks",
       data: toEditorData(active),
       minHeight: 240,
@@ -585,6 +585,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
         setSaveState("saving");
         if (contentTimer.current) clearTimeout(contentTimer.current);
         contentTimer.current = setTimeout(async () => {
+          if (!editor) return;
           try {
             const output = await editor.save();
             const text = editorPlainText(output).trim();
@@ -596,17 +597,27 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
           }
         }, 800);
       },
-    });
-    editorRef.current = editor;
+    })
+      .then((instance) => {
+        if (cancelled) {
+          destroyEditor(instance);
+          return;
+        }
+        editor = instance;
+        editorRef.current = instance;
+      })
+      .catch(() => toast.error("Failed to load the editor"));
+
+    return () => {
+      cancelled = true;
+    };
   }, [active, updateNote]);
 
   useEffect(() => () => {
     if (metaTimer.current) clearTimeout(metaTimer.current);
     if (contentTimer.current) clearTimeout(contentTimer.current);
-    if (editorRef.current?.destroy) {
-      editorRef.current.destroy();
-      editorRef.current = null;
-    }
+    destroyEditor(editorRef.current);
+    editorRef.current = null;
   }, []);
 
   const scheduleSave = (next: { title?: string; dateISO?: string }) => {

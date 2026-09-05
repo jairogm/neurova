@@ -9,8 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { avatarColorFor, initialsFor } from "@/lib/nv";
-import { EDITOR_TOOLS, editorPlainText } from "@/lib/tool";
-import EditorJS from "@editorjs/editorjs";
+import { createEditor, destroyEditor, editorPlainText } from "@/lib/tool";
+import type EditorJS from "@editorjs/editorjs";
 import { useMutation, useQuery } from "convex/react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -40,16 +40,26 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
     setPatientId(defaultPatientId ?? "");
     setDateISO(new Date().toISOString().slice(0, 10));
     setTitle("");
-    const editor = new EditorJS({
+    // EditorJS only loads in the browser, so guard against the modal closing
+    // before the dynamic import resolves.
+    let cancelled = false;
+    createEditor({
       holder: "new-note-editor",
-      tools: EDITOR_TOOLS,
       placeholder: "Write the session note… Type / for blocks",
       minHeight: 180,
-    });
-    editorRef.current = editor;
+    })
+      .then((editor) => {
+        if (cancelled) {
+          destroyEditor(editor);
+          return;
+        }
+        editorRef.current = editor;
+      })
+      .catch(() => toast.error("Failed to load the editor"));
     return () => {
+      cancelled = true;
+      destroyEditor(editorRef.current);
       editorRef.current = null;
-      editor.isReady.then(() => editor.destroy()).catch(() => {});
     };
   }, [open, defaultPatientId]);
 

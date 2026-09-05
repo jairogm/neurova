@@ -17,8 +17,12 @@ const BYPASS_AUTH = process.env.BYPASS_AUTH === "true";
 
 export default clerkMiddleware(async (auth, req) => {
   if (!BYPASS_AUTH && isProtectedRoute(req)) {
+    // Clerk requires an absolute URL here; a relative path throws
+    // "URL is malformed" in the edge runtime. Resolve it against the incoming
+    // request so previews, custom domains and localhost all redirect to their
+    // own origin.
     await auth.protect({
-      unauthenticatedUrl: "/auth/login",
+      unauthenticatedUrl: new URL("/auth/login", req.nextUrl.origin).toString(),
     });
   }
 });

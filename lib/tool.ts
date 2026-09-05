@@ -1,12 +1,5 @@
-import type { OutputData } from "@editorjs/editorjs";
-import List from "@editorjs/list";
-import Image from "@editorjs/image";
-import Warning from "@editorjs/warning";
-import Delimiter from "@editorjs/delimiter";
-import Header from "@editorjs/header";
-import Underline from "@editorjs/underline";
-// @ts-expect-error - Package lacks proper type definitions
-import AlignmentTune from "editorjs-text-alignment-blocktune";
+import type EditorJS from "@editorjs/editorjs";
+import type { EditorConfig, OutputData } from "@editorjs/editorjs";
 
 // Flatten EditorJS output into plain text (mirrors plainTextOf in convex/medical_history_notes.ts).
 export function editorPlainText(data: OutputData): string {
@@ -25,34 +18,28 @@ export function editorPlainText(data: OutputData): string {
     .replace(/<[^>]+>/g, " ");
 }
 
-// Type assertion needed due to incompatible type definitions in @editorjs/header
-// The Header class requires 'config' to be non-optional in its constructor,
-// while EditorJS expects it to be optional. This is a known issue with the package.
-export const EDITOR_TOOLS = {
-  header: {
-    class: Header,
-    inlineToolbar: true,
-    tunes: ['alignmentTune'],
-  },
-  list: {
-    class: List,
-    inlineToolbar: true,
-    tunes: ['alignmentTune'],
-  },
-  image: Image,
-  warning: Warning,
-  delimiter: Delimiter,
-  underline: Underline,
-  alignmentTune: {
-    class: AlignmentTune,
-    config: {
-      default: "left",
-      blocks: {
-        header: 'center',
-        list: 'left'
-      }
-    },
-  },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-} as any;
+/**
+ * Instantiate EditorJS in the browser.
+ *
+ * Both the editor core and the block plugins read `window` at module scope, so
+ * they must never land in the server module graph — a "use client" component is
+ * still evaluated on the server during SSR. Loading them through dynamic
+ * `import()` from inside an effect keeps evaluation client-side.
+ *
+ * `tools` defaults to EDITOR_TOOLS and can be overridden per call site.
+ */
+export async function createEditor(config: Omit<EditorConfig, "tools"> & Pick<Partial<EditorConfig>, "tools">): Promise<EditorJS> {
+  const [{ default: EditorJSClass }, { EDITOR_TOOLS }] = await Promise.all([
+    import("@editorjs/editorjs"),
+    import("./editor-tools"),
+  ]);
+  return new EditorJSClass({ tools: EDITOR_TOOLS, ...config });
+}
 
+/** Tear an editor down safely — destroy() throws if called before it is ready. */
+export function destroyEditor(editor: EditorJS | null | undefined): void {
+  if (!editor?.destroy) return;
+  Promise.resolve(editor.isReady)
+    .then(() => editor.destroy())
+    .catch(() => {});
+}
