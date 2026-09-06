@@ -9,19 +9,23 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { initialsFor } from "@/lib/nv";
-import { useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
-import { AlertTriangle, Camera, Loader2 } from "lucide-react";
+import { AlertTriangle, Camera, Loader2, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user } = useUser();
+  const { signOut } = useClerk();
+  const router = useRouter();
   const therapist = useQuery(api.users.getCurrentUser);
   const updateProfile = useMutation(api.users.updateProfile);
   const fileInput = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [profile, setProfile] = useState({
     full_name: "", title: "", email: "", phone: "", specialization: "",
     license_number: "", bio: "", office_address: "",
@@ -52,6 +56,17 @@ export default function ProfilePage() {
   }, [therapist, user]);
 
   const initials = initialsFor(profile.full_name || profile.email || "NV") || "NV";
+
+  const logout = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      router.push("/auth/login");
+    } catch {
+      toast.error("Failed to sign out");
+      setSigningOut(false);
+    }
+  };
 
   const setField = (key: keyof typeof profile) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = event.target.value;
@@ -153,6 +168,17 @@ export default function ProfilePage() {
               <div><Label htmlFor="therapist-emergency-name" className="sr-only">Contact name</Label><Input id="therapist-emergency-name" value={profile.emergency_name} onChange={setField("emergency_name")} placeholder="Contact name" /></div>
               <div><Label htmlFor="therapist-emergency-phone" className="sr-only">Contact phone</Label><Input id="therapist-emergency-phone" value={profile.emergency_phone} onChange={setField("emergency_phone")} placeholder="Contact phone" /></div>
             </div>
+          </Card>
+
+          {/* Below lg the sidebar (and its account dropdown) is hidden, so this
+              is the only place to sign out on phones and tablets. */}
+          <Card className="p-5 lg:hidden">
+            <h2 className="mb-1.5 text-[15px] font-extrabold text-foreground">Account</h2>
+            <p className="mb-3.5 text-[13px] text-muted-foreground">Signed in as {profile.email || user?.primaryEmailAddress?.emailAddress || "your account"}.</p>
+            <Button variant="outline" className="w-full" onClick={logout} disabled={signingOut}>
+              {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} strokeWidth={1.8} />}
+              Log out
+            </Button>
           </Card>
         </div>
       </div>
