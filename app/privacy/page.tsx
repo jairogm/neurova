@@ -117,7 +117,6 @@ export default function PrivacyPolicyPage() {
               <li><strong>Clerk:</strong> Authentication and user management</li>
               <li><strong>Convex:</strong> Database and backend services</li>
               <li><strong>Google Calendar:</strong> Appointment scheduling and management</li>
-              <li><strong>Sentry:</strong> Error tracking and monitoring</li>
             </ul>
             <p className="mt-4">
               These services have their own privacy policies and we encourage you to review them.

@@ -56,10 +56,6 @@ Thumbs.db
 .AppleDouble
 .LSOverride
 
-# Sentry
-.sentryclirc
-sentry.properties
-
 # Debug
 *.log
 logs/
