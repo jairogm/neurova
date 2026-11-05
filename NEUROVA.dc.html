@@ -264,7 +264,7 @@
       <div style="padding:26px 30px 40px; max-width:1280px; margin:0 auto;">
         <div style="margin-bottom:22px;">
           <h1 style="margin:0; font-size:24px; font-weight:800; color:var(--nv-ink); letter-spacing:-.02em;">{{ greetWord }}, Dr. Ramírez</h1>
-          <p style="margin:4px 0 0; font-size:14px; color:var(--nv-muted);">You have <strong style="color:var(--nv-primary);">6 sessions</strong> today · 1 intake · 3 notes to sign off.</p>
+          <p style="margin:4px 0 0; font-size:14px; color:var(--nv-muted);">You have <strong style="color:var(--nv-primary);">{{ todaySessionsCount }} sessions</strong> today.</p>
         </div>
 
         <!-- Stats -->
@@ -378,9 +378,9 @@
                 <div style="width:4%; background:var(--nv-danger);"></div>
               </div>
               <div style="display:flex; flex-direction:column; gap:9px;">
-                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-success);"></span><span style="flex:1; color:var(--nv-text);">Collected</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">$8,420</span></div>
-                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-warning);"></span><span style="flex:1; color:var(--nv-text);">Unpaid</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">$1,240</span></div>
-                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-danger);"></span><span style="flex:1; color:var(--nv-text);">Overdue</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">$320</span></div>
+                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-success);"></span><span style="flex:1; color:var(--nv-text);">Collected</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">{{ collectedCOP }}</span></div>
+                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-warning);"></span><span style="flex:1; color:var(--nv-text);">Unpaid</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">{{ unpaidCOP }}</span></div>
+                <div style="display:flex; align-items:center; gap:9px; font-size:13px;"><span style="width:9px; height:9px; border-radius:3px; background:var(--nv-danger);"></span><span style="flex:1; color:var(--nv-text);">Overdue</span><span style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--nv-ink);">{{ overdueCOP }}</span></div>
               </div>
             </div>
 
@@ -706,12 +706,11 @@
                   <div><span style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; color:{{ se.tone.fg }}; background:{{ se.tone.bg }};">{{ se.statusLabel }}</span></div>
                   <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
                     <span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--nv-ink);">{{ se.amt }}</span>
-                    <span style="font-size:11px; font-weight:700; padding:4px 9px; border-radius:20px; color:{{ se.payToneObj.fg }}; background:{{ se.payToneObj.bg }};">{{ se.pay }}</span>
-                    <button onClick="{{ se.togglePay }}" title="Toggle paid / unpaid" style="font-size:11px; font-weight:700; padding:6px 10px; border-radius:8px; border:1px solid var(--nv-border); cursor:pointer; color:var(--nv-primary); background:var(--nv-surface);" style-hover="border-color:var(--nv-primary); background:var(--nv-primary-soft);">{{ se.payAction }}</button>
-                    <button onClick="{{ se.toggleWaived }}" title="Mark session waived" style="font-size:11px; font-weight:700; padding:6px 10px; border-radius:8px; border:1px solid {{ se.waiveBorder }}; cursor:pointer; color:{{ se.waiveFg }}; background:{{ se.waiveBg }};" style-hover="border-color:var(--nv-warning); background:var(--nv-warning-soft);">{{ se.waiveAction }}</button>
+                    <select aria-label="Payment status" value="{{ se.pay }}" onChange="{{ se.setPayment }}" style="appearance:none; padding:8px 34px 8px 14px; border:1px solid var(--nv-border); border-radius:20px; font:700 11px inherit; color:{{ se.payToneObj.fg }}; background:{{ se.payToneObj.bg }}; cursor:pointer; background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236c828c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center;"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Waived">Waived</option></select>
                   </div>
                 </div>
               </sc-for>
+              <sc-if value="{{ sessionsEmpty }}"><p style="padding:32px 20px; text-align:center; font-size:13px; color:var(--nv-muted);">No sessions recorded yet. Sessions appear when you schedule appointments.</p></sc-if>
             </div>
             </sc-if>
 
@@ -738,9 +737,9 @@
                 <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:14px; box-shadow:var(--nv-shadow); padding:16px 18px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:7px;">
                     <div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--nv-muted);">{{ h.label }}</div>
-                    <button style="background:none; border:0; color:var(--nv-faint); cursor:pointer; padding:2px;" style-hover="color:var(--nv-primary);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
+                    <button onClick="{{ h.toggle }}" aria-label="Edit or save medical history" style="background:none; border:0; color:var(--nv-faint); cursor:pointer; padding:2px;" style-hover="color:var(--nv-primary);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
                   </div>
-                  <p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--nv-text);">{{ h.val }}</p>
+                  <sc-if value="{{ h.editing }}"><label style="font-size:12px; color:var(--nv-muted);">Edit and click the pencil to save<textarea aria-label="Medical history entry" value="{{ h.val }}" onInput="{{ h.change }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; min-height:100px;"></textarea></label></sc-if><sc-if value="{{ h.notEditing }}"><p style="margin:0; font-size:13.5px; line-height:1.55; color:var(--nv-text);">{{ h.val }}</p></sc-if>
                 </div>
               </sc-for>
             </div>
@@ -959,11 +958,11 @@
         <!-- week strip -->
         <div class="nv-week-strip" style="display:flex; gap:10px; margin-bottom:20px;">
           <sc-for list="{{ weekDays }}" as="d" hint-placeholder-count="7">
-            <div style="flex:1; text-align:center; padding:13px 8px; border-radius:14px; border:1px solid {{ d.dayBorder }}; background:{{ d.dayBg }}; cursor:pointer;">
+            <button onClick="{{ d.select }}" style="font-family:inherit; flex:1; text-align:center; padding:13px 8px; border-radius:14px; border:1px solid {{ d.dayBorder }}; background:{{ d.dayBg }}; cursor:pointer;">
               <div style="font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:{{ d.dayDim }};">{{ d.d }}</div>
               <div style="font-family:'JetBrains Mono',monospace; font-size:21px; font-weight:700; color:{{ d.dayNum }}; margin:3px 0;">{{ d.n }}</div>
               <div style="font-size:10.5px; color:{{ d.dayDim }};">{{ d.countLabel }}</div>
-            </div>
+            </button>
           </sc-for>
         </div>
 
@@ -971,7 +970,7 @@
           <!-- day agenda -->
           <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; box-shadow:var(--nv-shadow); overflow:hidden;">
             <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--nv-border);">
-              <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--nv-ink);">Wednesday, Jun 17</h2>
+              <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--nv-ink);">{{ selectedDayLabel }}</h2>
               <button onClick="{{ openSchedule }}" style="display:flex; align-items:center; gap:6px; padding:7px 13px; border-radius:9px; border:0; background:var(--nv-primary); color:var(--nv-on-primary); font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg> New</button>
             </div>
             <div>
@@ -988,6 +987,7 @@
                   </div>
                 </div>
               </sc-for>
+              <sc-if value="{{ agendaEmpty }}"><p style="padding:28px 20px; text-align:center; font-size:13px; color:var(--nv-muted);">No sessions scheduled for this day.</p></sc-if>
             </div>
           </div>
 
@@ -995,13 +995,13 @@
           <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; box-shadow:var(--nv-shadow); padding:18px;">
             <div style="font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--nv-muted); margin-bottom:14px;">This week</div>
             <div style="display:flex; flex-direction:column; gap:13px;">
-              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">Total sessions</span><span style="font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700; color:var(--nv-ink);">28</span></div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">Video</span><span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--nv-ink);">11</span></div>
-              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">In-person</span><span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--nv-ink);">17</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">Total sessions</span><span style="font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700; color:var(--nv-ink);">{{ weekTotal }}</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">Video</span><span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--nv-ink);">{{ weekVideo }}</span></div>
+              <div style="display:flex; justify-content:space-between; align-items:baseline;"><span style="font-size:13px; color:var(--nv-text);">In-person</span><span style="font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; color:var(--nv-ink);">{{ weekInperson }}</span></div>
               <div style="height:1px; background:var(--nv-border); margin:2px 0;"></div>
               <div style="display:flex; align-items:center; gap:9px; padding:11px 12px; border-radius:11px; background:var(--nv-primary-soft);">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                <div style="font-size:11.5px; color:var(--nv-text); line-height:1.4;"><strong style="color:var(--nv-ink);">Google Calendar</strong> connected · synced 2 min ago</div>
+                <div style="font-size:11.5px; color:var(--nv-text); line-height:1.4;"><strong style="color:var(--nv-ink);">Google Calendar</strong> not connected in demo</div>
               </div>
             </div>
           </div>
@@ -1090,47 +1090,20 @@
   <div onClick="{{ closeSchedule }}" style="position:fixed; inset:0; z-index:100; background:rgba(10,22,26,.5); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:24px;">
     <div onClick="{{ stop }}" style="width:520px; max-width:94vw; max-height:90vh; overflow:auto; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; box-shadow:var(--nv-shadow-lg);">
       <div style="display:flex; align-items:center; justify-content:space-between; padding:20px 22px; border-bottom:1px solid var(--nv-border);">
-        <div><h2 style="margin:0; font-size:17px; font-weight:800; color:var(--nv-ink);">Schedule appointment</h2><p style="margin:3px 0 0; font-size:12.5px; color:var(--nv-muted);">Syncs to Google Calendar automatically.</p></div>
+        <div><h2 style="margin:0; font-size:17px; font-weight:800; color:var(--nv-ink);">Schedule appointment</h2><p style="margin:3px 0 0; font-size:12.5px; color:var(--nv-muted);">Preview appointment scheduling with sample data.</p></div>
         <button onClick="{{ closeSchedule }}" style="width:32px; height:32px; border-radius:9px; border:1px solid var(--nv-border); background:var(--nv-surface-2); color:var(--nv-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
       </div>
-      <div style="padding:22px; display:flex; flex-direction:column; gap:18px;">
-        <div>
-          <label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Patient</label>
-          <div style="display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:11px; border:1px solid var(--nv-border); background:var(--nv-surface-2);">
-            <div style="width:32px; height:32px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:12px; background:{{ patient.color }};">{{ patient.initials }}</div>
-            <span style="font-size:13.5px; font-weight:700; color:var(--nv-ink);">{{ patient.name }}</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--nv-faint)" stroke-width="2" style="margin-left:auto;"><path d="m6 9 6 6 6-6"/></svg>
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:13px;">
-          <div><label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Date</label><div style="padding:11px 13px; border-radius:11px; border:1px solid var(--nv-border); font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--nv-ink);">2026-06-22</div></div>
-          <div><label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Time</label><div style="padding:11px 13px; border-radius:11px; border:1px solid var(--nv-border); font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--nv-ink);">10:00 – 10:50</div></div>
-        </div>
-        <div>
-          <label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Session type</label>
-          <div style="display:flex; gap:8px;">
-            <sc-for list="{{ schedChips }}" as="c" hint-placeholder-count="3">
-              <button onClick="{{ c.apply }}" style="flex:1; padding:10px; border-radius:10px; border:1px solid {{ c.chipBorder }}; background:{{ c.chipBg }}; color:{{ c.chipFg }}; font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;">{{ c.label }}</button>
-            </sc-for>
-          </div>
-        </div>
-        <div>
-          <label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Recurrence</label>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <sc-for list="{{ recurChips }}" as="r" hint-placeholder-count="4">
-              <button onClick="{{ r.apply }}" style="padding:8px 13px; border-radius:20px; border:1px solid {{ r.chipBorder }}; background:{{ r.chipBg }}; color:{{ r.chipFg }}; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;">{{ r.label }}</button>
-            </sc-for>
-          </div>
-        </div>
-        <div>
-          <label style="display:block; font-size:12px; font-weight:700; color:var(--nv-text); margin-bottom:7px;">Notes <span style="color:var(--nv-faint); font-weight:500;">(optional)</span></label>
-          <textarea placeholder="Add a note for this session…" style="width:100%; min-height:64px; resize:vertical; padding:11px 13px; border-radius:11px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-text); font-family:inherit; font-size:13px; outline:none;" style-focus="border-color:var(--nv-primary);"></textarea>
-        </div>
-      </div>
-      <div style="display:flex; gap:10px; padding:0 22px 22px; justify-content:flex-end;">
-        <button onClick="{{ closeSchedule }}" style="padding:10px 18px; border-radius:10px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-text); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">Cancel</button>
-        <button onClick="{{ closeSchedule }}" style="padding:10px 20px; border-radius:10px; border:0; background:var(--nv-primary); color:var(--nv-on-primary); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px -4px rgba(11,90,95,.4);">Schedule session</button>
-      </div>
+      <form onSubmit="{{ submitSchedule }}" style="padding:22px; display:grid; gap:16px;">
+        <p style="margin:0; font-size:12px; color:var(--nv-muted);">Demo sessions stay in this browser session. Google Calendar is not connected in the demo.</p>
+        <label style="display:grid; gap:7px; font-size:13px;">Patient<select aria-label="Schedule patient" value="{{ scheduleDraft.patientId }}" onChange="{{ onSchedulePatient }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; padding-right:36px;"><sc-for list="{{ patientOptions }}" as="po"><option value="{{ po.id }}">{{ po.name }}</option></sc-for></select></label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><label style="display:grid; gap:7px; font-size:13px;">Date<input required type="date" value="{{ scheduleDraft.date }}" onInput="{{ onScheduleDate }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit;" /></label><label style="display:grid; gap:7px; font-size:13px;">Time<input required type="time" value="{{ scheduleDraft.time }}" onInput="{{ onScheduleTime }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit;" /></label></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;"><label style="display:grid; gap:7px; font-size:13px;">Duration (minutes)<input required type="number" min="1" max="480" value="{{ scheduleDraft.duration }}" onInput="{{ onScheduleDuration }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit;" /></label><label style="display:grid; gap:7px; font-size:13px;">Amount (COP)<input required type="number" min="0" value="{{ scheduleDraft.amount }}" onInput="{{ onScheduleAmount }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit;" /></label></div>
+        <label style="display:grid; gap:7px; font-size:13px;">Session mode<select value="{{ schedMode }}" onChange="{{ onScheduleMode }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; padding-right:36px;"><option value="video">Video</option><option value="inperson">In person</option><option value="phone">Phone</option></select></label>
+        <label style="display:grid; gap:7px; font-size:13px;">Recurrence<select value="{{ schedRecur }}" onChange="{{ onScheduleRecurrence }}" style="width:100%; min-height:44px; padding:10px 36px 10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink);"><option value="none">Does not repeat</option><option value="weekly">Weekly · 4 sessions</option><option value="biweekly">Bi-weekly · 4 sessions</option><option value="monthly">Every 4 weeks · 3 sessions</option></select></label>
+        <label style="display:grid; gap:7px; font-size:13px;">Notes (optional)<textarea value="{{ scheduleDraft.notes }}" onInput="{{ onScheduleNotes }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; min-height:70px;"></textarea></label>
+        <p role="status" style="margin:0; color:var(--nv-danger); font-size:13px;">{{ scheduleError }}</p>
+        <div style="display:flex; justify-content:flex-end; gap:10px;"><button type="button" onClick="{{ closeSchedule }}" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; width:auto; cursor:pointer;">Cancel</button><button type="submit" style="width:100%; box-sizing:border-box; min-height:44px; padding:10px 14px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface-2); color:var(--nv-ink); font-family:inherit; width:auto; background:var(--nv-primary); color:#fff; cursor:pointer;">Schedule session</button></div>
+      </form>
     </div>
   </div>
   </sc-if>
@@ -1266,7 +1239,9 @@ class Component extends DCLogic {
     documents: [], documentKind: 'consent', documentFile: null, documentMessage: '', timelineFilter: 'all', timelineExpanded: false,
     paletteOpen: false,
     paletteQuery: '',
+    selectedScheduleDate: '',
     scheduleOpen: false,
+    scheduleDraft: {patientId: 'maya', date: new Date().toLocaleDateString('en-CA'), time: '10:00', duration: '50', amount: '120000', notes: ''}, scheduleError: '', historyValues: {}, editingHistory: null,
     noteModalOpen: false,
     patientSearch: '',
     patientFilter: 'all',
@@ -1412,7 +1387,7 @@ class Component extends DCLogic {
       patients: this.patientsData.map((p) => ({ ...p, goals: p.goals.map((g) => ({ ...g })) })),
       tasks: this.tasksData.map((t) => ({ ...t })),
       notes: this.notesData.map((n) => ({ ...n })),
-      sessions: this.sessionsData.map((x) => ({ ...x })),
+      sessions: [...this.agendaData.map((a, i) => {const date = new Date(); const parts = a.time.split(':'); date.setHours(Number(parts[0]), Number(parts[1]),0,0);return {id:'sample-session-' + i,patientId:a.pid,date:date.toISOString(),mode:a.mode === 'video' ? 'Video' : 'In person',dur:a.dur,status:a.statusKey === 'completed' ? 'active' : 'intake',statusLabel:a.statusKey === 'completed' ? 'Completed' : 'Scheduled',pay:'Unpaid',payTone:'paused',amount:120000};}), ...this.sessionsData.map((x) => ({ ...x }))],
     };
   }
 
@@ -1807,7 +1782,13 @@ class Component extends DCLogic {
         open: () => this.setState({ view: 'patient', selectedPatientId: owner.id || pe.id, patientTab: 'notes', activeNote: n.id }) };
     });
 
-    const agenda = this.agendaData.map((a) => ({ ...a, open: () => this.setState({ view: 'patient', selectedPatientId: a.patient.id, patientTab: 'overview' }) }));
+    const dayKey = date => {const d = new Date(date); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');};
+    const todayKey = dayKey(new Date());
+    const selectedScheduleDate = s.selectedScheduleDate || todayKey;
+    const monday = new Date(); monday.setHours(0,0,0,0); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
+    const weekEnd = new Date(monday); weekEnd.setDate(weekEnd.getDate()+7);
+    const weekRows = s.sessions.filter(x => new Date(x.date) >= monday && new Date(x.date) < weekEnd);
+    const agenda = s.sessions.filter(x => dayKey(x.date) === (s.view === 'schedule' ? selectedScheduleDate : todayKey)).sort((a,b) => new Date(a.date)-new Date(b.date)).map(x => ({patient:this.findPatient(x.patientId || 'maya'),time:new Date(x.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}),dur:x.dur,type:'Therapy session',mode:x.mode,statusKey:x.statusLabel === 'Completed' ? 'completed' : 'upcoming',tone:this.apptTones[x.statusLabel === 'Completed' ? 'completed' : 'upcoming'],open:() => this.setState({view:'patient',selectedPatientId:x.patientId || 'maya',patientTab:'sessions'})}));
     const nextSession = agenda.find((a) => a.statusKey === 'next');
 
     const tlIcon = (type) => {
@@ -1818,20 +1799,19 @@ class Component extends DCLogic {
     };
     const patientDocuments = s.documents.filter(d => d.patientId === pe.id);
     const documents = patientDocuments.map(d => ({...d, kindLabel: d.kind === 'consent' ? 'Consent form' : 'Document', sizeLabel: (d.size / 1024 / 1024).toFixed(2) + ' MB', dateLabel: new Date(d.uploadedAt).toLocaleDateString(), open: () => window.open(d.url, '_blank', 'noopener,noreferrer'), askDelete: () => this.setState({confirm: {kind: 'document', id: d.id, label: 'Permanently delete "' + d.name + '" from this patient? This cannot be undone.'}})}));
-    const patientSessions = s.sessions.map((x, index) => ({...x, index})).filter(x => (x.patientId || 'maya') === pe.id);
+    const patientSessions = s.sessions.map((x, index) => ({...x, index})).filter(x => (x.patientId || 'maya') === pe.id).sort((a,b) => new Date(b.date)-new Date(a.date));
     const timelineEvents = notes.map(n => ({type: 'note', sort: n.dateISO, title: n.title || 'Clinical note', desc: n.excerpt || 'Clinical note', open: () => this.setState({patientTab: 'notes', activeNote: n.id})}));
     patientSessions.forEach(x => {
       timelineEvents.push({type: 'session', sort: x.date, title: 'Therapy session · ' + x.statusLabel, desc: x.dur + ' · ' + x.mode, open: () => this.setState({patientTab: 'sessions'})});
-      if (x.pay === 'Paid') timelineEvents.push({type: 'payment', sort: x.date, title: 'Session marked paid', desc: x.amt + ' · Shown on session date', open: () => this.setState({patientTab: 'sessions'})});
+      if (x.pay === 'Paid') timelineEvents.push({type: 'payment', sort: x.date, title: 'Session marked paid', desc: new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}).format(x.amount ?? 120000) + ' · Shown on session date', open: () => this.setState({patientTab: 'sessions'})});
     });
     patientDocuments.forEach(d => timelineEvents.push({type: 'note', category: 'document', sort: d.uploadedAt, title: d.kind === 'consent' ? 'Consent form uploaded' : 'Document uploaded', desc: d.name, open: () => this.setState({patientTab: 'documents'})}));
     const dateOf = value => new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T00:00:00' : value);
     const filteredTimeline = timelineEvents.filter(e => s.timelineFilter === 'all' || (e.category || e.type) === s.timelineFilter).sort((a,b) => dateOf(b.sort) - dateOf(a.sort));
     const timeline = (s.timelineExpanded ? filteredTimeline : filteredTimeline.slice(0,6)).map(ev => ({...ev, date: dateOf(ev.sort).toLocaleDateString([], {year: 'numeric', month: 'short', day: 'numeric'}), ...tlIcon(ev.type), onKey: e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); ev.open();}}}));
 
-    const weekDays = this.weekDays.map((d) => ({ ...d, countLabel: d.count ? d.count + ' sessions' : '—',
-      dayBg: d.today ? 'var(--nv-primary)' : 'var(--nv-surface)', dayBorder: d.today ? 'var(--nv-primary)' : 'var(--nv-border)',
-      dayNum: d.today ? '#fff' : 'var(--nv-ink)', dayDim: d.today ? 'rgba(255,255,255,.82)' : 'var(--nv-faint)' }));
+    const weekDays = Array.from({length:7}, (_, i) => {const date = new Date(monday); date.setDate(date.getDate()+i); const key = dayKey(date); const selected = key === selectedScheduleDate; const count = weekRows.filter(x => dayKey(x.date) === key).length; return {d:date.toLocaleDateString([], {weekday:'short'}),n:date.getDate(),countLabel:count ? count + ' sessions' : '—',select:() => this.setState({selectedScheduleDate:key}),dayBg:selected ? 'var(--nv-primary)' : 'var(--nv-surface)',dayBorder:selected ? 'var(--nv-primary)' : 'var(--nv-border)',dayDim:selected ? '#fff' : 'var(--nv-muted)',dayNum:selected ? '#fff' : 'var(--nv-ink)'};});
+
     const activeCandidate = allNotes.find((n) => n.id === s.activeNote);
     const an = (activeCandidate && activeCandidate.patientId === pe.id ? activeCandidate : null) || notes[0] || activeCandidate || allNotes[0] || { id: '', title: '', dateISO: '', words: '', excerpt: '' };
     const activeNoteObj = { ...an, dateLabel: an.dateISO ? fmtNote(an.dateISO) : '', hasNote: !!an.id, onTitle: (e) => this.updNote(an.id, { title: e.target.value }), onDate: (e) => this.updNote(an.id, { dateISO: e.target.value }), removeSelf: () => { if (an.id) this.removeNote(an.id); } };
@@ -1879,7 +1859,7 @@ class Component extends DCLogic {
     const patientModalSubmit = patientModalEditing ? 'Save changes' : 'Create patient';
     const onNp = (key) => (e) => { const v = e.target.value; this.setState((st) => ({ np: { ...st.np, [key]: v } })); };
     const onNewNote = (key) => (e) => { const v = e.target.value; this.setState((st) => ({ newNote: { ...st.newNote, [key]: v } })); };
-    const sessions = patientSessions.map((x) => ({ ...x,
+    const sessions = patientSessions.map((x, i) => ({ ...x, date: dateOf(x.date).toLocaleDateString([], {year:'numeric',month:'short',day:'numeric'}), n: patientSessions.length - i, amt: new Intl.NumberFormat('es-CO', {style:'currency', currency:'COP', maximumFractionDigits:0}).format(x.pay === 'Waived' ? 0 : x.amount ?? 120000),
       tone: this.tones[x.status],
       payToneObj: this.tones[x.payTone],
       payAction: x.pay === 'Paid' ? 'Mark unpaid' : 'Mark paid',
@@ -1887,7 +1867,7 @@ class Component extends DCLogic {
       waiveFg: x.pay === 'Waived' ? 'var(--nv-warning)' : 'var(--nv-muted)',
       waiveBg: x.pay === 'Waived' ? 'var(--nv-warning-soft)' : 'var(--nv-surface)',
       waiveBorder: x.pay === 'Waived' ? 'var(--nv-warning)' : 'var(--nv-border)',
-      togglePay: () => this.togglePay(x.index),
+      setPayment: e => this.setState(st => ({sessions: st.sessions.map((row, index) => index === x.index ? {...row, pay: e.target.value, payTone: e.target.value === 'Paid' ? 'active' : e.target.value === 'Waived' ? 'discharged' : 'paused', amount: e.target.value === 'Waived' ? 0 : row.amount || 120000, amt: e.target.value === 'Waived' ? '$0' : '$120.000'} : row)})),
       toggleWaived: () => this.toggleWaived(x.index),
     }));
     const confirm = s.confirm;
@@ -1933,7 +1913,7 @@ class Component extends DCLogic {
       billing: ['Billing', 'Plan, payment methods, and invoices'],
       trash: ['Trash', 'Restore or permanently remove items'],
       profile: ['Therapist profile', 'Professional information'],
-      schedule: ['Schedule', 'Week of Jun 15 - 21'],
+      schedule: ['Schedule', 'Week of ' + monday.toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})],
     };
     const currentMeta = s.view === 'patient' ? [patient.name, patient.focus] : (pageMeta[s.view] || pageMeta.dashboard);
 
@@ -1961,8 +1941,17 @@ class Component extends DCLogic {
       openPalette: () => this.setState({ paletteOpen: true, paletteQuery: '' }),
       closePalette: () => this.setState({ paletteOpen: false }),
       onPaletteInput: (e) => this.setState({ paletteQuery: e.target.value }),
-      openSchedule: () => this.setState({ scheduleOpen: true }),
+      openSchedule: () => this.setState({ scheduleOpen: true, schedRecur:'none', scheduleError: '', scheduleDraft: {...s.scheduleDraft, patientId: s.view === 'patient' ? pe.id : s.scheduleDraft.patientId} }),
       closeSchedule: () => this.setState({ scheduleOpen: false }),
+      scheduleDraft: s.scheduleDraft, scheduleError: s.scheduleError, schedMode: s.schedMode, schedRecur:s.schedRecur, onScheduleRecurrence:e => this.setState({schedRecur:e.target.value}),
+      onSchedulePatient: e => this.setState({scheduleDraft: {...s.scheduleDraft, patientId: e.target.value}}),
+      onScheduleDate: e => this.setState({scheduleDraft: {...s.scheduleDraft, date: e.target.value}}),
+      onScheduleTime: e => this.setState({scheduleDraft: {...s.scheduleDraft, time: e.target.value}}),
+      onScheduleDuration: e => this.setState({scheduleDraft: {...s.scheduleDraft, duration: e.target.value}}),
+      onScheduleAmount: e => this.setState({scheduleDraft: {...s.scheduleDraft, amount: e.target.value}}),
+      onScheduleNotes: e => this.setState({scheduleDraft: {...s.scheduleDraft, notes: e.target.value}}),
+      onScheduleMode: e => this.setState({schedMode: e.target.value}),
+      submitSchedule: e => {e.preventDefault(); const d = s.scheduleDraft; const date = new Date(d.date + 'T' + d.time); if (!s.patients.some(p => p.id === d.patientId) || !Number.isFinite(date.getTime()) || Number(d.duration) <= 0 || Number(d.duration) > 480 || d.amount === '' || !Number.isFinite(Number(d.amount)) || Number(d.amount) < 0) {this.setState({scheduleError: 'Choose a patient, valid date, time, duration and amount.'});return;} const row = {id: 'session-' + Date.now(), patientId:d.patientId, date:date.toISOString(), mode:{video:'Video',inperson:'In person',phone:'Phone'}[s.schedMode], dur:d.duration + ' min', status:'intake',statusLabel:'Scheduled',pay:'Unpaid',payTone:'paused',amount:Number(d.amount),amt:new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(Number(d.amount)),notes:d.notes}; const recurrence = {none:[1,0],weekly:[4,7],biweekly:[4,14],monthly:[3,28]}[s.schedRecur] || [1,0]; const rows = Array.from({length:recurrence[0]},(_,i) => {const next = new Date(date); next.setDate(next.getDate()+i*recurrence[1]);return {...row,id:row.id+'-'+i,date:next.toISOString()};}); this.setState(st => ({sessions:[...rows,...st.sessions],scheduleOpen:false,selectedPatientId:d.patientId,view:'patient',patientTab:'sessions'})); },
       stop: (e) => e.stopPropagation(),
       onSearch: (e) => this.setState({ patientSearch: e.target.value }),
       setFilter: (k) => () => this.setState({ patientFilter: k }),
@@ -1996,7 +1985,13 @@ class Component extends DCLogic {
       subscriptionToggleLabel, subscriptionToggleBg, subscriptionToggleFg, subscriptionToggleBorder, subscriptionToggleDot,
       tableBtnBg, tableBtnFg, cardBtnBg, cardBtnFg,
       setTableView: () => this.setState({ patientView: 'table' }), setCardView: () => this.setState({ patientView: 'cards' }),
-      stats: this.statsData, agenda, nextSession,
+      selectedDayLabel:new Date(selectedScheduleDate + 'T00:00:00').toLocaleDateString([], {weekday:'long',month:'short',day:'numeric'}), weekTotal:weekRows.length,weekVideo:weekRows.filter(x => x.mode === 'Video').length,weekInperson:weekRows.filter(x => ['In person','In-person'].includes(x.mode)).length,
+      todaySessionsCount:s.sessions.filter(x => dayKey(x.date) === todayKey).length,
+      collectedCOP:new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(s.sessions.filter(x => x.pay === 'Paid' && new Date(x.date).getMonth() === new Date().getMonth() && new Date(x.date).getFullYear() === new Date().getFullYear()).reduce((sum,x) => sum + (x.amount ?? 120000),0)),
+      unpaidCOP:new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(s.sessions.filter(x => x.pay === 'Unpaid' && new Date(x.date).getMonth() === new Date().getMonth() && new Date(x.date).getFullYear() === new Date().getFullYear()).reduce((sum,x) => sum + (x.amount ?? 120000),0)),
+      overdueCOP:new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(s.sessions.filter(x => x.pay === 'Overdue').reduce((sum,x) => sum + (x.amount ?? 120000),0)),
+      agendaEmpty:agenda.length === 0,
+      stats: [{label:'Active patients',value:String(s.patients.filter(p => p.statusKey === 'active').length),delta:'Current caseload',deltaTone:'good',key:'users'}, {label:'Sessions this week',value:String(weekRows.length),delta:'Scheduled and completed',deltaTone:'muted',key:'cal'}, {label:'Attendance rate',value:s.sessions.filter(x => ['Completed','No-show'].includes(x.statusLabel)).length ? Math.round(s.sessions.filter(x => x.statusLabel === 'Completed').length / s.sessions.filter(x => ['Completed','No-show'].includes(x.statusLabel)).length * 100) + '%' : '—',delta:'Completed vs no-show',deltaTone:'good',key:'pulse'}, {label:'Outstanding',value:new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(s.sessions.filter(x => x.pay === 'Unpaid' || x.pay === 'Overdue').reduce((sum,x) => sum + (x.amount ?? 120000),0)),delta:'Unpaid session balances',deltaTone:'warn',key:'card'}], agenda, nextSession,
       tasks, tasksLeft,
       patients: fp, patientsCount: fp.length, patientsEmpty: fp.length === 0, filterPills, patientSearch: s.patientSearch,
       patient, patientTabs, pOverview: pTab('overview'), pNotes: pTab('notes'), pSessions: pTab('sessions'), pHistory: pTab('history'), pDocuments: pTab('documents'),
@@ -2004,7 +1999,7 @@ class Component extends DCLogic {
       documentKind: s.documentKind, documentMessage: s.documentMessage, onDocumentKind: e => this.setState({documentKind: e.target.value}), onDocumentFile: e => this.setState({documentFile: e.target.files[0] || null, documentMessage: ''}),
       uploadDocument: e => { e.preventDefault(); const file = s.documentFile; if (!file || !['application/pdf','image/jpeg','image/png'].includes(file.type) || file.size <= 0 || file.size > 10 * 1024 * 1024) {this.setState({documentMessage: 'Choose a PDF, JPG or PNG up to 10 MB.'}); return;} const doc = {id: 'doc-' + Date.now(), patientId: pe.id, name: file.name, kind: s.documentKind, size: file.size, uploadedAt: new Date().toISOString(), url: URL.createObjectURL(file)}; e.target.reset(); this.setState(st => ({documents: [doc, ...st.documents], documentFile: null, documentMessage: 'Document added to this demo.'})); },
       timelineFilter: s.timelineFilter, onTimelineFilter: e => this.setState({timelineFilter: e.target.value, timelineExpanded: false}), timelineEmpty: timeline.length === 0, timelineCanExpand: filteredTimeline.length > 6, timelineExpandLabel: s.timelineExpanded ? 'Show less' : 'Show all ' + filteredTimeline.length + ' events', toggleTimeline: () => this.setState(st => ({timelineExpanded: !st.timelineExpanded})),
-      timeline, notes, globalNotes, notesEmpty: globalNotes.length === 0, activeNote: activeNoteObj, sessions, history: this.history,
+      timeline, notes, globalNotes, notesEmpty: globalNotes.length === 0, activeNote: activeNoteObj, sessions, sessionsEmpty: sessions.length === 0, history: this.history.map(h => ({...h, val: (s.historyValues[pe.id] || {})[h.key] ?? (pe.id === 'maya' ? h.val : 'Not recorded yet'), editing:s.editingHistory === h.key, notEditing:s.editingHistory !== h.key, toggle:() => this.setState({editingHistory:s.editingHistory === h.key ? null : h.key}), change:e => this.setState({historyValues:{...s.historyValues,[pe.id]:{...s.historyValues[pe.id],[h.key]:e.target.value}}})})),
       noteModalOpen: s.noteModalOpen, newNote: s.newNote, patientOptions, notePatient,
       trashPatients, trashRecords, trashPatientsCount: trashPatients.length, trashRecordsCount: trashRecords.length, trashPatientsEmpty: trashPatients.length === 0, trashRecordsEmpty: trashRecords.length === 0,
       billing, paymentMethods, billingHistory, addPaymentMethod: () => this.addPaymentMethod(),
