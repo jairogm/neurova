@@ -591,10 +591,10 @@
               </div>
             </div>
             <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:16px; box-shadow:var(--nv-shadow); overflow:hidden;">
-              <div style="padding:16px 20px; border-bottom:1px solid var(--nv-border);"><h2 style="margin:0; font-size:14px; font-weight:800; color:var(--nv-ink);">Patient timeline</h2></div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; padding:16px 20px; border-bottom:1px solid var(--nv-border);"><h2 style="margin:0; font-size:14px; font-weight:800; color:var(--nv-ink);">Patient timeline</h2><select aria-label="Filter patient timeline" value="{{ timelineFilter }}" onChange="{{ onTimelineFilter }}" style="min-height:40px; padding:10px 36px 10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit;"><option value="all">All activity</option><option value="note">Notes</option><option value="session">Sessions</option><option value="payment">Payments</option><option value="document">Documents</option></select></div>
               <div style="padding:6px 20px 16px;">
                 <sc-for list="{{ timeline }}" as="ev" hint-placeholder-count="6">
-                  <div style="display:flex; gap:14px; padding:11px 0;">
+                  <div role="button" tabindex="0" onClick="{{ ev.open }}" onKeyDown="{{ ev.onKey }}" style="display:flex; gap:14px; padding:11px 0; cursor:pointer;">
                     <div style="display:flex; flex-direction:column; align-items:center; flex:none;">
                       <div style="width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; background:{{ ev.iconBg }};">{{ ev.iconEl }}</div>
                       <div style="flex:1; width:2px; background:var(--nv-border); margin-top:4px; min-height:8px;"></div>
@@ -605,6 +605,8 @@
                     </div>
                   </div>
                 </sc-for>
+                <sc-if value="{{ timelineEmpty }}"><p style="padding:20px; text-align:center; color:var(--nv-muted);">No activity yet.</p></sc-if>
+                <sc-if value="{{ timelineCanExpand }}"><button onClick="{{ toggleTimeline }}" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-primary); cursor:pointer;">{{ timelineExpandLabel }}</button></sc-if>
               </div>
             </div>
             </sc-if>
@@ -711,6 +713,22 @@
                 </div>
               </sc-for>
             </div>
+            </sc-if>
+
+            <sc-if value="{{ pDocuments }}">
+            <section style="padding:22px; border:1px solid var(--nv-border); border-radius:16px; background:var(--nv-surface);">
+              <div style="display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px;"><h2 style="font-size:16px; margin:0;">Patient documents</h2><span role="status" style="padding:7px 12px; border-radius:20px; background:var(--nv-primary-soft); color:var(--nv-primary); font-size:12px; font-weight:700;">{{ consentLabel }}</span></div>
+              <p style="font-size:13px; line-height:1.6; color:var(--nv-muted);">Upload a signed consent form or supporting document. PDF, JPG or PNG, up to 10 MB each. Review uploaded consent forms for completeness.</p>
+              <p style="padding:12px 16px; border-radius:10px; background:var(--nv-warning-soft); color:var(--nv-warning); font-size:12px;">Demo only: use sample files. Files stay in this browser session and disappear on reload; they are not saved to NEUROVA.</p>
+              <form onSubmit="{{ uploadDocument }}" style="display:flex; flex-wrap:wrap; align-items:end; gap:14px; padding:16px; border:1px solid var(--nv-border); border-radius:12px;">
+                <label style="display:grid; gap:8px; font-size:13px;">Document type<select value="{{ documentKind }}" onChange="{{ onDocumentKind }}" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit; padding-right:40px; min-height:44px;"><option value="consent">Signed consent form</option><option value="other">Other document</option></select></label>
+                <label style="display:grid; gap:8px; font-size:13px; flex:1; min-width:180px;">File<input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange="{{ onDocumentFile }}" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit; width:100%; box-sizing:border-box;" /></label>
+                <button type="submit" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit; background:var(--nv-primary); color:#fff; cursor:pointer; min-height:44px;">Upload</button>
+              </form>
+              <p role="status" style="font-size:13px; color:var(--nv-muted);">{{ documentMessage }}</p>
+              <sc-if value="{{ documentsEmpty }}"><p style="text-align:center; padding:24px; color:var(--nv-muted);">No documents uploaded for this patient yet.</p></sc-if>
+              <sc-for list="{{ documents }}" as="doc"><div style="display:flex; align-items:center; gap:12px; padding:14px 0; border-bottom:1px solid var(--nv-border);"><div style="flex:1; min-width:0;"><div style="overflow-wrap:anywhere; font-weight:700; font-size:14px;">{{ doc.name }}</div><div style="margin-top:5px; font-size:12px; color:var(--nv-muted);">{{ doc.kindLabel }} · {{ doc.dateLabel }} · {{ doc.sizeLabel }}</div></div><button onClick="{{ doc.open }}" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit; cursor:pointer;">Open</button><button onClick="{{ doc.askDelete }}" aria-label="Delete document" title="Delete document" style="padding:10px 16px; border:1px solid var(--nv-border); border-radius:10px; background:var(--nv-surface); color:var(--nv-ink); font-family:inherit; width:40px; height:40px; padding:0; color:var(--nv-danger); cursor:pointer;">✕</button></div></sc-for>
+            </section>
             </sc-if>
 
             <!-- HISTORY -->
@@ -1222,12 +1240,12 @@
     <div onClick="{{ stop }}" style="width:420px; max-width:94vw; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; box-shadow:var(--nv-shadow-lg); overflow:hidden;">
       <div style="padding:22px;">
         <div style="width:42px; height:42px; border-radius:13px; background:var(--nv-danger-soft); color:var(--nv-danger); display:flex; align-items:center; justify-content:center; margin-bottom:14px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div>
-        <h2 style="margin:0 0 6px; font-size:17px; font-weight:800; color:var(--nv-ink);">Move to trash?</h2>
+        <h2 style="margin:0 0 6px; font-size:17px; font-weight:800; color:var(--nv-ink);">{{ confirmTitle }}</h2>
         <p style="margin:0; font-size:13px; line-height:1.55; color:var(--nv-muted);">{{ confirmLabel }}</p>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:10px; padding:0 22px 22px;">
         <button onClick="{{ closeConfirm }}" style="padding:9px 15px; border-radius:10px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-text); font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">Cancel</button>
-        <button onClick="{{ doConfirm }}" style="padding:9px 15px; border-radius:10px; border:0; background:var(--nv-danger); color:#fff; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">Move to trash</button>
+        <button onClick="{{ doConfirm }}" style="padding:9px 15px; border-radius:10px; border:0; background:var(--nv-danger); color:#fff; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer;">{{ confirmAction }}</button>
       </div>
     </div>
   </div>
@@ -1245,6 +1263,7 @@ class Component extends DCLogic {
     lang: 'en',
     selectedPatientId: 'maya',
     patientTab: 'overview',
+    documents: [], documentKind: 'consent', documentFile: null, documentMessage: '', timelineFilter: 'all', timelineExpanded: false,
     paletteOpen: false,
     paletteQuery: '',
     scheduleOpen: false,
@@ -1359,15 +1378,6 @@ class Component extends DCLogic {
       { id: 't3', createdAt: taskNow - 1000 * 60 * 95, label: 'Review AI summary draft — Maya Thompson', meta: 'Needs review', done: false },
       { id: 't4', createdAt: taskNow - 1000 * 60 * 140, completedAt: taskNow - 1000 * 60 * 30, label: 'Submit monthly insurance claims', meta: 'Done Fri', done: true },
       { id: 't5', createdAt: taskNow - 1000 * 60 * 180, completedAt: taskNow - 1000 * 60 * 70, label: 'Confirm next-week recurring slots', meta: 'Done', done: true },
-    ];
-
-    this.timelineData = [
-      { type: 'note', date: 'Jun 18', title: 'Progress note added', desc: 'Reduced avoidance behaviours; homework completed in full.' },
-      { type: 'session', date: 'Jun 18', title: 'Session 12 · CBT', desc: '50 min · In-person · Completed' },
-      { type: 'payment', date: 'Jun 18', title: 'Payment received', desc: '$120 · Card on file' },
-      { type: 'note', date: 'Jun 04', title: 'Treatment plan updated', desc: 'Added graded exposure hierarchy for crowded spaces.' },
-      { type: 'session', date: 'Jun 04', title: 'Session 11 · CBT', desc: '50 min · Video · Completed' },
-      { type: 'intake', date: 'Mar 02', title: 'Intake completed', desc: 'Generalized anxiety; collaborative goals established.' },
     ];
 
     this.notesData = [
@@ -1770,7 +1780,7 @@ class Component extends DCLogic {
       tabBg: s.patientTab === k ? 'var(--nv-surface)' : 'transparent',
       tabFg: s.patientTab === k ? 'var(--nv-primary)' : 'var(--nv-muted)',
       tabShadow: s.patientTab === k ? 'var(--nv-shadow)' : 'none' });
-    const patientTabs = [tab('overview', 'Overview'), tab('notes', 'Notes & records'), tab('sessions', 'Sessions'), tab('history', 'Medical history')];
+    const patientTabs = [tab('overview', 'Overview'), tab('notes', 'Notes & records'), tab('sessions', 'Sessions'), tab('history', 'Medical history'), tab('documents', 'Documents')];
 
     const tasks = [...this.state.tasks].sort((a, b) => {
       if (a.done !== b.done) return a.done ? 1 : -1;
@@ -1806,7 +1816,18 @@ class Component extends DCLogic {
       const path = { note: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z', session: 'M9 11l3 3L22 4', payment: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6', intake: 'M20 6 9 17l-5-5' }[type];
       return { iconBg: soft, iconEl: React.createElement('svg', { width: 15, height: 15, viewBox: '0 0 24 24', fill: 'none', stroke: c, strokeWidth: 2 }, React.createElement('path', { d: path })) };
     };
-    const timeline = this.timelineData.map((ev) => ({ ...ev, ...tlIcon(ev.type) }));
+    const patientDocuments = s.documents.filter(d => d.patientId === pe.id);
+    const documents = patientDocuments.map(d => ({...d, kindLabel: d.kind === 'consent' ? 'Consent form' : 'Document', sizeLabel: (d.size / 1024 / 1024).toFixed(2) + ' MB', dateLabel: new Date(d.uploadedAt).toLocaleDateString(), open: () => window.open(d.url, '_blank', 'noopener,noreferrer'), askDelete: () => this.setState({confirm: {kind: 'document', id: d.id, label: 'Permanently delete "' + d.name + '" from this patient? This cannot be undone.'}})}));
+    const patientSessions = s.sessions.map((x, index) => ({...x, index})).filter(x => (x.patientId || 'maya') === pe.id);
+    const timelineEvents = notes.map(n => ({type: 'note', sort: n.dateISO, title: n.title || 'Clinical note', desc: n.excerpt || 'Clinical note', open: () => this.setState({patientTab: 'notes', activeNote: n.id})}));
+    patientSessions.forEach(x => {
+      timelineEvents.push({type: 'session', sort: x.date, title: 'Therapy session · ' + x.statusLabel, desc: x.dur + ' · ' + x.mode, open: () => this.setState({patientTab: 'sessions'})});
+      if (x.pay === 'Paid') timelineEvents.push({type: 'payment', sort: x.date, title: 'Session marked paid', desc: x.amt + ' · Shown on session date', open: () => this.setState({patientTab: 'sessions'})});
+    });
+    patientDocuments.forEach(d => timelineEvents.push({type: 'note', category: 'document', sort: d.uploadedAt, title: d.kind === 'consent' ? 'Consent form uploaded' : 'Document uploaded', desc: d.name, open: () => this.setState({patientTab: 'documents'})}));
+    const dateOf = value => new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? value + 'T00:00:00' : value);
+    const filteredTimeline = timelineEvents.filter(e => s.timelineFilter === 'all' || (e.category || e.type) === s.timelineFilter).sort((a,b) => dateOf(b.sort) - dateOf(a.sort));
+    const timeline = (s.timelineExpanded ? filteredTimeline : filteredTimeline.slice(0,6)).map(ev => ({...ev, date: dateOf(ev.sort).toLocaleDateString([], {year: 'numeric', month: 'short', day: 'numeric'}), ...tlIcon(ev.type), onKey: e => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); ev.open();}}}));
 
     const weekDays = this.weekDays.map((d) => ({ ...d, countLabel: d.count ? d.count + ' sessions' : '—',
       dayBg: d.today ? 'var(--nv-primary)' : 'var(--nv-surface)', dayBorder: d.today ? 'var(--nv-primary)' : 'var(--nv-border)',
@@ -1858,7 +1879,7 @@ class Component extends DCLogic {
     const patientModalSubmit = patientModalEditing ? 'Save changes' : 'Create patient';
     const onNp = (key) => (e) => { const v = e.target.value; this.setState((st) => ({ np: { ...st.np, [key]: v } })); };
     const onNewNote = (key) => (e) => { const v = e.target.value; this.setState((st) => ({ newNote: { ...st.newNote, [key]: v } })); };
-    const sessions = this.state.sessions.map((x, i) => ({ ...x,
+    const sessions = patientSessions.map((x) => ({ ...x,
       tone: this.tones[x.status],
       payToneObj: this.tones[x.payTone],
       payAction: x.pay === 'Paid' ? 'Mark unpaid' : 'Mark paid',
@@ -1866,8 +1887,8 @@ class Component extends DCLogic {
       waiveFg: x.pay === 'Waived' ? 'var(--nv-warning)' : 'var(--nv-muted)',
       waiveBg: x.pay === 'Waived' ? 'var(--nv-warning-soft)' : 'var(--nv-surface)',
       waiveBorder: x.pay === 'Waived' ? 'var(--nv-warning)' : 'var(--nv-border)',
-      togglePay: () => this.togglePay(i),
-      toggleWaived: () => this.toggleWaived(i),
+      togglePay: () => this.togglePay(x.index),
+      toggleWaived: () => this.toggleWaived(x.index),
     }));
     const confirm = s.confirm;
     const themeIcon = s.dark ? 'sun' : 'moon';
@@ -1967,7 +1988,7 @@ class Component extends DCLogic {
       addPatientOpen: s.addPatientOpen, openAddPatient: () => this.openPatientModal(), closeAddPatient: () => this.closePatientModal(),
       onNpName: onNp('name'), onNpPronouns: onNp('pronouns'), onNpAge: onNp('age'), onNpFocus: onNp('focus'), onNpEmail: onNp('email'), onNpPhone: onNp('phone'), onNpLocation: onNp('location'), onNpSummary: onNp('summary'), onNpGoal: onNp('goal'), onNpEcName: onNp('ecName'), onNpEcRel: onNp('ecRel'), onNpEcPhone: onNp('ecPhone'),
       npStatusChips, patientModalTitle, patientModalSub, patientModalSubmit, submitAddPatient: () => this.submitAddPatient(),
-      confirmOpen: !!confirm, confirmLabel: confirm ? confirm.label : '', closeConfirm: () => this.setState({ confirm: null }), doConfirm: () => { if (s.confirm && s.confirm.kind === 'patient') this.removePatient(s.confirm.id); else this.setState({ confirm: null }); },
+      confirmTitle: confirm && confirm.kind === 'document' ? 'Delete document?' : 'Move to trash?', confirmAction: confirm && confirm.kind === 'document' ? 'Delete document' : 'Move to trash', confirmOpen: !!confirm, confirmLabel: confirm ? confirm.label : '', closeConfirm: () => this.setState({ confirm: null }), doConfirm: () => { if (s.confirm && s.confirm.kind === 'patient') this.removePatient(s.confirm.id); else if (s.confirm && s.confirm.kind === 'document') {const doc = s.documents.find(d => d.id === s.confirm.id); if (doc) URL.revokeObjectURL(doc.url); this.setState(st => ({documents: st.documents.filter(d => d.id !== s.confirm.id), confirm: null}));} else this.setState({ confirm: null }); },
       // data
       dark: s.dark,
       langEnBg, langEsBg, langEnFg, langEsFg,
@@ -1978,7 +1999,11 @@ class Component extends DCLogic {
       stats: this.statsData, agenda, nextSession,
       tasks, tasksLeft,
       patients: fp, patientsCount: fp.length, patientsEmpty: fp.length === 0, filterPills, patientSearch: s.patientSearch,
-      patient, patientTabs, pOverview: pTab('overview'), pNotes: pTab('notes'), pSessions: pTab('sessions'), pHistory: pTab('history'),
+      patient, patientTabs, pOverview: pTab('overview'), pNotes: pTab('notes'), pSessions: pTab('sessions'), pHistory: pTab('history'), pDocuments: pTab('documents'),
+      documents, documentsEmpty: documents.length === 0, consentLabel: patientDocuments.some(d => d.kind === 'consent') ? 'Consent form uploaded' : 'Consent form missing',
+      documentKind: s.documentKind, documentMessage: s.documentMessage, onDocumentKind: e => this.setState({documentKind: e.target.value}), onDocumentFile: e => this.setState({documentFile: e.target.files[0] || null, documentMessage: ''}),
+      uploadDocument: e => { e.preventDefault(); const file = s.documentFile; if (!file || !['application/pdf','image/jpeg','image/png'].includes(file.type) || file.size <= 0 || file.size > 10 * 1024 * 1024) {this.setState({documentMessage: 'Choose a PDF, JPG or PNG up to 10 MB.'}); return;} const doc = {id: 'doc-' + Date.now(), patientId: pe.id, name: file.name, kind: s.documentKind, size: file.size, uploadedAt: new Date().toISOString(), url: URL.createObjectURL(file)}; e.target.reset(); this.setState(st => ({documents: [doc, ...st.documents], documentFile: null, documentMessage: 'Document added to this demo.'})); },
+      timelineFilter: s.timelineFilter, onTimelineFilter: e => this.setState({timelineFilter: e.target.value, timelineExpanded: false}), timelineEmpty: timeline.length === 0, timelineCanExpand: filteredTimeline.length > 6, timelineExpandLabel: s.timelineExpanded ? 'Show less' : 'Show all ' + filteredTimeline.length + ' events', toggleTimeline: () => this.setState(st => ({timelineExpanded: !st.timelineExpanded})),
       timeline, notes, globalNotes, notesEmpty: globalNotes.length === 0, activeNote: activeNoteObj, sessions, history: this.history,
       noteModalOpen: s.noteModalOpen, newNote: s.newNote, patientOptions, notePatient,
       trashPatients, trashRecords, trashPatientsCount: trashPatients.length, trashRecordsCount: trashRecords.length, trashPatientsEmpty: trashPatients.length === 0, trashRecordsEmpty: trashRecords.length === 0,
