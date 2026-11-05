@@ -16,6 +16,7 @@ import type * as debug from "../debug.js";
 import type * as medical_history_notes from "../medical_history_notes.js";
 import type * as migrations from "../migrations.js";
 import type * as onboarding from "../onboarding.js";
+import type * as patient_documents from "../patient_documents.js";
 import type * as patients from "../patients.js";
 import type * as seed from "../seed.js";
 import type * as sessions from "../sessions.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   medical_history_notes: typeof medical_history_notes;
   migrations: typeof migrations;
   onboarding: typeof onboarding;
+  patient_documents: typeof patient_documents;
   patients: typeof patients;
   seed: typeof seed;
   sessions: typeof sessions;

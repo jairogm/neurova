@@ -33,6 +33,18 @@ export default defineSchema({
     avatar_color: v.optional(v.string()),
   }).index("by_therapist_id", ["therapist_id"]),
 
+  patient_documents: defineTable({
+    patient_id: v.string(),
+    storage_id: v.id("_storage"),
+    name: v.string(),
+    kind: v.union(v.literal("consent"), v.literal("other")),
+    content_type: v.string(),
+    size: v.number(),
+    uploaded_by: v.string(),
+    uploaded_at: v.string(),
+  }).index("by_patient_id", ["patient_id"])
+    .index("by_storage_id", ["storage_id"]),
+
   therapists: defineTable({
     id: v.optional(v.string()), // Supabase UUID (optional for new)
     user_id: v.optional(v.string()), // Supabase Auth User ID (kept for migrated data)

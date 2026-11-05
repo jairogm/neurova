@@ -2,6 +2,8 @@
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { PatientTimeline } from "@/components/PatientDetail/PatientTimeline";
+import { PatientDocuments } from "@/components/PatientDetail/PatientDocuments";
 import { DeletePatientModal } from "@/components/modals/DeletePatientModal";
 import { ScheduleAppointment } from "@/components/modals/ScheduleAppointment";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,12 +28,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   Check,
-  CheckCheck,
   ChevronDown,
-  ClipboardCheck,
-  DollarSign,
   FileDown,
-  FileText,
   Loader2,
   Mail,
   MapPin,
@@ -54,6 +52,7 @@ const TABS = [
   { key: "notes", label: "Notes & records" },
   { key: "sessions", label: "Sessions" },
   { key: "history", label: "Medical history" },
+  { key: "documents", label: "Documents" },
 ] as const;
 
 type TabKey = typeof TABS[number]["key"];
@@ -341,6 +340,7 @@ function PatientWorkbench({ id }: { id: string }) {
               setDraftField={setDraftField}
               setDraft={setDraft}
               toggleEdit={toggleEdit}
+              onNavigate={setActiveTab}
             />
           )}
 
@@ -355,6 +355,8 @@ function PatientWorkbench({ id }: { id: string }) {
           )}
 
           {activeTab === "sessions" && <SessionsTab sessions={sessions} updatePayment={updatePayment} />}
+
+          {activeTab === "documents" && <PatientDocuments key={patient.id} patientId={patient.id} />}
 
           {activeTab === "history" && <HistoryTab patient={patient} updatePatient={updatePatient} />}
         </main>
@@ -383,44 +385,10 @@ type OverviewProps = {
   setDraftField: (key: keyof Omit<Draft, "goals">) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   setDraft: React.Dispatch<React.SetStateAction<Draft | null>>;
   toggleEdit: () => void;
+  onNavigate: (tab: TabKey) => void;
 };
 
-function OverviewTab({ patient, goals, notes, sessions, editing, draft, setDraftField, setDraft, toggleEdit }: OverviewProps) {
-  const timeline = useMemo(() => {
-    type TimelineEvent = { key: string; type: "note" | "session" | "payment" | "intake"; title: string; desc: string; sort: string; date: string };
-    const events: TimelineEvent[] = [];
-    const label = (value: string) => {
-      const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString([], { month: "short", day: "numeric" });
-    };
-    (notes ?? []).forEach((note) => {
-      const sort = note.date || note.created_at;
-      events.push({ key: `n-${note._id}`, type: "note", title: `${note.title || "Clinical note"} added`, desc: note.description || "Patient record updated", sort, date: label(sort) });
-    });
-    const total = (sessions ?? []).length;
-    (sessions ?? []).forEach((session, index) => {
-      const number = total - index;
-      const status = session.session_status?.toLowerCase() || "scheduled";
-      if (["completed", "complete"].includes(status)) {
-        events.push({ key: `s-${session._id}`, type: "session", title: `Session ${number} · ${session.session_type || "Therapy"}`, desc: `${session.duration || 50} min · ${modeLabel(session.mode)} · Completed`, sort: session.scheduled_date, date: label(session.scheduled_date) });
-        if (session.payment_status?.toLowerCase() === "paid") {
-          events.push({ key: `p-${session._id}`, type: "payment", title: "Payment received", desc: `${formatCOP(Number(session.payment_amount) || 0)} · Card on file`, sort: session.scheduled_date, date: label(session.scheduled_date) });
-        }
-      }
-    });
-    if (patient.created_at) {
-      events.push({ key: "intake", type: "intake", title: "Intake completed", desc: patient.focus || "Collaborative goals established.", sort: patient.created_at, date: label(patient.created_at) });
-    }
-    return events.sort((a, b) => b.sort.localeCompare(a.sort)).slice(0, 6);
-  }, [notes, patient.created_at, patient.focus, sessions]);
-
-  const timelineIcon = (type: string) => {
-    if (type === "session") return { className: "bg-[#e2eef3] text-[#2c8fb0] dark:bg-[#12262e] dark:text-[#4faacb]", icon: <CheckCheck size={15} strokeWidth={2} /> };
-    if (type === "payment") return { className: "bg-[#e2f1ea] text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]", icon: <DollarSign size={15} strokeWidth={2} /> };
-    if (type === "intake") return { className: "bg-[#f6ecd8] text-[#be7c16] dark:bg-[#33280f] dark:text-[#d29a3a]", icon: <ClipboardCheck size={15} strokeWidth={2} /> };
-    return { className: "bg-primary/10 text-primary", icon: <FileText size={15} strokeWidth={2} /> };
-  };
-
+function OverviewTab({ patient, goals, notes, sessions, editing, draft, setDraftField, setDraft, toggleEdit, onNavigate }: OverviewProps) {
   const updateGoal = (index: number, text: string) => {
     setDraft((current) => current ? { ...current, goals: current.goals.map((goal, i) => (i === index ? { ...goal, text } : goal)) } : current);
   };
@@ -483,29 +451,7 @@ function OverviewTab({ patient, goals, notes, sessions, editing, draft, setDraft
         </div>
       </div>
 
-      <div className={`${cardClass} overflow-hidden`}>
-        <div className="border-b border-border px-5 py-4"><h2 className="text-sm font-extrabold text-foreground">Patient timeline</h2></div>
-        <div className="px-5 pb-4 pt-1.5">
-          {timeline.length ? timeline.map((event, index) => {
-            const icon = timelineIcon(event.type);
-            return (
-              <div key={event.key} className="flex gap-3.5 py-[11px]">
-                <div className="flex flex-none flex-col items-center">
-                  <div className={`flex size-[30px] items-center justify-center rounded-[9px] ${icon.className}`}>{icon.icon}</div>
-                  {index < timeline.length - 1 && <div className="mt-1 min-h-2 w-0.5 flex-1 bg-border" />}
-                </div>
-                <div className="flex-1 pb-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13.5px] font-bold text-foreground">{event.title}</span>
-                    <span className="font-mono text-[11px] text-[var(--nv-faint)]">{event.date}</span>
-                  </div>
-                  <div className="mt-0.5 text-[12.5px] text-muted-foreground">{event.desc}</div>
-                </div>
-              </div>
-            );
-          }) : <div className="px-4 py-8 text-center text-[12.5px] text-muted-foreground">No timeline activity yet.</div>}
-        </div>
-      </div>
+      <PatientTimeline key={patient.id} patient={patient} notes={notes} sessions={sessions} onNavigate={onNavigate} />
     </>
   );
 }
