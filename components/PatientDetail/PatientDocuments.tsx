@@ -4,8 +4,9 @@ import { useState, type FormEvent } from "react";
 import { useConvex, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { FileDown, Loader2, Upload, ChevronDown, X } from "lucide-react";
+import { FileDown, Loader2, Upload, ChevronDown, X, AlertTriangle } from "lucide-react";
 
 export function PatientDocuments({ patientId }: { patientId: string }) {
   const documents = useQuery(api.patient_documents.list, { patientId });
@@ -18,6 +19,7 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
   const [busy, setBusy] = useState(false);
   const [opening, setOpening] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: Id<"patient_documents">; name: string } | null>(null);
   const hasConsent = documents?.some(document => document.kind === "consent");
 
   async function upload(event: FormEvent<HTMLFormElement>) {
@@ -48,11 +50,13 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
     }
   }
 
-  async function deleteDocument(id: Id<"patient_documents">, name: string) {
-    if (deleting || !window.confirm(`Delete "${name}"? This permanently removes the uploaded file and cannot be undone.`)) return;
+  async function deleteDocument() {
+    if (deleting || !deleteTarget) return;
+    const { id } = deleteTarget;
     setDeleting(id);
     try {
       await remove({ id });
+      setDeleteTarget(null);
       toast.success("Document deleted");
     } catch {
       toast.error("Unable to delete document. Please try again.");
@@ -121,7 +125,7 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
               <button type="button" disabled={opening === document._id || deleting === document._id} onClick={() => download(document._id)} aria-label={`Open ${document.name}`} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary disabled:opacity-50">
                 <FileDown size={16} />Open
               </button>
-              <button type="button" onClick={() => deleteDocument(document._id, document.name)} disabled={deleting !== null} aria-label={`Delete ${document.name}`} title="Delete document" className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-50">
+              <button type="button" onClick={() => setDeleteTarget({ id: document._id, name: document.name })} disabled={deleting !== null} aria-label={`Delete ${document.name}`} title="Delete document" className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-50">
                 {deleting === document._id ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}
               </button>
               </div>
@@ -129,6 +133,25 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
           ))}
         </ul>
       )}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={open => { if (!open && !deleting) setDeleteTarget(null); }}>
+        <AlertDialogContent className="max-w-[420px] gap-0 overflow-hidden p-0">
+          <AlertDialogHeader className="p-[22px] text-left">
+            <div className="mb-2 flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">
+              <AlertTriangle size={20} aria-hidden="true" />
+            </div>
+            <AlertDialogTitle className="text-[17px] font-extrabold">Delete document?</AlertDialogTitle>
+            <AlertDialogDescription className="break-words text-[13px] leading-[1.55]">
+              Permanently delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span> from this patient? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2.5 px-[22px] pb-[22px]">
+            <AlertDialogCancel disabled={deleting !== null} className="rounded-[10px]">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={event => { event.preventDefault(); void deleteDocument(); }} disabled={deleting !== null} className="rounded-[10px] bg-[#d2574f] text-white hover:bg-[#b94741]">
+              {deleting !== null && <Loader2 size={14} className="animate-spin" />} {deleting !== null ? "Deleting…" : "Delete document"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </section>
   );
 }
