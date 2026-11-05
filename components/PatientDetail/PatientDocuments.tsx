@@ -5,17 +5,19 @@ import { useConvex, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
-import { FileDown, Loader2, Upload, ChevronDown } from "lucide-react";
+import { FileDown, Loader2, Upload, ChevronDown, X } from "lucide-react";
 
 export function PatientDocuments({ patientId }: { patientId: string }) {
   const documents = useQuery(api.patient_documents.list, { patientId });
   const generateUploadUrl = useMutation(api.patient_documents.generateUploadUrl);
   const save = useMutation(api.patient_documents.save);
+  const remove = useMutation(api.patient_documents.remove);
   const convex = useConvex();
   const [file, setFile] = useState<File | null>(null);
   const [kind, setKind] = useState<"consent" | "other">("consent");
   const [busy, setBusy] = useState(false);
   const [opening, setOpening] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const hasConsent = documents?.some(document => document.kind === "consent");
 
   async function upload(event: FormEvent<HTMLFormElement>) {
@@ -43,6 +45,19 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
       toast.error("Document could not be saved. Please try again.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function deleteDocument(id: Id<"patient_documents">, name: string) {
+    if (deleting || !window.confirm(`Delete "${name}"? This permanently removes the uploaded file and cannot be undone.`)) return;
+    setDeleting(id);
+    try {
+      await remove({ id });
+      toast.success("Document deleted");
+    } catch {
+      toast.error("Unable to delete document. Please try again.");
+    } finally {
+      setDeleting(null);
     }
   }
 
@@ -102,9 +117,14 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
                 <p className="break-all text-sm font-bold">{document.name}</p>
                 <p className="text-xs text-muted-foreground">{document.kind === "consent" ? "Consent form" : "Document"} · {new Date(document.uploaded_at).toLocaleDateString()} · {(document.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
-              <button type="button" disabled={opening === document._id} onClick={() => download(document._id)} aria-label={`Open ${document.name}`} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary disabled:opacity-50">
+              <div className="flex shrink-0 items-center gap-2">
+              <button type="button" disabled={opening === document._id || deleting === document._id} onClick={() => download(document._id)} aria-label={`Open ${document.name}`} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary disabled:opacity-50">
                 <FileDown size={16} />Open
               </button>
+              <button type="button" onClick={() => deleteDocument(document._id, document.name)} disabled={deleting !== null} aria-label={`Delete ${document.name}`} title="Delete document" className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-50">
+                {deleting === document._id ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}
+              </button>
+              </div>
             </li>
           ))}
         </ul>

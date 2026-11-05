@@ -71,3 +71,15 @@ export const download = query({
     return ctx.storage.getUrl(document.storage_id);
   },
 });
+
+export const remove = mutation({
+  args: { id: v.id("patient_documents") },
+  handler: async (ctx, { id }) => {
+    const document = await ctx.db.get(id);
+    if (!document) throw new Error("Document not found");
+    await requirePatient(ctx, document.patient_id);
+    // Delete the stored file as well so previously issued download URLs stop working.
+    await ctx.storage.delete(document.storage_id);
+    await ctx.db.delete(id);
+  },
+});
