@@ -1,6 +1,6 @@
 "use client";
 
-import { useSignIn, useUser } from "@clerk/nextjs";
+import { useSignIn, useSignUp, useUser } from "@clerk/nextjs";
 import {
   ArrowLeft,
   CalendarDays,
@@ -33,8 +33,8 @@ type Slide = {
 const slides: Slide[] = [
   {
     icon: CalendarDays,
-    title: "Your whole day, calm and in view.",
-    body: "Today’s agenda, your next session, and Google Calendar sync — the moment you sign in.",
+    title: "Your appointments and patient records.",
+    body: "See your agenda and patient records. Connect Google Calendar from your workspace.",
     previewLabel: "Today · 6 sessions",
     rows: [
       { tag: "DO", color: "#8FE3F2", title: "David Okafor", sub: "Therapy session", meta: "10:00" },
@@ -44,8 +44,8 @@ const slides: Slide[] = [
   },
   {
     icon: Sparkles,
-    title: "Notes written up in seconds — reviewed by you.",
-    body: "Draft structured session summaries with AI, then review and sign off. Always clinician-approved, never automated diagnosis.",
+    title: "Write the note. Review the summary.",
+    body: "Draft a summary from your clinical note, then review it before adding it to the record.",
     previewLabel: "AI summary · draft",
     rows: [
       { tag: "AI", color: "#8FE3F2", title: "Summary draft ready", sub: "Progress note · Maya T.", meta: "review" },
@@ -55,13 +55,13 @@ const slides: Slide[] = [
   },
   {
     icon: ShieldCheck,
-    title: "Built for trust, private by default.",
-    body: "PHI encrypted in transit and at rest, with clear data controls. Your patients’ records stay yours.",
-    previewLabel: "Security",
+    title: "Keep patient records together.",
+    body: "Keep consent forms, session notes, and patient history in the same workspace.",
+    previewLabel: "Patient records",
     rows: [
-      { tag: "✓", color: "#8FE3F2", title: "Encryption", sub: "In transit & at rest", meta: "on" },
-      { tag: "✓", color: "#9AD3E6", title: "BAA & DPA", sub: "Signed agreements", meta: "on" },
-      { tag: "✓", color: "#C3B5E0", title: "Access controls", sub: "Revoke anytime", meta: "on" },
+      { tag: "✓", color: "#8FE3F2", title: "Documents", sub: "Signed consent forms", meta: "files" },
+      { tag: "✓", color: "#9AD3E6", title: "Clinical notes", sub: "Session records", meta: "notes" },
+      { tag: "✓", color: "#C3B5E0", title: "Patient timeline", sub: "Notes, sessions, and documents", meta: "history" },
     ],
   },
 ];
@@ -97,7 +97,10 @@ function GoogleIcon() {
   );
 }
 
-export function CustomSignIn() {
+export function CustomSignIn({ mode = "signin" }: { mode?: "signin" | "signup" }) {
+  const isSignUp = mode === "signup";
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const [authError, setAuthError] = useState("");
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useUser();
   const router = useRouter();
@@ -117,11 +120,13 @@ export function CustomSignIn() {
   }, [isSignedIn, router]);
 
   const handleGoogleSignIn = async () => {
-    if (!signIn) return;
+    const authFlow = isSignUp ? signUp : signIn;
+    if (!authFlow) return;
+    setAuthError("");
     setIsLoading(true);
 
     try {
-      await signIn.authenticateWithRedirect({
+      await authFlow.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/dashboard",
@@ -133,6 +138,7 @@ export function CustomSignIn() {
         return;
       }
       console.error("Error signing in with Google", error);
+      setAuthError("Unable to continue with Google. Please try again.");
       setIsLoading(false);
     }
   };
@@ -199,22 +205,24 @@ export function CustomSignIn() {
               <circle cx="10" cy="10.5" r="2.1" fill="#A7E9F6" /><circle cx="22" cy="21.5" r="2.1" fill="#A7E9F6" />
             </svg>
           </div>
-          <h1 className="text-[26px] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
-          <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">Sign in to your NEUROVA practice workspace.</p>
+          <h1 className="text-[26px] font-extrabold tracking-[-.02em] text-[#15252c]">{isSignUp ? "Create your NEUROVA account" : "Welcome back"}</h1>
+          <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">{isSignUp ? "Set up your workspace for patients, appointments, and clinical notes." : "Sign in to your NEUROVA practice workspace."}</p>
 
           <button
             type="button"
             onClick={handleGoogleSignIn}
-            disabled={!isLoaded || isLoading}
+            disabled={!(isSignUp ? signUpLoaded : isLoaded) || isLoading}
             className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#cfdadd] bg-white px-3 py-[13px] text-sm font-bold text-[#15252c] shadow-[0_1px_2px_rgba(16,40,46,.04),0_6px_20px_-8px_rgba(16,40,46,.12)] transition-colors hover:border-[#0e96b8] hover:bg-[#f4f7f8] disabled:cursor-wait disabled:opacity-70"
           >
             {isLoading ? <Loader2 size={19} className="animate-spin text-[#0e96b8]" /> : <GoogleIcon />}
             Continue with Google
           </button>
 
+          <div id="clerk-captcha" />
+          {authError && <p role="alert" className="mt-3 text-sm text-red-700">{authError}</p>}
           <div className="mt-3.5 flex items-start gap-2.5 rounded-[11px] border border-[#8acfe0] bg-[#e0f1f6] px-3.5 py-3">
             <CalendarDays size={16} strokeWidth={1.8} className="mt-px flex-none text-[#0e96b8]" />
-            <p className="m-0 text-[11.5px] leading-[1.5] text-[#36474f]">Google sign-in lets NEUROVA sync your <strong className="text-[#15252c]">Google Calendar</strong> so appointments and sessions stay in one place. You can revoke access anytime.</p>
+            <p className="m-0 text-[11.5px] leading-[1.5] text-[#36474f]">Use Google to access your account. You can connect <strong className="text-[#15252c]">Google Calendar</strong> from your workspace.</p>
           </div>
 
           <div className="my-[22px] flex items-center gap-3">
@@ -229,11 +237,11 @@ export function CustomSignIn() {
           </div>
 
           <p className="mt-7 text-center text-[11.5px] leading-[1.6] text-[#93a6ae]">
-            By continuing you agree to NEUROVA&apos;s <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Terms</Link>, <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Privacy</Link> &amp; <Link href="/baa" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">BAA</Link>. Protected health information is encrypted in transit and at rest.
+            By continuing you agree to NEUROVA&apos;s <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Terms</Link> and <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Privacy</Link>.
           </p>
         </div>
 
-        <div className="text-center text-[11.5px] text-[#93a6ae]">New to NEUROVA? <Link href="/" className="font-bold text-[#0e96b8]">See how it works</Link></div>
+        <div className="text-center text-[11.5px] text-[#93a6ae]">{isSignUp ? "Already have an account?" : "New to NEUROVA?"} <Link href={isSignUp ? "/auth/login" : "/auth/signup"} className="font-bold text-[#0e96b8]">{isSignUp ? "Sign in" : "Create an account"}</Link></div>
       </section>
     </main>
   );
