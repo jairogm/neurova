@@ -1,14 +1,7 @@
-import { getLocale } from "next-intl/server";
+import { cache } from "react";
 import spanishCopy from "@/messages/landing-es.json";
-import type { Metadata } from "next";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-
-export const metadata: Metadata = {
-  title: "NEUROVA | A calmer command center for your practice",
-  description:
-    "Practice management for mental-health clinicians: scheduling, patients, notes, payments, and clinician-reviewed AI assistance.",
-};
 
 function getLandingMarkup(locale: string) {
   const source = readFileSync(
@@ -39,12 +32,13 @@ function getLandingMarkup(locale: string) {
     .replace('alt="Demo dashboard with today’s sessions, patient counts, and tasks"', 'alt="Panel de la demo con las sesiones del día, los pacientes y las tareas"');
 }
 
-export default async function Home() {
-  const locale = await getLocale();
-  return (
-    <div
-      className="neurova-marketing-page"
-      dangerouslySetInnerHTML={{ __html: getLandingMarkup(locale) }}
-    />
-  );
-}
+export const getLanding = cache((locale: string) => {
+  const markup = getLandingMarkup(locale);
+  const styles = markup.match(/<style>[\s\S]*?<\/style>/)?.[0];
+  const header = markup.match(/<header\b[\s\S]*?<\/header>/)?.[0];
+  const footer = markup.match(/<footer\b[\s\S]*?<\/footer>/)?.[0];
+  if (!styles || !header || !footer) throw new Error("Incomplete landing page template");
+  const content = markup.slice(markup.indexOf(header) + header.length, markup.indexOf(footer));
+  const homeLinks = (html: string) => html.replaceAll('href="#', 'href="/#');
+  return { styles, header: homeLinks(header), footer: homeLinks(footer), content };
+});

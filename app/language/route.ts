@@ -7,5 +7,9 @@ export async function POST(request: Request) {
     return new Response("Unsupported language", { status: 400 });
   }
   await setUserLocale(locale);
-  return NextResponse.redirect(new URL("/", request.url), 303);
+  const referer = request.headers.get("referer") ?? "";
+  const path = ["/about", "/contact", "/privacy", "/terms", "/baa", "/dpa"].find(
+    (publicPath) => referer.split("?")[0] === new URL(publicPath, request.url).href,
+  );
+  return NextResponse.redirect(new URL(path ?? "/", request.url), 303);
 }

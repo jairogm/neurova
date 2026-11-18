@@ -518,3 +518,25 @@
   color: #102e36;
   text-shadow: none;
 }
+
+.neurova-marketing-page.landing-shell {
+  background: var(--nv-bg);
+  color: var(--nv-text);
+  font-family: "Plus Jakarta Sans", sans-serif;
+}
+.marketing-article {
+  max-width: 820px;
+  min-height: 58vh;
+  margin: auto;
+  padding: clamp(42px, 7vw, 90px) clamp(20px, 4vw, 48px);
+  line-height: 1.7;
+}
+.marketing-article h1 {
+  color: var(--nv-ink);
+  font-size: clamp(36px, 5vw, 58px);
+  letter-spacing: -.045em;
+  line-height: 1.08;
+}
+.marketing-article h2 { color: var(--nv-ink); letter-spacing: -.025em; }
+.marketing-article section { padding-top: 24px; border-top: 1px solid var(--nv-border); }
+.marketing-article a { color: var(--nv-primary-strong); }
