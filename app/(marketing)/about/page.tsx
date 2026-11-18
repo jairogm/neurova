@@ -8,7 +8,7 @@ export default async function AboutPage() {
   const team = [
     ["Liz", es ? "Terapeuta y cofundadora" : "Therapist and co-founder"],
     ["Jhon", es ? "Ingeniero de software y cofundador" : "Software engineer and co-founder"],
-    ["Maroc Aurelio", es ? "Bulldog francés de Liz" : "Liz’s French bulldog"],
+    ["Marco Aurelio", es ? "Bulldog francés de Liz" : "Liz’s French bulldog"],
     ["Luna Maria", es ? "Labrador de Jhon" : "Jhon’s Labrador"],
   ];
   return <main>
