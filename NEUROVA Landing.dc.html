@@ -52,7 +52,7 @@
     .landing-hero p{ font-size:15px !important; }
     .landing-cta{ flex-direction:column !important; }
     .landing-cta a{ width:100% !important; }
-    .dashboard-preview{ margin-top:32px !important; }
+
     .preview-address{ display:none !important; }
     .preview-app{ height:440px !important; }
     .preview-sidebar{ display:none !important; }
@@ -80,6 +80,9 @@
   }
   .demo-capture, .demo-capture picture{display:block}
   .demo-capture img{display:block;width:100%;height:auto;max-height:430px;object-fit:cover;object-position:top}
+  .landing-hero{display:grid;grid-template-columns:minmax(0,0.8fr) minmax(0,1.2fr);align-items:center;gap:clamp(32px,4vw,72px);max-width:1500px;margin:auto;padding:clamp(56px,7vw,110px) clamp(24px,4vw,72px);background:radial-gradient(ellipse at 78% 50%,rgba(14,150,184,.10),transparent 54%)}
+  .dashboard-preview{min-width:0}
+  @media(max-width:900px){.landing-hero{grid-template-columns:minmax(0,1fr);gap:30px}.hero-copy{max-width:640px}}
 </style>
 </helmet>
 
@@ -110,12 +113,11 @@
   </header>
 
   <!-- HERO -->
-  <section id="top" class="landing-hero" style="position:relative; overflow:hidden; padding:72px 40px 0; text-align:center;">
-    <div style="position:absolute; left:50%; top:-160px; transform:translateX(-50%); width:900px; height:520px; background:radial-gradient(ellipse, rgba(14,150,184,.12), transparent 65%); pointer-events:none;"></div>
-    <div style="position:relative; max-width:780px; margin:0 auto;">
+  <section id="top" class="landing-hero">
+    <div class="hero-copy">
       <h1 style="margin:0; font-size:54px; line-height:1.06; font-weight:800; letter-spacing:-.03em; color:var(--nv-ink); text-wrap:balance;">A calmer command center for your practice.</h1>
-      <p style="margin:22px auto 0; max-width:580px; font-size:17px; line-height:1.6; color:var(--nv-muted);">NEUROVA brings your schedule, patients, notes, and payments into one quiet, focused workspace — so you can spend less time on admin and more with the people in front of you.</p>
-      <div class="landing-cta" style="display:flex; gap:12px; justify-content:center; margin-top:30px;">
+      <p style="margin:22px 0 0; max-width:580px; font-size:17px; line-height:1.6; color:var(--nv-muted);">NEUROVA brings your schedule, patients, notes, and payments into one quiet, focused workspace — so you can spend less time on admin and more with the people in front of you.</p>
+      <div class="landing-cta" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:30px;">
         <a href="NEUROVA Login.dc.html" style="display:flex; align-items:center; gap:8px; padding:13px 24px; border-radius:12px; text-decoration:none; background:var(--nv-primary); color:var(--nv-on-primary); font-size:14.5px; font-weight:700; box-shadow:0 8px 22px -8px rgba(11,118,147,.5);" style-hover="background:var(--nv-primary-strong);">Start for 50.000 COP</a>
         <a href="NEUROVA.dc.html" style="display:flex; align-items:center; gap:8px; padding:13px 22px; border-radius:12px; text-decoration:none; background:var(--nv-surface); color:var(--nv-ink); font-size:14.5px; font-weight:700; border:1px solid var(--nv-border-strong);" style-hover="border-color:var(--nv-primary);">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z" fill="currentColor" stroke="none"/></svg> See the dashboard
@@ -125,8 +127,8 @@
     </div>
 
     <!-- dashboard preview -->
-    <div class="dashboard-preview" style="position:relative; max-width:1040px; margin:46px auto 0;">
-      <div style="border-radius:18px 18px 0 0; overflow:hidden; border:1px solid var(--nv-border); border-bottom:0; box-shadow:var(--nv-shadow-lg); background:var(--nv-surface);">
+    <div class="dashboard-preview">
+      <div style="border-radius:16px; overflow:hidden; border:1px solid var(--nv-border); box-shadow:var(--nv-shadow-lg); background:var(--nv-surface);">
         <!-- browser bar -->
         <div style="display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--nv-surface-2); border-bottom:1px solid var(--nv-border);">
           <span style="width:11px; height:11px; border-radius:50%; background:#E6766F;"></span>
@@ -141,7 +143,6 @@
           </picture>
         </a>
       </div>
-      <div style="height:60px; background:linear-gradient(180deg, transparent, var(--nv-bg));"></div>
     </div>
   </section>
 
