@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export async function GET() {
   const source = await readFile(join(process.cwd(), "NEUROVA.dc.html"), "utf8");
   const html = source
-    .replace("<head>", "<head>\n<title>NEUROVA Interactive Product Demo</title>")
+    .replace("<head>", "<head>\n<title>NEUROVA Interactive Product Demo</title>\n<link rel='icon' href='/icon.svg' type='image/svg+xml'>")
     .replace('src="./support.js"', 'src="/dc-runtime"')
     .replace(
       "</body>",
