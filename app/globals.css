@@ -511,3 +511,10 @@
 .neurova-marketing-page a[style-hover]:hover {
   filter: brightness(0.97);
 }
+
+.neurova-marketing-page::selection,
+.neurova-marketing-page ::selection {
+  background-color: #b4eff1;
+  color: #102e36;
+  text-shadow: none;
+}
