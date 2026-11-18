@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+import spanishCopy from "@/messages/landing-es.json";
 import type { Metadata } from "next";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
     "Practice management for mental-health clinicians: scheduling, patients, notes, payments, and clinician-reviewed AI assistance.",
 };
 
-function getLandingMarkup() {
+function getLandingMarkup(locale: string) {
   const source = readFileSync(
     join(process.cwd(), "NEUROVA Landing.dc.html"),
     "utf8",
@@ -17,18 +19,6 @@ function getLandingMarkup() {
     .replaceAll(
       'href="NEUROVA.dc.html"',
       'href="/demo" target="_blank" rel="noreferrer"',
-    )
-    .replace(
-      '<a href="#" style="text-decoration:none; color:var(--nv-text);">Privacy</a>',
-      '<a href="/privacy" style="text-decoration:none; color:var(--nv-text);">Privacy</a>',
-    )
-    .replace(
-      '<a href="#" style="text-decoration:none; color:var(--nv-text);">Terms</a>',
-      '<a href="/terms" style="text-decoration:none; color:var(--nv-text);">Terms</a>',
-    )
-    .replace(
-      '<a href="#" style="text-decoration:none; color:var(--nv-text);">BAA &amp; DPA</a>',
-      '<a href="/baa" style="text-decoration:none; color:var(--nv-text);">BAA &amp; DPA</a>',
     );
 
   const match = source.match(/<x-dc>([\s\S]*?)<\/x-dc>/);
@@ -37,14 +27,24 @@ function getLandingMarkup() {
     throw new Error("Could not read the NEUROVA landing design export.");
   }
 
-  return match[1];
+  if (locale !== "es") return match[1];
+  const translations: Record<string, string> = spanishCopy;
+  return match[1]
+    .replace(/>([^<>]+)</g, (node, text: string) => {
+      const key = text.trim();
+      return Object.prototype.hasOwnProperty.call(translations, key) ? node.replace(key, translations[key]) : node;
+    })
+    .replace('aria-label="Language"', 'aria-label="Idioma"')
+    .replace('aria-label="Explore the interactive NEUROVA dashboard"', 'aria-label="Explorar la demo interactiva de NEUROVA"')
+    .replace('alt="Demo dashboard with today’s sessions, patient counts, and tasks"', 'alt="Panel de la demo con las sesiones del día, los pacientes y las tareas"');
 }
 
-export default function Home() {
+export default async function Home() {
+  const locale = await getLocale();
   return (
     <div
       className="neurova-marketing-page"
-      dangerouslySetInnerHTML={{ __html: getLandingMarkup() }}
+      dangerouslySetInnerHTML={{ __html: getLandingMarkup(locale) }}
     />
   );
 }
