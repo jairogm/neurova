@@ -131,13 +131,14 @@ export function CustomSignIn() {
   const SlideIcon = slide.icon;
 
   return (
-    <main style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }} className="flex min-h-dvh flex-col overflow-hidden bg-[#eff3f4] text-[#36474f] md:h-dvh md:flex-row">
-      <section className="relative hidden flex-none flex-col md:flex overflow-hidden bg-[linear-gradient(135deg,#edf7f6,#c4e5e8)] px-5 py-5 text-[#163b45] md:h-auto md:flex-[1.15] md:px-14 md:py-12">
+    <main style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }} className="grid min-h-dvh place-items-center bg-[#f4f8f9] text-[#36474f] md:p-6 xl:p-12">
+      <div className="flex w-full max-w-[1200px] flex-col overflow-hidden bg-white md:min-h-[min(780px,calc(100dvh-48px))] md:flex-row md:rounded-[24px] md:border md:border-[#d6e5e6] md:shadow-[0_18px_60px_-40px_#17465366]">
+      <section className="relative hidden flex-none flex-col md:flex overflow-hidden bg-[linear-gradient(135deg,#edf7f6,#c4e5e8)] px-5 py-5 text-[#163b45] md:h-auto md:flex-[1.1] md:px-8 lg:px-14 md:py-12">
         <div className="absolute -right-28 -top-24 size-[420px] rounded-full bg-[radial-gradient(circle,rgba(63,182,214,.16),transparent_70%)]" />
         <div className="absolute -bottom-28 -left-20 size-[360px] rounded-full bg-[radial-gradient(circle,rgba(44,143,176,.12),transparent_70%)]" />
 
 
-        <div className="relative my-auto hidden max-w-[460px] md:block">
+        <div className="relative mx-auto my-auto hidden w-full max-w-[460px] md:block">
           <div className="mb-6 flex size-[46px] items-center justify-center rounded-[14px] border border-[#c9dcdf] bg-white/80">
             <SlideIcon size={22} strokeWidth={1.8} className="text-[#0b7693]" />
           </div>
@@ -175,14 +176,14 @@ export function CustomSignIn() {
         </div>
       </section>
 
-      <section className="flex min-h-dvh w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-[520px] md:max-w-[46vw] md:px-[52px] md:py-10">
+      <section className="flex min-h-dvh w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-auto md:flex-1 md:px-8 lg:px-12 md:py-10">
         <div className="flex justify-end">
           <Link href="/" className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#6c828c] transition-colors hover:text-[#0e96b8]">
             <ArrowLeft size={14} /> Back to site
           </Link>
         </div>
 
-        <div className="my-auto w-full max-w-[340px] self-center py-8">
+        <div className="my-auto w-full max-w-[380px] self-center py-8">
           <div className="mb-7"><NeurovaMark /></div>
           <h1 className="text-[34px] leading-[1.2] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
           <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">Sign in to your NEUROVA practice workspace.</p>
@@ -220,6 +221,7 @@ export function CustomSignIn() {
 
         <div className="text-center text-xs text-[#60757d]">New to NEUROVA? <Link href="/#workflow" className="font-bold text-[#0b7693]">See how it works</Link></div>
       </section>
+      </div>
     </main>
   );
 }
