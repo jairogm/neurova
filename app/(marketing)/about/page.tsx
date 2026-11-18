@@ -7,7 +7,7 @@ export default async function AboutPage() {
   const es = (await getLocale()) === "es";
   const team = [
     ["Liz", es ? "Cofundadora · Terapia" : "Co-founder · Therapist"],
-    ["Jhon", es ? "Cofundador · Software" : "Co-founder · Software"],
+    ["Jhon", es ? "Cofundador · Desarrollador" : "Co-founder · Developer"],
     ["Marco Aurelio", es ? "Inspector de snacks" : "Chief snack inspector"],
     ["Luna Maria", es ? "Directora de paseos" : "Head of walk breaks"],
   ];
