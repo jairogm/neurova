@@ -24,28 +24,28 @@ export function CookieBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-gray-800 p-4 shadow-lg animate-in slide-in-from-bottom duration-500">
+    <div className="fixed bottom-0 left-0 right-0 z-50 [color-scheme:light] bg-white text-slate-800 border-t border-gray-200 p-4 shadow-lg animate-in slide-in-from-bottom duration-500">
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="text-sm text-gray-600 dark:text-gray-300 text-center sm:text-left">
+        <div className="text-sm text-gray-600 text-center sm:text-left">
           <p>
             We use cookies to enhance your experience, analyze site usage, and assist in our marketing efforts.
             By continuing to visit this site you agree to our use of cookies.
-            <Link href="/privacy" className="text-primary hover:underline ml-1">
+            <Link href="/privacy" className="font-semibold text-[#096f89] hover:underline ml-1">
               Learn more
             </Link>
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <Button variant="outline" size="sm" onClick={handleAccept}>
+          <Button variant="outline" size="sm" className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:bg-white dark:border-slate-300 dark:hover:bg-slate-100" onClick={handleAccept}>
             Decline
           </Button>
-          <Button size="sm" onClick={handleAccept}>
+          <Button className="bg-[#096f89] text-white hover:bg-[#075970]" size="sm" onClick={handleAccept}>
             Accept All
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 ml-2 sm:hidden"
+            aria-label="Dismiss" className="h-8 w-8 ml-2 sm:hidden hover:bg-slate-100 hover:text-slate-900"
             onClick={handleAccept}
           >
             <X className="h-4 w-4" />

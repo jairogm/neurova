@@ -123,6 +123,28 @@
   .site-header{position:sticky;top:10px;z-index:50;display:flex;align-items:center;gap:18px;width:calc(100% - 32px);max-width:1100px;margin:0 auto;padding:9px 12px 9px 20px;border:1px solid #d6e5e6;border-radius:20px;background:rgba(255,255,255,.96);box-shadow:0 4px 16px -8px #17465333;backdrop-filter:blur(12px)}
   .landing-home{padding-top:18px}
   @media(max-width:600px){.site-header{width:calc(100% - 20px);border-radius:16px}.landing-home{padding-top:12px}}
+  #marketing-theme,#marketing-theme button{display:grid;place-items:center;width:32px;height:32px;flex:none}
+  #marketing-theme button{color:var(--nv-ink);background:var(--nv-surface);border:1px solid var(--nv-border-strong);border-radius:9px;cursor:pointer}
+  #marketing-theme button:hover{background:var(--nv-surface-2)}
+  @media(max-width:700px){.dashboard-preview{display:none}}
+  @media(max-width:420px){.site-header{padding:8px!important;gap:4px!important}.site-actions{gap:4px!important}.site-actions>a:last-child svg{display:none}}
+  @media(max-width:360px){.site-header>a span{display:none}}
+  .dark .neurova-marketing-page{
+    --nv-bg:#101c23;--nv-surface:#192b34;--nv-surface-2:#203640;--nv-inset:#193039;
+    --nv-ink:#f0f8fa;--nv-text:#d5e4e8;--nv-muted:#b4c9d0;--nv-faint:#a7bcc4;
+    --nv-border:#344b56;--nv-border-strong:#516974;--nv-primary:#66cee8;--nv-primary-strong:#8adaeb;
+    --nv-primary-soft:#204552;--nv-on-primary:#062c39;--nv-success:#68dfad;
+    background:var(--nv-bg)
+  }
+  .dark .landing-home{background:var(--nv-bg)}
+  .dark .site-header,.dark .product-card{background:var(--nv-surface);border-color:var(--nv-border)}
+  .dark .landing-hero{background:radial-gradient(ellipse at 80% 38%,#235466,transparent 66%),linear-gradient(120deg,#172d37,#183946)}
+  .dark .landing-hero::before{opacity:.16}
+  .dark .product-card h3,.dark .gallery-card-title{color:var(--nv-ink)}
+  .dark .product-card p,.dark .gallery-card-copy,.dark .locale-toggle button{color:var(--nv-muted)}
+  .dark .locale-toggle,.dark .dashboard-preview{border-color:var(--nv-border)}
+  .dark .clinic-plan{background:var(--nv-surface-2);border-color:var(--nv-border-strong);color:var(--nv-text)}
+  .dark .clinic-plan span{background:var(--nv-border)}
 </style>
 </helmet>
 
@@ -142,6 +164,7 @@
       <a href="#security" style="padding:8px 13px; border-radius:8px; text-decoration:none; color:var(--nv-text); font-size:13.5px; font-weight:600;" style-hover="background:var(--nv-surface-2);">Security</a>
     </nav>
     <div class="site-actions" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+      <span id="marketing-theme"></span>
       <form class="locale-toggle" action="/language" method="post" aria-label="Language"><button name="locale" value="en" lang="en" aria-label="English">EN</button><button name="locale" value="es" lang="es" aria-label="Español">ES</button></form>
       <a href="NEUROVA Login.dc.html" style="display:flex; align-items:center; gap:7px; padding:9px 17px; border-radius:10px; text-decoration:none; background:var(--nv-primary); color:var(--nv-on-primary); font-size:13.5px; font-weight:700; box-shadow:0 4px 14px -4px rgba(11,118,147,.4);" style-hover="background:var(--nv-primary-strong);">Get started <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 18 6-6-6-6"/></svg></a>
     </div>
@@ -235,15 +258,15 @@
         <h2 class="section-title" style="margin:0 0 24px; color:var(--nv-ink); ">From booked to billed, without the busywork.</h2>
         <div style="display:flex; flex-direction:column; gap:20px;">
           <div style="display:flex; gap:15px;">
-            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">1</div>
+            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:var(--nv-on-primary); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">1</div>
             <div><div style="font-size:21px; letter-spacing:-.03em; font-weight:700; color:var(--nv-ink);">Book &amp; sync</div><p style="margin:4px 0 0; font-size:14px; line-height:1.6; color:var(--nv-muted);">Schedule a session — recurring or one-off — and it lands on your Google Calendar instantly.</p></div>
           </div>
           <div style="display:flex; gap:15px;">
-            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">2</div>
+            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:var(--nv-on-primary); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">2</div>
             <div><div style="font-size:21px; letter-spacing:-.03em; font-weight:700; color:var(--nv-ink);">Meet &amp; document</div><p style="margin:4px 0 0; font-size:14px; line-height:1.6; color:var(--nv-muted);">Open the patient workbench, write your note with autosave, or draft it with AI and sign off.</p></div>
           </div>
           <div style="display:flex; gap:15px;">
-            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">3</div>
+            <div style="width:30px; height:30px; flex:none; border-radius:9px; background:var(--nv-primary); color:var(--nv-on-primary); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; font-family:'JetBrains Mono',monospace;">3</div>
             <div><div style="font-size:21px; letter-spacing:-.03em; font-weight:700; color:var(--nv-ink);">Track &amp; get paid</div><p style="margin:4px 0 0; font-size:14px; line-height:1.6; color:var(--nv-muted);">Mark the session paid, and watch attendance and outstanding balances update on your dashboard.</p></div>
           </div>
         </div>
@@ -251,7 +274,7 @@
       <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; padding:20px; box-shadow:var(--nv-shadow);">
         <div style="font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--nv-muted); margin-bottom:14px;">Session · Maya Thompson</div>
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <div style="display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:11px; background:var(--nv-surface-2);"><div style="width:30px; height:30px; border-radius:9px; background:var(--nv-primary); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">MT</div><div style="flex:1;"><div style="font-size:12.5px; font-weight:700; color:var(--nv-ink);">CBT · 50 min</div><div style="font-size:11px; color:var(--nv-muted);">Jun 18 · In-person</div></div><span style="font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; background:var(--nv-primary-soft); color:var(--nv-primary);">Completed</span></div>
+          <div style="display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:11px; background:var(--nv-surface-2);"><div style="width:30px; height:30px; border-radius:9px; background:var(--nv-primary); color:var(--nv-on-primary); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;">MT</div><div style="flex:1;"><div style="font-size:12.5px; font-weight:700; color:var(--nv-ink);">CBT · 50 min</div><div style="font-size:11px; color:var(--nv-muted);">Jun 18 · In-person</div></div><span style="font-size:10.5px; font-weight:700; padding:3px 9px; border-radius:20px; background:var(--nv-primary-soft); color:var(--nv-primary);">Completed</span></div>
           <div style="display:flex; align-items:center; gap:9px; padding:11px 13px; border-radius:11px; border:1px dashed var(--nv-border-strong);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg><div style="flex:1; font-size:12px; color:var(--nv-text);">AI summary draft <span style="color:var(--nv-faint);">· awaiting your review</span></div></div>
           <div style="display:flex; align-items:center; gap:9px; padding:11px 13px; border-radius:11px; background:var(--nv-surface-2);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--nv-success)" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg><div style="flex:1; font-size:12.5px; font-weight:700; color:var(--nv-ink);">Payment received</div><span style="font-family:'JetBrains Mono',monospace; font-size:12.5px; font-weight:700; color:var(--nv-success);">$120</span></div>
         </div>
@@ -284,10 +307,10 @@
       <h2 class="section-title" style="margin:0; color:var(--nv-ink);">Private by default</h2>
     </div>
     <div class="security-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px;">
-      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3 class="gallery-card-title">Encrypted</h3><p class="gallery-card-copy">In transit &amp; at rest</p></div>
-      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 class="gallery-card-title">BAA &amp; DPA</h3><p class="gallery-card-copy">Signed agreements</p></div>
-      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6"/></svg></div><h3 class="gallery-card-title">Access controls</h3><p class="gallery-card-copy">Revoke anytime</p></div>
-      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><h3 class="gallery-card-title">No model training</h3><p class="gallery-card-copy">On your patient data</p></div>
+      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3 class="gallery-card-title">Encrypted</h3><p class="gallery-card-copy">In transit &amp; at rest</p></div>
+      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 class="gallery-card-title">BAA &amp; DPA</h3><p class="gallery-card-copy">Signed agreements</p></div>
+      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6"/></svg></div><h3 class="gallery-card-title">Access controls</h3><p class="gallery-card-copy">Revoke anytime</p></div>
+      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><h3 class="gallery-card-title">No model training</h3><p class="gallery-card-copy">On your patient data</p></div>
     </div>
   </section>
 
