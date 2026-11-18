@@ -657,6 +657,7 @@
                     </div>
                     <p style="margin:0 0 12px; font-size:14px; line-height:1.65; color:var(--nv-text);">{{ activeNote.excerpt }}</p>
                     <p style="margin:0; font-size:14px; line-height:1.65; color:var(--nv-text);">Mood was stable across the week with no panic episodes reported. Continued cognitive restructuring around catastrophic predictions; client demonstrated improved ability to generate balanced alternatives. Plan: maintain weekly cadence, progress exposure hierarchy to crowded transit.</p>
+                    <sc-if value="{{ activeNote.approvedSummary }}"><p><strong>Approved summary</strong></p><p>{{ activeNote.approvedSummary }}</p></sc-if>
                   </div>
                 </div>
 
@@ -666,8 +667,9 @@
                     <div style="width:34px; height:34px; flex:none; border-radius:10px; background:var(--nv-primary); display:flex; align-items:center; justify-content:center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg></div>
                     <div style="flex:1;">
                       <div style="font-size:14px; font-weight:800; color:var(--nv-ink);">AI session summary <span style="font-size:10.5px; font-weight:700; color:var(--nv-primary); background:var(--nv-surface); padding:2px 7px; border-radius:20px; border:1px solid var(--nv-primary-ring); margin-left:4px; vertical-align:middle;">Draft · review required</span></div>
-                      <p style="margin:5px 0 0; font-size:12.5px; line-height:1.5; color:var(--nv-muted);">Generates a structured draft from session notes. Clinician review and sign-off required before saving. Not a diagnostic tool.</p>
+                      <p style="margin:5px 0 0; font-size:12.5px; line-height:1.5; color:var(--nv-muted);">Gemini summarizes the original fictional sample. Review or edit the draft before inserting it.</p>
 
+                      <div role="status">{{ aiError }}</div>
                       <sc-if value="{{ aiIdle }}" hint-placeholder-val="{{ true }}">
                       <button onClick="{{ runAi }}" style="margin-top:13px; display:flex; align-items:center; gap:7px; padding:9px 15px; border-radius:9px; border:0; background:var(--nv-primary); color:var(--nv-on-primary); font-family:inherit; font-size:12.5px; font-weight:700; cursor:pointer;" style-hover="background:var(--nv-primary-strong);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/></svg> Generate draft</button>
                       </sc-if>
@@ -676,10 +678,9 @@
                       </sc-if>
                       <sc-if value="{{ aiReady }}">
                       <div style="margin-top:13px; padding:14px; border-radius:11px; background:var(--nv-surface); border:1px solid var(--nv-border);">
-                        <div style="font-size:12.5px; line-height:1.6; color:var(--nv-text);"><strong style="color:var(--nv-ink);">Summary draft.</strong> Client reported reduced anticipatory anxiety and no panic episodes this week. Engaged well with exposure homework. Cognitive restructuring progressing. Suggested focus: graded exposure to crowded transit, continue thought records.</div>
+                        <label style="display:grid;gap:8px;font-weight:700;color:var(--nv-ink);">Review summary draft<textarea value="{{ aiDraft }}" onInput="{{ editAi }}" style="width:100%;min-height:95px;border:1px solid var(--nv-border);border-radius:8px;padding:10px;font:inherit;font-weight:400;color:var(--nv-text);background:var(--nv-surface);"></textarea></label>
                         <div style="display:flex; gap:8px; margin-top:13px;">
-                          <button style="display:flex; align-items:center; gap:6px; padding:8px 13px; border-radius:8px; border:0; background:var(--nv-success); color:#fff; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg> Approve &amp; insert</button>
-                          <button style="padding:8px 13px; border-radius:8px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-text); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;">Edit</button>
+                          <button onClick="{{ approveAi }}" style="display:flex; align-items:center; gap:6px; padding:8px 13px; border-radius:8px; border:0; background:var(--nv-success); color:#fff; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg> Approve &amp; insert</button>
                           <button onClick="{{ resetAi }}" style="padding:8px 13px; border-radius:8px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-muted); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;">Discard</button>
                         </div>
                       </div>
@@ -1813,7 +1814,7 @@ class Component extends DCLogic {
     const weekDays = Array.from({length:7}, (_, i) => {const date = new Date(monday); date.setDate(date.getDate()+i); const key = dayKey(date); const selected = key === selectedScheduleDate; const count = weekRows.filter(x => dayKey(x.date) === key).length; return {d:date.toLocaleDateString([], {weekday:'short'}),n:date.getDate(),countLabel:count ? count + ' sessions' : '—',select:() => this.setState({selectedScheduleDate:key}),dayBg:selected ? 'var(--nv-primary)' : 'var(--nv-surface)',dayBorder:selected ? 'var(--nv-primary)' : 'var(--nv-border)',dayDim:selected ? '#fff' : 'var(--nv-muted)',dayNum:selected ? '#fff' : 'var(--nv-ink)'};});
 
     const activeCandidate = allNotes.find((n) => n.id === s.activeNote);
-    const an = (activeCandidate && activeCandidate.patientId === pe.id ? activeCandidate : null) || notes[0] || activeCandidate || allNotes[0] || { id: '', title: '', dateISO: '', words: '', excerpt: '' };
+    const an = (activeCandidate && activeCandidate.patientId === pe.id ? activeCandidate : null) || notes[0] || { id: '', title: '', dateISO: '', words: '', excerpt: '' };
     const activeNoteObj = { ...an, dateLabel: an.dateISO ? fmtNote(an.dateISO) : '', hasNote: !!an.id, onTitle: (e) => this.updNote(an.id, { title: e.target.value }), onDate: (e) => this.updNote(an.id, { dateISO: e.target.value }), removeSelf: () => { if (an.id) this.removeNote(an.id); } };
 
     // command palette
@@ -1960,7 +1961,25 @@ class Component extends DCLogic {
       setActiveNote: (id) => () => this.setState({ activeNote: id }),
       setSchedMode: (k) => () => this.setState({ schedMode: k }),
       setSchedRecur: (k) => () => this.setState({ schedRecur: k }),
-      runAi: () => { this.setState({ aiState: 'drafting' }); clearTimeout(this._ai); this._ai = setTimeout(() => this.setState({ aiState: 'ready' }), 1500); },
+      runAi: async () => {
+        const id = an.id;
+        this.setState({ aiNote: id, aiState: 'drafting', aiError: '', aiDraft: '' });
+        try {
+          const response = await fetch('/api/demo-summary?sample=' + encodeURIComponent(id));
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error);
+          if (this.state.aiNote === id) this.setState({ aiDraft: data.draft, aiState: 'ready' });
+        } catch (error) {
+          if (this.state.aiNote === id) this.setState({ aiState: 'idle', aiError: error.message || 'Please try again.' });
+        }
+      },
+      aiDraft: s.aiDraft || '', aiError: s.aiNote === an.id ? s.aiError : '',
+      editAi: e => this.setState({ aiDraft: e.target.value }),
+      approveAi: () => {
+        if (!s.aiDraft.trim() || s.aiNote !== an.id) return;
+        this.updNote(an.id, { approvedSummary: s.aiDraft.trim() });
+        this.setState({ aiState: 'idle' });
+      },
       resetAi: () => this.setState({ aiState: 'idle' }),
       paywallOpen: s.billingEnabled && !s.subscriptionActive,
       toggleSubscriptionState: () => this.toggleSubscriptionState(),
@@ -2007,7 +2026,7 @@ class Component extends DCLogic {
       therapist, therapistName, therapistRole, therapistInitials,
       onTherapistName: onTherapist('name'), onTherapistRole: onTherapist('role'), onTherapistEmail: onTherapist('email'), onTherapistPhone: onTherapist('phone'), onTherapistLicense: onTherapist('license'), onTherapistSpecialty: onTherapist('specialty'), onTherapistAddress: onTherapist('address'), onTherapistBio: onTherapist('bio'), onTherapistEmergencyName: onTherapist('emergencyName'), onTherapistEmergencyPhone: onTherapist('emergencyPhone'),
       np: s.np,
-      aiIdle: s.aiState === 'idle', aiBusy, aiReady,
+      aiIdle: s.aiNote !== an.id || s.aiState === 'idle', aiBusy: aiBusy && s.aiNote === an.id, aiReady: aiReady && s.aiNote === an.id,
       paletteOpen: s.paletteOpen, paletteGroups, paletteQuery: s.paletteQuery,
       scheduleOpen: s.scheduleOpen, schedChips, recurChips,
       weekDays, hours: this.hours, themeIcon,
