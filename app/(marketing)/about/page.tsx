@@ -22,11 +22,11 @@ export default async function AboutPage() {
     <h2 id="team" className="scroll-mt-24 mb-4 mt-12 text-2xl font-bold">{es ? "Nuestro equipo" : "Meet the team"}</h2>
     <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
       {team.map(([name, role]) => (
-        <article key={name} className="overflow-hidden rounded-2xl border border-[#d0e3e4] bg-white">
+        <article key={name} className="overflow-hidden rounded-2xl border border-[var(--nv-border)] bg-[var(--nv-surface)]">
           <Image src={`/team/${name.toLowerCase().replaceAll(" ", "-")}-blue.webp`} alt="" width={600} height={600} sizes="(min-width: 1024px) 245px, (min-width: 640px) 200px, 42vw" className="mx-auto block h-auto w-full max-w-[200px] p-2" />
           <div className="px-4 pb-4">
             <h3 className="text-xl font-bold">{name}</h3>
-            <p className="mt-1 text-xs leading-snug text-[#526770]">{role}</p>
+            <p className="mt-1 text-xs leading-snug text-[var(--nv-muted)]">{role}</p>
           </div>
         </article>
       ))}
