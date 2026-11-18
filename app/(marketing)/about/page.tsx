@@ -6,10 +6,10 @@ export const metadata = { title: "Our story · NEUROVA" };
 export default async function AboutPage() {
   const es = (await getLocale()) === "es";
   const team = [
-    ["Liz", es ? "Terapeuta y cofundadora" : "Therapist and co-founder"],
-    ["Jhon", es ? "Ingeniero de software y cofundador" : "Software engineer and co-founder"],
-    ["Marco Aurelio", es ? "Bulldog francés de Liz" : "Liz’s French bulldog"],
-    ["Luna Maria", es ? "Labrador de Jhon" : "Jhon’s Labrador"],
+    ["Liz", es ? "Cofundadora · Terapia" : "Co-founder · Therapist"],
+    ["Jhon", es ? "Cofundador · Software" : "Co-founder · Software"],
+    ["Marco Aurelio", es ? "Inspector de snacks" : "Chief snack inspector"],
+    ["Luna Maria", es ? "Directora de paseos" : "Head of walk breaks"],
   ];
   return <main>
     <div className="marketing-article" style={{ minHeight: 0, paddingBottom: 0 }}>
@@ -26,7 +26,7 @@ export default async function AboutPage() {
           <Image src={`/team/${name.toLowerCase().replaceAll(" ", "-")}-blue.webp`} alt="" width={600} height={600} sizes="(min-width: 1024px) 245px, (min-width: 640px) 200px, 42vw" className="mx-auto block h-auto w-full max-w-[200px] p-2" />
           <div className="px-4 pb-4">
             <h3 className="text-xl font-bold">{name}</h3>
-            <p>{role}</p>
+            <p className="mt-1 text-xs leading-snug text-[#526770]">{role}</p>
           </div>
         </article>
       ))}
