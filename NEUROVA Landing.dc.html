@@ -119,20 +119,19 @@
   .security-grid .gallery-card-copy{margin-top:6px}
   .clinic-plan .gallery-card-title{display:inline;color:inherit}
   .clinic-plan p{line-height:1.6}
+  .neurova-marketing-page.landing-shell{padding-top:10px;background:#fbfdfd}
+  .site-header{position:sticky;top:10px;z-index:50;display:flex;align-items:center;gap:18px;width:calc(100% - 32px);max-width:1100px;margin:0 auto;padding:9px 12px 9px 20px;border:1px solid #d6e5e6;border-radius:20px;background:rgba(255,255,255,.96);box-shadow:0 4px 16px -8px #17465333;backdrop-filter:blur(12px)}
+  .landing-home{padding-top:18px}
+  @media(max-width:600px){.site-header{width:calc(100% - 20px);border-radius:16px}.landing-home{padding-top:12px}}
 </style>
 </helmet>
 
 <div class="landing-shell" style="font-family:'Plus Jakarta Sans',sans-serif; color:var(--nv-text); background:var(--nv-bg);">
 
   <!-- NAV -->
-  <header class="site-header" style="position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:24px; padding:14px 40px; border-bottom:1px solid var(--nv-border); background:rgba(255,255,255,.85); backdrop-filter:blur(10px);">
+  <header class="site-header">
     <a href="#top" style="display:flex; align-items:center; gap:11px; text-decoration:none;">
-      <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="9" fill="url(#hg)"/>
-        <path d="M10 22.5V10.5L22 21.5V9.5" stroke="#EAFBF8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle cx="10" cy="10.5" r="2" fill="#A7E9F6"/><circle cx="22" cy="21.5" r="2" fill="#A7E9F6"/>
-        <defs><linearGradient id="hg" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse"><stop stop-color="#0E96B8"/><stop offset="1" stop-color="#0B7693"/></linearGradient></defs>
-      </svg>
+      <img src="/icon.svg" width="30" height="30" alt="">
       <span style="font-weight:800; letter-spacing:.16em; font-size:15px; color:var(--nv-ink);">NEUROVA</span>
     </a>
     <nav class="site-nav" style="display:flex; gap:4px; margin-left:14px;">

@@ -10,6 +10,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -66,23 +67,12 @@ const slides: Slide[] = [
   },
 ];
 
-function NeurovaMark({ compact = false }: { compact?: boolean }) {
+function NeurovaMark() {
   return (
-    <div className="flex items-center gap-3">
-      <svg width={compact ? 30 : 34} height={compact ? 30 : 34} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-        <rect width="32" height="32" rx="9" fill="url(#login-logo-gradient)" />
-        <path d="M10 22.5V10.5L22 21.5V9.5" stroke="#EAFBF8" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="10" cy="10.5" r="2" fill="#A7E9F6" />
-        <circle cx="22" cy="21.5" r="2" fill="#A7E9F6" />
-        <defs>
-          <linearGradient id="login-logo-gradient" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#0E96B8" />
-            <stop offset="1" stopColor="#0B7693" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <span className="text-[17px] font-extrabold tracking-[.18em] text-white">NEUROVA</span>
-    </div>
+    <Link href="/" className="inline-flex items-center gap-[11px] text-[#15252c]">
+      <Image src="/icon.svg" width={30} height={30} alt="" unoptimized />
+      <span className="text-[15px] font-extrabold tracking-[.16em]">NEUROVA</span>
+    </Link>
   );
 }
 
@@ -141,32 +131,32 @@ export function CustomSignIn() {
   const SlideIcon = slide.icon;
 
   return (
-    <main className="flex min-h-dvh flex-col overflow-hidden bg-[#eff3f4] text-[#36474f] md:h-dvh md:flex-row">
-      <section className="relative flex h-[78px] flex-none flex-col overflow-hidden bg-[linear-gradient(150deg,#0d2933,#081d25)] px-5 py-5 text-white md:h-auto md:flex-[1.15] md:px-14 md:py-12">
+    <main style={{ fontFamily: '"Plus Jakarta Sans", sans-serif' }} className="flex min-h-dvh flex-col overflow-hidden bg-[#eff3f4] text-[#36474f] md:h-dvh md:flex-row">
+      <section className="relative hidden flex-none flex-col md:flex overflow-hidden bg-[linear-gradient(135deg,#edf7f6,#c4e5e8)] px-5 py-5 text-[#163b45] md:h-auto md:flex-[1.15] md:px-14 md:py-12">
         <div className="absolute -right-28 -top-24 size-[420px] rounded-full bg-[radial-gradient(circle,rgba(63,182,214,.16),transparent_70%)]" />
         <div className="absolute -bottom-28 -left-20 size-[360px] rounded-full bg-[radial-gradient(circle,rgba(44,143,176,.12),transparent_70%)]" />
-        <div className="relative"><NeurovaMark compact /></div>
 
-        <div className="relative mt-auto hidden max-w-[460px] md:block">
-          <div className="mb-6 flex size-[46px] items-center justify-center rounded-[14px] border border-white/15 bg-white/10">
-            <SlideIcon size={22} strokeWidth={1.8} className="text-[#a7e9f6]" />
+
+        <div className="relative my-auto hidden max-w-[460px] md:block">
+          <div className="mb-6 flex size-[46px] items-center justify-center rounded-[14px] border border-[#c9dcdf] bg-white/80">
+            <SlideIcon size={22} strokeWidth={1.8} className="text-[#0b7693]" />
           </div>
-          <h2 className="m-0 text-[30px] font-extrabold leading-[1.18] tracking-[-.02em]">{slide.title}</h2>
-          <p className="mt-4 text-[15px] leading-[1.6] text-[#a2bac1]">{slide.body}</p>
+          <h2 className="m-0 text-[34px] font-extrabold leading-[1.18] tracking-[-.02em]">{slide.title}</h2>
+          <p className="mt-4 text-[15px] leading-[1.6] text-[#526770]">{slide.body}</p>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/[.06] p-3.5 backdrop-blur-sm">
+          <div className="mt-8 rounded-2xl border border-[#d6e5e6] bg-white/95 p-3.5 backdrop-blur-sm">
             <div className="mb-3 flex items-center gap-2">
               <span className="size-[9px] rounded-full bg-[#3fb6d6]" />
-              <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#a2bac1]">{slide.previewLabel}</span>
+              <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#526770]">{slide.previewLabel}</span>
             </div>
             {slide.rows.map((row) => (
-              <div key={row.title} className="flex items-center gap-3 border-t border-white/[.07] py-2.5">
+              <div key={row.title} className="flex items-center gap-3 border-t border-[#e2e9eb] py-2.5">
                 <div className="flex size-[30px] flex-none items-center justify-center rounded-[9px] text-[11px] font-bold text-[#062623]" style={{ background: row.color }}>{row.tag}</div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12.5px] font-bold text-white">{row.title}</div>
-                  <div className="text-[11px] text-[#a2bac1]">{row.sub}</div>
+                  <div className="text-[12.5px] font-bold text-[#163b45]">{row.title}</div>
+                  <div className="text-[11px] text-[#526770]">{row.sub}</div>
                 </div>
-                <span className="font-mono text-[11.5px] text-[#a2bac1]">{row.meta}</span>
+                <span className="font-mono text-[11.5px] text-[#526770]">{row.meta}</span>
               </div>
             ))}
           </div>
@@ -178,14 +168,14 @@ export function CustomSignIn() {
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 aria-label={`Show slide ${index + 1}`}
-                className={`h-1.5 rounded-full transition-all ${index === activeIndex ? "w-[26px] bg-[#3fb6d6]" : "w-1.5 bg-white/25 hover:bg-white/40"}`}
+                className={`h-1.5 rounded-full transition-all ${index === activeIndex ? "w-[26px] bg-[#3fb6d6]" : "w-1.5 bg-[#94b7be] hover:bg-[#709aa2]"}`}
               />
             ))}
           </div>
         </div>
       </section>
 
-      <section className="flex min-h-[calc(100dvh-78px)] w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-[520px] md:max-w-[46vw] md:px-[52px] md:py-10">
+      <section className="flex min-h-dvh w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-[520px] md:max-w-[46vw] md:px-[52px] md:py-10">
         <div className="flex justify-end">
           <Link href="/" className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#6c828c] transition-colors hover:text-[#0e96b8]">
             <ArrowLeft size={14} /> Back to site
@@ -193,13 +183,8 @@ export function CustomSignIn() {
         </div>
 
         <div className="my-auto w-full max-w-[340px] self-center py-8">
-          <div className="mb-[22px] flex size-[46px] items-center justify-center rounded-[13px] bg-[linear-gradient(135deg,#0e96b8,#0b7693)]">
-            <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <path d="M10 22.5V10.5L22 21.5V9.5" stroke="#EAFBF8" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-              <circle cx="10" cy="10.5" r="2.1" fill="#A7E9F6" /><circle cx="22" cy="21.5" r="2.1" fill="#A7E9F6" />
-            </svg>
-          </div>
-          <h1 className="text-[26px] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
+          <div className="mb-7"><NeurovaMark /></div>
+          <h1 className="text-[34px] leading-[1.2] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
           <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">Sign in to your NEUROVA practice workspace.</p>
 
           <button
@@ -214,26 +199,26 @@ export function CustomSignIn() {
 
           <div className="mt-3.5 flex items-start gap-2.5 rounded-[11px] border border-[#8acfe0] bg-[#e0f1f6] px-3.5 py-3">
             <CalendarDays size={16} strokeWidth={1.8} className="mt-px flex-none text-[#0e96b8]" />
-            <p className="m-0 text-[11.5px] leading-[1.5] text-[#36474f]">Google sign-in lets NEUROVA sync your <strong className="text-[#15252c]">Google Calendar</strong> so appointments and sessions stay in one place. You can revoke access anytime.</p>
+            <p className="m-0 text-[13px] leading-[1.6] text-[#36474f]">Google sign-in lets NEUROVA sync your <strong className="text-[#15252c]">Google Calendar</strong> so appointments and sessions stay in one place. You can revoke access anytime.</p>
           </div>
 
           <div className="my-[22px] flex items-center gap-3">
             <div className="h-px flex-1 bg-[#e2e9eb]" />
-            <span className="text-[11px] font-bold uppercase tracking-[.08em] text-[#93a6ae]">More options soon</span>
+            <span className="text-[11px] font-bold uppercase tracking-[.08em] text-[#60757d]">More options soon</span>
             <div className="h-px flex-1 bg-[#e2e9eb]" />
           </div>
 
-          <div aria-disabled="true" className="relative flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-[#e2e9eb] bg-[#f4f7f8] px-3 py-[13px] text-sm font-bold text-[#93a6ae]">
+          <div aria-disabled="true" className="relative flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-[#e2e9eb] bg-[#f4f7f8] px-3 py-[13px] text-sm font-bold text-[#60757d]">
             <Mail size={18} strokeWidth={1.8} /> Continue with Outlook
             <span className="absolute right-3 rounded-full border border-[#e2e9eb] bg-white px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[.06em] text-[#6c828c]">Soon</span>
           </div>
 
-          <p className="mt-7 text-center text-[11.5px] leading-[1.6] text-[#93a6ae]">
+          <p className="mt-7 text-center text-xs leading-[1.6] text-[#60757d]">
             By continuing you agree to NEUROVA&apos;s <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Terms</Link>, <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Privacy</Link> &amp; <Link href="/baa" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">BAA</Link>. Protected health information is encrypted in transit and at rest.
           </p>
         </div>
 
-        <div className="text-center text-[11.5px] text-[#93a6ae]">New to NEUROVA? <Link href="/" className="font-bold text-[#0e96b8]">See how it works</Link></div>
+        <div className="text-center text-xs text-[#60757d]">New to NEUROVA? <Link href="/#workflow" className="font-bold text-[#0b7693]">See how it works</Link></div>
       </section>
     </main>
   );
