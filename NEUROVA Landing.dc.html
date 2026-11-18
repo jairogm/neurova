@@ -105,7 +105,7 @@
   .product-gallery{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:18px}
   .product-card{grid-column:span 2;background:#fff;border:1px solid #d6e5e6;border-radius:20px;overflow:hidden;padding:12px 12px 23px}
   .product-card:nth-child(-n+2){grid-column:span 3}.product-card:last-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;column-gap:30px;align-items:end}.product-card:last-child .product-illustration{grid-row:span 2}.product-card:last-child p{align-self:start}
-  .product-card h3{font-size:21px;letter-spacing:-.03em;margin:18px 12px 6px;color:#163b45}.product-card p{font-size:14px;line-height:1.6;margin:0 12px;color:#526770}
+  .product-card h3,.gallery-card-title{font-size:21px;letter-spacing:-.03em;margin:18px 12px 6px;color:#163b45}.product-card p,.gallery-card-copy{font-size:14px;line-height:1.6;margin:0 12px;color:#526770}
   .product-illustration{background:linear-gradient(135deg,#e3f2ed,#c4e4e8);border-radius:12px;padding:22px 18px 0;height:180px;overflow:hidden;text-align:left}
   .product-card:nth-child(even) .product-illustration{background:linear-gradient(130deg,#edf4f6,#d1e5ee)}
   .product-illustration img{width:100%;height:auto;display:block;border-radius:9px;box-shadow:0 6px 20px #254f581c}
@@ -114,6 +114,14 @@
   .section-label{font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--nv-primary);margin-bottom:10px}
   .ai-panel .section-label{color:var(--nv-side-accent)}
   .closing-invitation p{font-size:15px;line-height:1.6}
+  .gallery-heading{text-align:center;max-width:600px;margin:0 auto 40px}
+  .gallery-card-title,.gallery-card-copy{margin:0}
+  .security-grid .gallery-card-copy{margin-top:6px}
+  .plan-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  .plan-options .clinic-plan{margin:0;padding:24px;border-radius:20px}
+  .clinic-plan .gallery-card-title{display:inline;color:inherit}
+  .clinic-plan p{line-height:1.6}
+  @media(max-width:700px){.plan-options{grid-template-columns:1fr}}
 </style>
 </helmet>
 
@@ -190,7 +198,7 @@
 
   <!-- FEATURES -->
   <section id="features" style="padding:40px 40px 20px; max-width:1100px; margin:0 auto;">
-    <div style="text-align:center; max-width:600px; margin:0 auto 40px;">
+    <div class="gallery-heading">
       <div class="section-label">Everything in one place</div>
       <h2 class="section-title" style="margin:0; color:var(--nv-ink);">Inside your practice workspace</h2>
       <p style="margin:14px 0 0; font-size:15px; line-height:1.6; color:var(--nv-muted);">No more juggling a calendar, a notes app, and a spreadsheet. Every part of your day connects.</p>
@@ -274,37 +282,35 @@
   </section>
 
   <!-- SECURITY -->
-  <section id="security" style="padding:0 40px 64px; max-width:1000px; margin:0 auto;">
-    <div style="text-align:center; margin-bottom:32px;">
+  <section id="security" style="padding:0 40px 64px; max-width:1100px; margin:0 auto;">
+    <div class="gallery-heading">
       <div class="section-label">Security &amp; compliance</div>
       <h2 class="section-title" style="margin:0; color:var(--nv-ink);">Private by default</h2>
     </div>
-    <div class="security-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
-      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:14px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div style="font-size:13.5px; font-weight:700; color:var(--nv-ink);">Encrypted</div><div style="font-size:14px; line-height:1.6; color:var(--nv-muted); margin-top:3px;">In transit &amp; at rest</div></div>
-      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:14px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div style="font-size:13.5px; font-weight:700; color:var(--nv-ink);">BAA &amp; DPA</div><div style="font-size:14px; line-height:1.6; color:var(--nv-muted); margin-top:3px;">Signed agreements</div></div>
-      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:14px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6"/></svg></div><div style="font-size:13.5px; font-weight:700; color:var(--nv-ink);">Access controls</div><div style="font-size:14px; line-height:1.6; color:var(--nv-muted); margin-top:3px;">Revoke anytime</div></div>
-      <div style="text-align:center; background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:14px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><div style="font-size:13.5px; font-weight:700; color:var(--nv-ink);">No model training</div><div style="font-size:14px; line-height:1.6; color:var(--nv-muted); margin-top:3px;">On your patient data</div></div>
+    <div class="security-grid" style="display:grid; grid-template-columns:repeat(4,1fr); gap:18px;">
+      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3 class="gallery-card-title">Encrypted</h3><p class="gallery-card-copy">In transit &amp; at rest</p></div>
+      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3 class="gallery-card-title">BAA &amp; DPA</h3><p class="gallery-card-copy">Signed agreements</p></div>
+      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 1v6M12 17v6M4.2 4.2l4.3 4.3M15.5 15.5l4.3 4.3M1 12h6M17 12h6"/></svg></div><h3 class="gallery-card-title">Access controls</h3><p class="gallery-card-copy">Revoke anytime</p></div>
+      <div style="text-align:center; background:white; border:1px solid #d6e5e6; border-radius:20px; padding:22px 16px;"><div style="width:38px; height:38px; margin:0 auto 12px; border-radius:11px; background:var(--nv-primary-soft); display:flex; align-items:center; justify-content:center;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--nv-primary)" stroke-width="1.8"><path d="M20 6 9 17l-5-5"/></svg></div><h3 class="gallery-card-title">No model training</h3><p class="gallery-card-copy">On your patient data</p></div>
     </div>
   </section>
 
   <!-- PRICING -->
-  <section id="pricing" style="padding:0 40px 64px; max-width:900px; margin:0 auto;">
-    <div class="pricing-grid" style="display:grid; grid-template-columns:.9fr .8fr; gap:26px; align-items:stretch;">
-      <div style="display:flex; flex-direction:column; justify-content:center;">
+  <section id="pricing" style="padding:0 40px 64px; max-width:1100px; margin:0 auto;">
+    <div class="gallery-heading">
         <div class="section-label">Billing</div>
         <h2 class="section-title" style="margin:0; color:var(--nv-ink); ">Simple pricing for individual therapists.</h2>
         <p style="margin:14px 0 0; font-size:15px; line-height:1.6; color:var(--nv-muted);">One clear monthly price for the full NEUROVA workspace: patients, schedule, notes, records, payment tracking, and AI-assisted documentation.</p>
       </div>
-      <div>
+      <div class="plan-options">
         <div style="background:var(--nv-surface); border:1.5px solid var(--nv-primary-ring); border-radius:18px; padding:24px; box-shadow:var(--nv-shadow);">
-          <div style="display:inline-flex; padding:4px 10px; border-radius:20px; background:var(--nv-primary-soft); color:var(--nv-primary); font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;">Individual</div>
+          <h3 class="gallery-card-title">Individual</h3>
           <div style="margin-top:18px; display:flex; align-items:baseline; gap:6px;"><span style="font-size:36px; font-weight:800; letter-spacing:-.04em; color:var(--nv-ink);">50.000</span><span style="font-size:13px; color:var(--nv-muted); font-weight:700;">COP / month</span></div>
-          <p style="margin:10px 0 18px; font-size:14px; line-height:1.6; color:var(--nv-muted);">For one therapist managing their own patients, calendar, notes, sessions, and payment status.</p>
+          <p class="gallery-card-copy" style="margin:10px 0 18px">For one therapist managing their own patients, calendar, notes, sessions, and payment status.</p>
           <a href="NEUROVA Login.dc.html" style="display:flex; align-items:center; justify-content:center; padding:10px 14px; border-radius:10px; text-decoration:none; background:var(--nv-primary); color:var(--nv-on-primary); font-size:13px; font-weight:800;">Start solo plan</a>
         </div>
-        <div class="clinic-plan"><strong>Group practices</strong><span>Coming soon</span><p>For clinics where several therapists work together.</p></div>
+        <div class="clinic-plan"><h3 class="gallery-card-title">Group practices</h3><span>Coming soon</span><p>For clinics where several therapists work together.</p></div>
       </div>
-    </div>
   </section>
 
   <!-- CTA -->
