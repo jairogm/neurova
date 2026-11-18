@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 export const metadata: Metadata = {
-  title: "NEUROVA | Patient timelines, session notes, and payments",
+  title: "NEUROVA | A calmer command center for your practice",
   description:
     "Practice management for mental-health clinicians: scheduling, patients, notes, payments, and clinician-reviewed AI assistance.",
 };
