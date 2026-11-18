@@ -1,10 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
-
-// Claude Haiku 4.5 — fast, inexpensive, and strong on clinical language.
-// Swapping providers later only means changing this file.
-const MODEL = 'claude-haiku-4-5';
 
 const SYSTEM_PROMPT = `You are a clinical documentation assistant for NEUROVA, a platform used by licensed mental-health professionals. You draft concise summaries of therapy session notes.
 
@@ -21,58 +16,52 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  const apiKey = process.env.CLINICAL_GEMINI_API_KEY;
+  if (!apiKey) {
     return NextResponse.json(
-      { error: 'AI summaries are not configured (missing ANTHROPIC_API_KEY)' },
+      { error: 'AI summaries are not configured for this workspace' },
       { status: 503 }
     );
   }
 
-  const { noteText, noteTitle, patientFocus } = await req.json().catch(() => ({}));
+  const { noteText, noteTitle, patientFocus } = (await req.json().catch(() => null)) ?? {};
   if (typeof noteText !== 'string' || !noteText.trim()) {
     return NextResponse.json({ error: 'Note is empty — write the session record first' }, { status: 400 });
   }
 
   const context = [
-    noteTitle ? `Note title: ${noteTitle}` : null,
-    patientFocus ? `Presenting focus: ${patientFocus}` : null,
+    typeof noteTitle === 'string' ? `Note title: ${noteTitle.slice(0, 300)}` : null,
+    typeof patientFocus === 'string' ? `Presenting focus: ${patientFocus.slice(0, 1000)}` : null,
     `Session note:\n${noteText.slice(0, 24_000)}`,
   ]
     .filter(Boolean)
     .join('\n\n');
 
   try {
-    const client = new Anthropic();
-    const response = await client.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: `Draft a summary of this session note.\n\n${context}` }],
+    const response = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+      signal: AbortSignal.timeout(25000),
+      cache: "no-store",
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: context }] }],
+        generationConfig: { maxOutputTokens: 1024 },
+      }),
     });
 
-    const draft = response.content
-      .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
-      .join('')
-      .trim();
+    if (response.status === 429) {
+      return NextResponse.json({ error: "AI is busy. Please try again shortly." }, { status: 429 });
+    }
+    if (!response.ok) throw new Error("Generation unavailable");
+    const result = await response.json();
+    const candidate = result.candidates?.[0];
+    const parts: { text?: string; thought?: boolean }[] = candidate?.content?.parts ?? [];
+    const draft = parts.filter(part => !part.thought).map(part => part.text ?? "").join("").trim();
+    if (candidate?.finishReason !== "STOP" || !draft) throw new Error("Incomplete draft");
 
-    if (!draft) {
-      return NextResponse.json({ error: 'The model returned an empty draft' }, { status: 502 });
-    }
-
-    return NextResponse.json({ draft });
-  } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) {
-      return NextResponse.json({ error: 'Invalid Anthropic API key' }, { status: 503 });
-    }
-    if (error instanceof Anthropic.RateLimitError) {
-      return NextResponse.json({ error: 'AI is busy right now — try again in a moment' }, { status: 429 });
-    }
-    if (error instanceof Anthropic.APIError) {
-      console.error('Anthropic API error:', error.status, error.message);
-      return NextResponse.json({ error: 'AI summary failed' }, { status: 502 });
-    }
-    console.error('AI summary error:', error);
-    return NextResponse.json({ error: 'AI summary failed' }, { status: 500 });
+    return NextResponse.json({ draft }, { headers: { "Cache-Control": "no-store" } });
+  } catch {
+    return NextResponse.json({ error: "Could not generate a summary. Please try again." }, { status: 502 });
   }
 }
