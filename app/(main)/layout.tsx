@@ -1,19 +1,17 @@
-"use client";
-
 import { BillingPrototypeProvider } from "@/components/BillingPrototypeProvider";
 import { CommandPaletteProvider } from "@/components/CommandPalette";
 import Navbar from "@/components/navbar";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
-import { useTranslations } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import "@/public/clinical-controls.css";
 import "driver.js/dist/driver.css";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const t = useTranslations("nav");
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const t = await getTranslations("nav");
 
   return (
     <OnboardingProvider>
-    <BillingPrototypeProvider>
+    <BillingPrototypeProvider previewAccess={process.env.VERCEL_ENV === "preview"}>
     <CommandPaletteProvider>
       <a
         href="#main-content"
