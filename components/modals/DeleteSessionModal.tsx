@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import {
   Dialog,
@@ -23,14 +24,13 @@ export function DeleteSessionModal({
   onConfirm,
   isDeleting,
 }: DeleteSessionModalProps) {
+  const tr = useWorkspaceText();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="text-[17px] font-extrabold">Delete session?</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to delete this session? This action cannot be undone.
-          </DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold">{tr("Delete session?")}</DialogTitle>
+          <DialogDescription>{tr("Are you sure you want to delete this session? This action cannot be undone.")}</DialogDescription>
         </DialogHeader>
 
         <DialogFooter className="px-6 py-4">
@@ -38,15 +38,13 @@ export function DeleteSessionModal({
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
-          >
-            Cancel
-          </Button>
+          >{tr("Cancel")}</Button>
           <Button
             className="bg-[#d2574f] text-white hover:bg-[#b94741]"
             onClick={onConfirm}
             disabled={isDeleting}
           >
-            {isDeleting ? "Deleting..." : "Delete session"}
+            {isDeleting ? tr("Deleting...") : tr("Delete session")}
           </Button>
         </DialogFooter>
       </DialogContent>

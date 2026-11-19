@@ -136,7 +136,29 @@ export const get = query({
 export const update = mutation({
   args: {
     id: v.string(),
-    updates: v.any(), // Accept any updates for flexibility
+    updates: v.object({
+      name: v.optional(v.string()),
+      date_of_birth: v.optional(v.string()),
+      gender: v.optional(v.string()),
+      phone_number: v.optional(v.string()),
+      email: v.optional(v.string()),
+      city: v.optional(v.string()),
+      occupation: v.optional(v.string()),
+      emergency_contact: v.optional(v.string()),
+      medical_history: v.optional(v.string()),
+      language: v.optional(v.string()),
+      country_code: v.optional(v.string()),
+      status: v.optional(v.string()),
+      focus: v.optional(v.string()),
+      pronouns: v.optional(v.string()),
+      age: v.optional(v.string()),
+      summary: v.optional(v.string()),
+      goals: v.optional(v.string()),
+      avatar_color: v.optional(v.string()),
+      profile_img: v.optional(v.string()),
+      national_id: v.optional(v.number()),
+      height: v.optional(v.union(v.string(), v.number(), v.null())),
+    }),
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

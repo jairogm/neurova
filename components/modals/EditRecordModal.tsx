@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ interface EditRecordModalProps {
 }
 
 export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalProps) {
+  const tr = useWorkspaceText();
   const [title, setTitle] = useState(note.title || "");
   const [date, setDate] = useState<Date>(note.date ? new Date(note.date) : new Date());
   const editorRef = useRef<EditorJS | null>(null);
@@ -41,7 +43,7 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
     let cancelled = false;
     createEditor({
       holder: "edit-record-editor",
-      placeholder: "Start writing your notes...",
+      placeholder: tr("Start writing your notes..."),
       data: (note.content as OutputData) || { time: new Date().getTime(), blocks: [] },
     })
       .then((editor) => {
@@ -51,7 +53,7 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
         }
         editorRef.current = editor;
       })
-      .catch(() => toast.error("Failed to load the editor"));
+      .catch(() => toast.error(tr("Failed to load the editor")));
 
     return () => {
       cancelled = true;
@@ -72,17 +74,17 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
 
       await updateNote({
         id: note.id,
-        title: title || "Untitled Record",
+        title: title || tr("Untitled Record"),
         description,
         date: formatLocalDateTime(date),
         content,
       });
 
-      toast.success("Record updated successfully");
+      toast.success(tr("Record updated successfully"));
       onOpenChange(false);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to update record: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to update record: ") + message);
     }
   };
 
@@ -91,25 +93,23 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
       <DialogContent className="max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
           <DialogTitle className="flex items-center gap-3 text-[17px] font-extrabold">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Pencil size={17} /></span>
-            Edit note
-          </DialogTitle>
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><Pencil size={17} /></span>{tr("Edit note")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-6">
           {/* Title and Date */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="title">Name Record</Label>
+              <Label htmlFor="title">{tr("Name Record")}</Label>
               <Input
                 id="title"
-                placeholder="Give a name to this record..."
+                placeholder={tr("Give a name to this record...")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{tr("Date")}</Label>
               <Input
                 id="date"
                 type="date"
@@ -125,7 +125,7 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
 
           {/* Editor */}
           <div>
-            <Label>Notes</Label>
+            <Label>{tr("Notes")}</Label>
             <div
               id="edit-record-editor"
               className="mt-2 rounded-xl border border-border bg-secondary p-4"
@@ -142,12 +142,8 @@ export function EditRecordModal({ open, onOpenChange, note }: EditRecordModalPro
 
           {/* Actions */}
           <div className="flex justify-end gap-2 border-t border-border pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save Changes
-            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{tr("Cancel")}</Button>
+            <Button onClick={handleSave}>{tr("Save Changes")}</Button>
           </div>
         </div>
       </DialogContent>

@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import {
   Table,
@@ -45,6 +47,8 @@ interface MedicalNotesTableProps {
 }
 
 export function MedicalNotesTable({ notes, patientId, loading = false }: MedicalNotesTableProps) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const [selectedNote, setSelectedNote] = useState<MedicalNote | null>(null);
   const [noteToEdit, setNoteToEdit] = useState<MedicalNote | null>(null);
   const [noteToDelete, setNoteToDelete] = useState<string | null>(null);
@@ -72,18 +76,18 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
 
     try {
       await deleteNote({ id: noteToDelete as Id<"medical_history_notes"> });
-      toast.success("Record moved to trash");
+      toast.success(tr("Record moved to trash"));
       setNoteToDelete(null);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to delete record: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to delete record: ") + message);
     }
   };
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "—";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -102,10 +106,10 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
         <Table className="min-w-[720px]">
           <TableHeader className="bg-secondary">
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Record</TableHead>
-              <TableHead>Summary</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{tr("Date")}</TableHead>
+              <TableHead>{tr("Record")}</TableHead>
+              <TableHead>{tr("Summary")}</TableHead>
+              <TableHead className="text-right">{tr("Actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -127,15 +131,13 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
               ))
             ) : sortedNotes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="py-12 text-center text-muted-foreground">
-                  No records found
-                </TableCell>
+                <TableCell colSpan={4} className="py-12 text-center text-muted-foreground">{tr("No records found")}</TableCell>
               </TableRow>
             ) : (
               sortedNotes.map((note) => (
                 <TableRow key={note.id}>
                   <TableCell className="font-mono text-[12px] text-muted-foreground">{formatDate(note.date)}</TableCell>
-                  <TableCell className="font-bold text-foreground">{note.title || "Untitled"}</TableCell>
+                  <TableCell className="font-bold text-foreground">{note.title || tr("Untitled")}</TableCell>
                   <TableCell className="max-w-md truncate text-muted-foreground">
                     {stripHtmlTags(note.description)}
                   </TableCell>
@@ -146,7 +148,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
                         size="icon"
                         className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-primary hover:bg-primary/10 hover:text-primary"
                         onClick={() => handleView(note)}
-                        title="View record"
+                        title={tr("View record")}
                       >
                         <Eye size={14} />
                       </Button>
@@ -155,7 +157,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
                         size="icon"
                         className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-primary hover:bg-primary/10 hover:text-primary"
                         onClick={() => handleEdit(note)}
-                        title="Edit record"
+                        title={tr("Edit record")}
                       >
                         <Pencil size={14} />
                       </Button>
@@ -164,7 +166,7 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
                         size="icon"
                         className="size-[30px] rounded-lg p-0 text-[var(--nv-faint)] shadow-none hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]"
                         onClick={() => setNoteToDelete(note.id)}
-                        title="Delete record"
+                        title={tr("Delete record")}
                       >
                         <Trash2 size={14} />
                       </Button>
@@ -200,16 +202,12 @@ export function MedicalNotesTable({ notes, patientId, loading = false }: Medical
       <AlertDialog open={!!noteToDelete} onOpenChange={(open) => !open && setNoteToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Move record to trash?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This record will remain recoverable for 30 days.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{tr("Move record to trash?")}</AlertDialogTitle>
+            <AlertDialogDescription>{tr("This record will remain recoverable for 30 days.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">
-              Move to trash
-            </AlertDialogAction>
+            <AlertDialogCancel>{tr("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">{tr("Move to trash")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

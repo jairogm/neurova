@@ -31,7 +31,7 @@ export default defineSchema({
     summary: v.optional(v.string()), // clinical summary / formulation
     goals: v.optional(v.string()), // JSON array [{ text, tone }]
     avatar_color: v.optional(v.string()),
-  }).index("by_therapist_id", ["therapist_id"]),
+  }).index("by_therapist_id", ["therapist_id"]).index("by_patient_key", ["id"]),
 
   patient_documents: defineTable({
     patient_id: v.string(),
@@ -94,6 +94,7 @@ export default defineSchema({
     // NEUROVA workspace fields
     mode: v.optional(v.string()), // video | inperson | phone
     session_type: v.optional(v.string()), // e.g. "Follow-up · CBT"
+    wrap_note_id: v.optional(v.id("medical_history_notes")),
     meet_link: v.optional(v.string()), // Google Meet URL from the calendar event
   }).index("by_patient_id", ["patient_id"]),
 

@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+import { workspaceText } from "@/i18n/workspace";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function Page({
@@ -5,6 +7,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ error: string }>;
 }) {
+  const tr = workspaceText(await getLocale());
   const params = await searchParams;
 
   return (
@@ -13,19 +16,14 @@ export default async function Page({
         <div className="flex flex-col gap-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">
-                Sorry, something went wrong.
-              </CardTitle>
+              <CardTitle className="text-2xl">{tr("Sorry, something went wrong.")}</CardTitle>
             </CardHeader>
             <CardContent>
               {params?.error ? (
-                <p className="text-sm text-muted-foreground">
-                  Code error: {params.error}
+                <p className="text-sm text-muted-foreground">{tr("Code error:")} {params.error}
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  An unspecified error occurred.
-                </p>
+                <p className="text-sm text-muted-foreground">{tr("An unspecified error occurred.")}</p>
               )}
             </CardContent>
           </Card>

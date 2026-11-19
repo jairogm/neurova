@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface AddRecordModalProps {
 }
 
 export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModalProps) {
+  const tr = useWorkspaceText();
   const [title, setTitle] = useState("");
   const [date, setDate] = useState<Date>(new Date());
   const editorRef = useRef<EditorJS | null>(null);
@@ -33,7 +35,7 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
     let cancelled = false;
     createEditor({
       holder: "add-record-editor",
-      placeholder: "Start writing your notes...",
+      placeholder: tr("Start writing your notes..."),
       data: { time: new Date().getTime(), blocks: [] },
     })
       .then((editor) => {
@@ -43,7 +45,7 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
         }
         editorRef.current = editor;
       })
-      .catch(() => toast.error("Failed to load the editor"));
+      .catch(() => toast.error(tr("Failed to load the editor")));
 
     return () => {
       cancelled = true;
@@ -64,19 +66,19 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
 
       await createNote({
         patient_id: patientId,
-        title: title || "Untitled Record",
+        title: title || tr("Untitled Record"),
         description,
         date: formatLocalDateTime(date),
         content,
       });
 
-      toast.success("Record created successfully");
+      toast.success(tr("Record created successfully"));
       setTitle("");
       setDate(new Date());
       onOpenChange(false);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to create record: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to create record: ") + message);
     }
   };
 
@@ -85,25 +87,23 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
       <DialogContent className="max-h-[90vh] max-w-4xl gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
           <DialogTitle className="flex items-center gap-3 text-[17px] font-extrabold">
-            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><FolderPlus size={18} /></span>
-            New note
-          </DialogTitle>
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary"><FolderPlus size={18} /></span>{tr("New note")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-6">
           {/* Title and Date */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <Label htmlFor="title">Name Record</Label>
+              <Label htmlFor="title">{tr("Name Record")}</Label>
               <Input
                 id="title"
-                placeholder="Give a name to this record..."
+                placeholder={tr("Give a name to this record...")}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor="date">Date</Label>
+              <Label htmlFor="date">{tr("Date")}</Label>
               <Input
                 id="date"
                 type="date"
@@ -119,7 +119,7 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
 
           {/* Editor */}
           <div>
-            <Label>Notes</Label>
+            <Label>{tr("Notes")}</Label>
             <div
               id="add-record-editor"
               className="mt-2 rounded-xl border border-border bg-secondary p-4"
@@ -136,12 +136,8 @@ export function AddRecordModal({ open, onOpenChange, patientId }: AddRecordModal
 
           {/* Actions */}
           <div className="flex justify-end gap-2 border-t border-border pt-4">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave}>
-              Save note
-            </Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>{tr("Cancel")}</Button>
+            <Button onClick={handleSave}>{tr("Save note")}</Button>
           </div>
         </div>
       </DialogContent>

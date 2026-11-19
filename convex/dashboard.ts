@@ -21,7 +21,7 @@ export const getStats = query({
     // Get patients for this therapist
     const patients = await ctx.db
       .query("patients")
-      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!)) // Assuming therapist.id exists
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id ?? therapist._id)) // Assuming therapist.id exists
       .collect();
 
     const activePatients = patients.filter((p) => !p.deleted_at);
@@ -145,7 +145,7 @@ export const getUpcomingSessions = query({
 
     const patients = await ctx.db
       .query("patients")
-      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!))
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id ?? therapist._id))
       .collect();
 
     const patientMap = new Map();
@@ -201,7 +201,7 @@ export const getWeekSessions = query({
 
     const patients = await ctx.db
       .query("patients")
-      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!))
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id ?? therapist._id))
       .collect();
     const patientMap = new Map();
     patients.forEach(p => patientMap.set(p.id, p));
@@ -251,7 +251,7 @@ export const getRecentPatients = query({
     // Get recently added/updated patients for ONLY this therapist
     const patients = await ctx.db
       .query("patients")
-      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id!))
+      .withIndex("by_therapist_id", (q) => q.eq("therapist_id", therapist.id ?? therapist._id))
       .collect();
     
     const recentPatients = patients
@@ -260,5 +260,25 @@ export const getRecentPatients = query({
       .slice(0, 5);
 
     return recentPatients;
+  },
+});
+
+export const wrapUpTasks = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+    const therapist = await ctx.db.query("therapists").withIndex("by_clerk_id", q => q.eq("clerk_user_id", identity.subject)).first();
+    if (!therapist) return [];
+    const patients = await ctx.db.query("patients").withIndex("by_therapist_id", q => q.eq("therapist_id", therapist.id ?? therapist._id)).collect();
+    const rows = await Promise.all(patients.filter(p => !p.deleted_at).map(async patient => {
+      const sessions = await ctx.db.query("sessions").withIndex("by_patient_id", q => q.eq("patient_id", patient.id)).collect();
+      return Promise.all(sessions.filter(s => ["completed", "complete"].includes(s.session_status?.toLowerCase() ?? "")).map(async session => {
+        const note = session.wrap_note_id ? await ctx.db.get(session.wrap_note_id) : null;
+        return { id: session._id, name: patient.name, date: session.scheduled_date, needsNote: !note || note.deleted_at !== undefined,
+          outstanding: !["paid", "collected", "complete", "completed", "waived"].includes(session.payment_status?.toLowerCase() ?? "") };
+      }));
+    }));
+    return rows.flat().filter(row => row.needsNote || row.outstanding).sort((a,b) => b.date.localeCompare(a.date));
   },
 });

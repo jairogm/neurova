@@ -1,4 +1,6 @@
 "use client";
+import { useLocale } from "next-intl";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import React, { useEffect, useRef, useState } from "react";
 import type EditorJS from "@editorjs/editorjs";
@@ -23,7 +25,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
 import { toast } from "sonner";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -42,6 +43,8 @@ export const Editor = ({
   data,
   date,
 }: EditorProps) => {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const ref = useRef<EditorJS | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
@@ -87,7 +90,7 @@ export const Editor = ({
           }
           ref.current = editor;
         })
-        .catch(() => toast.error("Failed to load the editor"));
+        .catch(() => toast.error(tr("Failed to load the editor")));
     } else if (data) {
       // If already initialized, load new data when switching sessions
       ref.current.render(data);
@@ -123,7 +126,7 @@ export const Editor = ({
         (block) => block.type === "paragraph"
       );
 
-      let title = "Untitled Session";
+      let title = tr("Untitled Session");
       let description = "";
 
       if (firstHeader && firstHeader.data.text?.trim()) {
@@ -146,7 +149,7 @@ export const Editor = ({
           date: formatLocalDateTime(selectedDate),
           content,
         });
-        toast.success("Session updated successfully!");
+        toast.success(tr("Session updated successfully!"));
       } else {
         // Combine selected date with current time
         const now = new Date();
@@ -164,14 +167,14 @@ export const Editor = ({
         if (result?.id) {
           setNoteId(result.id);
         }
-        toast.success("Session created successfully!");
+        toast.success(tr("Session created successfully!"));
       }
 
       setHasChanges(false);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Error saving session", {
-        description: message || "Please try again.",
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Error saving session"), {
+        description: message || tr("Please try again."),
       });
     }
   };
@@ -181,12 +184,12 @@ export const Editor = ({
     try {
       if (!noteId) return;
       await deleteNote({ id: noteId });
-      toast.success("Session deleted successfully!");
+      toast.success(tr("Session deleted successfully!"));
       handleNewSession(); // Clear editor after delete
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Error deleting session", {
-        description: message || "Please try again.",
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Error deleting session"), {
+        description: message || tr("Please try again."),
       });
     }
   };
@@ -211,8 +214,7 @@ export const Editor = ({
           variant="outline"
           onClick={handleNewSession}
         >
-          <PlusCircle className="mr-1" /> New Session
-        </Button>
+          <PlusCircle className="mr-1" /> {tr("New Session")}</Button>
 
         {/* Date Selector */}
         <Popover>
@@ -223,7 +225,7 @@ export const Editor = ({
               className="flex items-center gap-2"
             >
               <CalendarIcon className="w-4 h-4" />
-              {format(selectedDate, "PPP")}
+              {selectedDate.toLocaleDateString(locale, { dateStyle: "long" })}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="p-0" align="start">
@@ -242,36 +244,31 @@ export const Editor = ({
           onClick={() => handleInsert("header")}
           className="bg-primary text-primary-foreground"
         >
-          <Heading className="mr-1" /> Header
-        </Button>
+          <Heading className="mr-1" /> {tr("Header")}</Button>
         <Button
           size="sm"
           onClick={() => handleInsert("list")}
           className="bg-primary text-primary-foreground"
         >
-          <List className="mr-1" /> List
-        </Button>
+          <List className="mr-1" /> {tr("List")}</Button>
         <Button
           size="sm"
           onClick={() => handleInsert("image")}
           className="bg-primary text-primary-foreground"
         >
-          <ImagePlus className="mr-1" /> Image
-        </Button>
+          <ImagePlus className="mr-1" /> {tr("Image")}</Button>
         <Button
           size="sm"
           onClick={() => handleInsert("warning")}
           className="bg-primary text-primary-foreground"
         >
-          <TriangleAlert className="mr-1" /> Warning
-        </Button>
+          <TriangleAlert className="mr-1" /> {tr("Warning")}</Button>
         <Button
           size="sm"
           onClick={() => handleInsert("delimiter")}
           className="bg-primary text-primary-foreground"
         >
-          <Asterisk className="mr-1" /> Delimiter
-        </Button>
+          <Asterisk className="mr-1" /> {tr("Delimiter")}</Button>
 
         <div className="flex items-center gap-2">
           {/* Save Button */}

@@ -1,0 +1,37 @@
+.nv-note-toolbar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:10px 14px; border-bottom:1px solid var(--nv-border); background:var(--nv-surface-2); }
+.nv-draft-review { display:grid; gap:12px; padding:16px; color:var(--nv-text); background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:12px; }
+.nv-draft-review label { display:grid; gap:8px; font-size:13px; font-weight:700; }
+.nv-draft-review textarea { width:100%; min-height:96px; padding:10px; border:1px solid var(--nv-border); border-radius:8px; color:var(--nv-text); background:var(--nv-surface); font:inherit; font-weight:400; }
+.nv-draft-review .nv-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.nv-draft-review button { padding:8px 12px; border-radius:8px; background:var(--nv-surface-2); color:var(--nv-text); font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+.nv-draft-review button:first-child { color:white; background:#08748d; }
+.nv-payment-status {
+  appearance:none;
+  box-sizing:border-box;
+  flex:none;
+  min-width:6.5rem;
+  min-height:36px;
+  padding:6px 30px 6px 12px;
+  border:1px solid var(--nv-border-strong, #bacbd0);
+  border-radius:9px;
+  color:var(--nv-text);
+  background-color:var(--nv-surface);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16'%3E%3Cpath d='m4 6 4 4 4-4' fill='none' stroke='%23566973' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 9px center;
+  line-height:1.4;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+}
+.nv-payment-status[data-status="paid" i] {background-color:#e5f4ed;color:#18573b;border-color:#b6d9c7}
+.nv-payment-status[data-status="unpaid" i],.nv-payment-status[data-status="overdue" i] {background-color:#fff4de;color:#634508;border-color:#e4d0a8}
+.nv-payment-status:focus-visible {outline:2px solid #0b7995;outline-offset:2px}
+.nv-payment-status option {color:CanvasText;background:Canvas}
+@media(pointer:coarse){.nv-payment-status{min-height:44px}}
+@media(forced-colors:active){.nv-payment-status{appearance:auto;background-image:none}}
+.nv-wrap-link { display:block; border:0; padding:5px; font:inherit; font-size:12px; font-weight:700; background:transparent; color:var(--nv-primary-strong); cursor:pointer; }
+.nv-wrap-backdrop {position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:18px;background:#0c202b85}
+.nv-wrap-dialog {width:min(100%,460px);max-height:90dvh;overflow:auto;padding:24px;box-shadow:var(--nv-shadow-lg)}
+.nv-wrap-dialog select {width:100%;padding:8px;border-radius:8px;color:var(--nv-text);background:var(--nv-surface-2);border:1px solid var(--nv-border)}

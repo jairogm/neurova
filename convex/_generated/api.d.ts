@@ -8,11 +8,11 @@
  * @module
  */
 
+import type * as access from "../access.js";
 import type * as billing from "../billing.js";
 import type * as calendar from "../calendar.js";
 import type * as crons from "../crons.js";
 import type * as dashboard from "../dashboard.js";
-import type * as debug from "../debug.js";
 import type * as medical_history_notes from "../medical_history_notes.js";
 import type * as migrations from "../migrations.js";
 import type * as onboarding from "../onboarding.js";
@@ -32,11 +32,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  access: typeof access;
   billing: typeof billing;
   calendar: typeof calendar;
   crons: typeof crons;
   dashboard: typeof dashboard;
-  debug: typeof debug;
   medical_history_notes: typeof medical_history_notes;
   migrations: typeof migrations;
   onboarding: typeof onboarding;

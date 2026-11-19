@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { useState, type FormEvent } from "react";
 import { useConvex, useMutation, useQuery } from "convex/react";
@@ -9,6 +11,8 @@ import { toast } from "sonner";
 import { FileDown, Loader2, Upload, ChevronDown, X, AlertTriangle } from "lucide-react";
 
 export function PatientDocuments({ patientId }: { patientId: string }) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const documents = useQuery(api.patient_documents.list, { patientId });
   const generateUploadUrl = useMutation(api.patient_documents.generateUploadUrl);
   const save = useMutation(api.patient_documents.save);
@@ -27,7 +31,7 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
     if (!file || busy) return;
     if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type) ||
         file.size <= 0 || file.size > 10 * 1024 * 1024) {
-      toast.error("Choose a PDF, JPG or PNG up to 10 MB");
+      toast.error(tr("Choose a PDF, JPG or PNG up to 10 MB"));
       return;
     }
     const form = event.currentTarget;
@@ -37,14 +41,14 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
       const response = await fetch(url, {
         method: "POST", headers: { "Content-Type": file.type }, body: file,
       });
-      if (!response.ok) throw new Error("Upload failed. Please try again.");
+      if (!response.ok) throw new Error(tr("Upload failed. Please try again."));
       const { storageId } = await response.json();
       await save({ patientId, storageId, name: file.name, kind });
       setFile(null);
       form.reset();
-      toast.success("Document uploaded");
+      toast.success(tr("Document uploaded"));
     } catch {
-      toast.error("Document could not be saved. Please try again.");
+      toast.error(tr("Document could not be saved. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -57,9 +61,9 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
     try {
       await remove({ id });
       setDeleteTarget(null);
-      toast.success("Document deleted");
+      toast.success(tr("Document deleted"));
     } catch {
-      toast.error("Unable to delete document. Please try again.");
+      toast.error(tr("Unable to delete document. Please try again."));
     } finally {
       setDeleting(null);
     }
@@ -68,18 +72,18 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
   async function download(id: Id<"patient_documents">) {
     const preview = window.open("about:blank", "_blank");
     if (!preview) {
-      toast.error("Allow pop-ups to open documents");
+      toast.error(tr("Allow pop-ups to open documents"));
       return;
     }
     preview.opener = null;
     setOpening(id);
     try {
       const url = await convex.query(api.patient_documents.download, { id });
-      if (!url) throw new Error("File unavailable");
+      if (!url) throw new Error(tr("File unavailable"));
       preview.location.href = url;
     } catch {
       preview.close();
-      toast.error("Unable to open document");
+      toast.error(tr("Unable to open document"));
     } finally {
       setOpening(null);
     }
@@ -88,44 +92,43 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
   return (
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-base font-bold">Patient documents</h2>
+        <h2 className="text-base font-bold">{tr("Patient documents")}</h2>
         <span role="status" className={`rounded-full px-3 py-1 text-xs font-bold ${hasConsent ? "bg-green-500/10 text-green-700 dark:text-green-400" : "bg-amber-500/10 text-amber-700 dark:text-amber-400"}`}>
-          {documents === undefined ? "Checking consent…" : hasConsent ? "Consent form uploaded" : "Consent form missing"}
+          {documents === undefined ? tr("Checking consent…") : hasConsent ? tr("Consent form uploaded") : tr("Consent form missing")}
         </span>
       </div>
-      <p className="text-sm text-muted-foreground">Upload the patient&apos;s signed consent form or supporting documents. PDF, JPG or PNG, up to 10 MB each. Uploaded consent forms should be reviewed for completeness.</p>
+      <p className="text-sm text-muted-foreground">{tr("Upload the patient's signed consent form or supporting documents. PDF, JPG or PNG, up to 10 MB each. Uploaded consent forms should be reviewed for completeness.")}</p>
       <form onSubmit={upload} className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-secondary p-4">
         <label className="space-y-1 text-sm font-medium">
-          <span className="block">Document type</span>
+          <span className="block">{tr("Document type")}</span>
           <span className="relative block">
           <select value={kind} disabled={busy} onChange={event => setKind(event.target.value as "consent" | "other")} className="min-h-11 w-full appearance-none rounded-lg border border-border bg-card py-2.5 pl-4 pr-11 leading-5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-            <option value="consent">Signed consent form</option>
-            <option value="other">Other document</option>
+            <option value="consent">{tr("Signed consent form")}</option>
+            <option value="other">{tr("Other document")}</option>
           </select>
           <ChevronDown aria-hidden="true" size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
           </span>
         </label>
         <label className="min-w-0 flex-1 space-y-1 text-sm font-medium">
-          <span className="block">File</span>
+          <span className="block">{tr("File")}</span>
           <input required type="file" accept=".pdf,.jpg,.jpeg,.png" disabled={busy} onChange={event => setFile(event.target.files?.[0] ?? null)} className="block w-full rounded-lg border border-border bg-card p-2 text-sm" />
         </label>
         <button type="submit" disabled={!file || busy} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50">
-          {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}{busy ? "Uploading…" : "Upload"}
+          {busy ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}{busy ? tr("Uploading…") : tr("Upload")}
         </button>
       </form>
-      {documents === undefined ? <p className="text-sm text-muted-foreground">Loading documents…</p> : documents.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No documents uploaded for this patient yet.</p> : (
+      {documents === undefined ? <p className="text-sm text-muted-foreground">{tr("Loading documents…")}</p> : documents.length === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">{tr("No documents uploaded for this patient yet.")}</p> : (
         <ul className="divide-y divide-border">
           {documents.map(document => (
             <li key={document._id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
                 <p className="break-all text-sm font-bold">{document.name}</p>
-                <p className="text-xs text-muted-foreground">{document.kind === "consent" ? "Consent form" : "Document"} · {new Date(document.uploaded_at).toLocaleDateString()} · {(document.size / 1024 / 1024).toFixed(2)} MB</p>
+                <p className="text-xs text-muted-foreground">{document.kind === "consent" ? tr("Consent form") : tr("Document")} · {new Date(document.uploaded_at).toLocaleDateString(locale)} · {(document.size / 1024 / 1024).toFixed(2)} {tr("MB")}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-              <button type="button" disabled={opening === document._id || deleting === document._id} onClick={() => download(document._id)} aria-label={`Open ${document.name}`} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary disabled:opacity-50">
-                <FileDown size={16} />Open
-              </button>
-              <button type="button" onClick={() => setDeleteTarget({ id: document._id, name: document.name })} disabled={deleting !== null} aria-label={`Delete ${document.name}`} title="Delete document" className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-50">
+              <button type="button" disabled={opening === document._id || deleting === document._id} onClick={() => download(document._id)} aria-label={`${tr("Open")} ${document.name}`} className="flex shrink-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold text-primary disabled:opacity-50">
+                <FileDown size={16} />{tr("Open")}</button>
+              <button type="button" onClick={() => setDeleteTarget({ id: document._id, name: document.name })} disabled={deleting !== null} aria-label={`${tr("Delete")} ${document.name}`} title={tr("Delete document")} className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:border-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive disabled:opacity-50">
                 {deleting === document._id ? <Loader2 size={16} className="animate-spin" /> : <X size={16} />}
               </button>
               </div>
@@ -139,15 +142,13 @@ export function PatientDocuments({ patientId }: { patientId: string }) {
             <div className="mb-2 flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">
               <AlertTriangle size={20} aria-hidden="true" />
             </div>
-            <AlertDialogTitle className="text-[17px] font-extrabold">Delete document?</AlertDialogTitle>
-            <AlertDialogDescription className="break-words text-[13px] leading-[1.55]">
-              Permanently delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span> from this patient? This cannot be undone.
-            </AlertDialogDescription>
+            <AlertDialogTitle className="text-[17px] font-extrabold">{tr("Delete document?")}</AlertDialogTitle>
+            <AlertDialogDescription className="break-words text-[13px] leading-[1.55]">{tr("Permanently delete")} <span className="font-semibold text-foreground">{deleteTarget?.name}</span> {tr("from this patient? This cannot be undone.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2.5 px-[22px] pb-[22px]">
-            <AlertDialogCancel disabled={deleting !== null} className="rounded-[10px]">Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting !== null} className="rounded-[10px]">{tr("Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={event => { event.preventDefault(); void deleteDocument(); }} disabled={deleting !== null} className="rounded-[10px] bg-[#d2574f] text-white hover:bg-[#b94741]">
-              {deleting !== null && <Loader2 size={14} className="animate-spin" />} {deleting !== null ? "Deleting…" : "Delete document"}
+              {deleting !== null && <Loader2 size={14} className="animate-spin" />} {deleting !== null ? tr("Deleting…") : tr("Delete document")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

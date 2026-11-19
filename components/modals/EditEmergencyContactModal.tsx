@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useState } from "react";
 import {
@@ -27,6 +28,7 @@ export function EditEmergencyContactModal({
   contact,
   onSave,
 }: EditEmergencyContactModalProps) {
+  const tr = useWorkspaceText();
   const [selectedCountry, setSelectedCountry] = useState<Country>(
     contact.country_code || COUNTRIES[0]
   );
@@ -41,8 +43,8 @@ export function EditEmergencyContactModal({
   };
 
   const fields: { label: string; key: keyof EmergencyContact }[] = [
-    { label: "Name", key: "name" },
-    { label: "Relationship", key: "relationship" },
+    { label: tr("Name"), key: "name" },
+    { label: tr("Relationship"), key: "relationship" },
   ];
 
   const handleSaveClick = () => {
@@ -59,8 +61,8 @@ export function EditEmergencyContactModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="text-[17px] font-extrabold">Edit emergency contact</DialogTitle>
-          <DialogDescription>Update the emergency contact information.</DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold">{tr("Edit emergency contact")}</DialogTitle>
+          <DialogDescription>{tr("Update the emergency contact information.")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 p-6">
@@ -77,7 +79,7 @@ export function EditEmergencyContactModal({
 
           {/* Phone field with country code */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Phone</label>
+            <label className="text-sm font-medium">{tr("Phone")}</label>
             <div className="flex gap-2">
               <select
                 value={selectedCountry.iso}
@@ -105,10 +107,8 @@ export function EditEmergencyContactModal({
             </div>
           </div>
         <DialogFooter className="border-t border-border px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSaveClick}>Save Changes</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{tr("Cancel")}</Button>
+          <Button onClick={handleSaveClick}>{tr("Save Changes")}</Button>
         </DialogFooter>
         </div>
       </DialogContent>

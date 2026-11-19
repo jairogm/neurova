@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
@@ -54,15 +55,14 @@ interface AppointmentData {
 }
 
 export const UpcomingAppointments = () => {
+  const tr = useWorkspaceText();
   const { appointments, isLoading, error, refetch } = useAppointments();
 
   return (
     <Card className="w-full h-full">
       <CardHeader>
         <CardTitle className="text-xl flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5" />
-          Upcoming Appointments
-        </CardTitle>
+          <CalendarIcon className="h-5 w-5" />{tr("Upcoming Appointments")}</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -104,18 +104,17 @@ function AppointmentsSkeleton() {
 
 // Error state component
 function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  const tr = useWorkspaceText();
   return (
     <div className="flex flex-col gap-4 items-center justify-center py-12">
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <AlertTriangle className="h-12 w-12 text-red-500" />
         </div>
-        <h3 className="text-lg font-medium text-foreground">
-          Failed to load appointments
-        </h3>
+        <h3 className="text-lg font-medium text-foreground">{tr("Failed to load appointments")}</h3>
         <p className="text-sm text-muted-foreground max-w-md">
           {error.message ||
-            "There was an error loading your appointments. Please try again."}
+            tr("There was an error loading your appointments. Please try again.")}
         </p>
       </div>
       <div className="flex gap-2">
@@ -124,9 +123,7 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
           variant="outline"
           className="flex items-center gap-2"
         >
-          <RefreshCw className="h-4 w-4" />
-          Try Again
-        </Button>
+          <RefreshCw className="h-4 w-4" />{tr("Try Again")}</Button>
         <ScheduleAppointment variant="outline" />
       </div>
     </div>
@@ -135,18 +132,15 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry: () => void }) {
 
 // Empty state component
 function EmptyState() {
+  const tr = useWorkspaceText();
   return (
     <div className="flex flex-col gap-4 items-center justify-center py-12">
       <div className="text-center space-y-3">
         <div className="flex justify-center">
           <CalendarIcon className="h-12 w-12 text-muted-foreground" />
         </div>
-        <h3 className="text-lg font-medium text-foreground">
-          No upcoming appointments
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Schedule your first appointment to get started.
-        </p>
+        <h3 className="text-lg font-medium text-foreground">{tr("No upcoming appointments")}</h3>
+        <p className="text-sm text-muted-foreground">{tr("Schedule your first appointment to get started.")}</p>
       </div>
       <ScheduleAppointment variant="outline" />
     </div>
@@ -159,6 +153,7 @@ function AppointmentsList({
 }: {
   appointments: AppointmentData[];
 }) {
+  const tr = useWorkspaceText();
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentData | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
@@ -196,7 +191,7 @@ function AppointmentsList({
     } catch (error) {
       console.error("Failed to cancel appointment:", error);
       // You could add a toast notification here instead of alert
-      alert("Failed to cancel appointment. Please try again.");
+      alert(tr("Failed to cancel appointment. Please try again."));
     } finally {
       setIsCanceling(false);
     }
@@ -222,7 +217,7 @@ function AppointmentsList({
                   <h5 className="font-semibold text-base text-foreground">
                     {appointment.title ||
                       appointment.summary ||
-                      "Therapy Session"}
+                      tr("Therapy Session")}
                   </h5>
                 </div>
 
@@ -234,9 +229,7 @@ function AppointmentsList({
                     </div>
                   )}
                   {isToday(startDateTime) && (
-                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                      Today
-                    </span>
+                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">{tr("Today")}</span>
                   )}
                 </div>
               </div>
@@ -273,9 +266,7 @@ function AppointmentsList({
                       size="sm"
                       className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-1 text-xs px-3 py-1"
                     >
-                      <Video className="h-3 w-3" />
-                      Join
-                    </Button>
+                      <Video className="h-3 w-3" />{tr("Join")}</Button>
                   )}
                   <Button
                     onClick={() => handleReschedule(appointment.id || "")}
@@ -283,18 +274,14 @@ function AppointmentsList({
                     size="sm"
                     className="flex items-center gap-1 text-xs px-3 py-1"
                   >
-                    <Edit className="h-3 w-3" />
-                    Reschedule
-                  </Button>
+                    <Edit className="h-3 w-3" />{tr("Reschedule")}</Button>
                   <Button
                     onClick={() => handleCancelClick(appointment)}
                     variant="outline"
                     size="sm"
                     className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 text-xs px-3 py-1"
                   >
-                    <Trash2 className="h-3 w-3" />
-                    Cancel
-                  </Button>
+                    <Trash2 className="h-3 w-3" />{tr("Cancel")}</Button>
                 </div>
 
               </div>
@@ -304,16 +291,14 @@ function AppointmentsList({
       })}
       {appointments.length >= 10 && (
         <div className="text-center pt-2">
-          <p className="text-xs text-muted-foreground">
-            Showing next {appointments.length} appointments
-          </p>
+          <p className="text-xs text-muted-foreground">{tr("Showing next")} {appointments.length} {tr("appointments")}</p>
         </div>
       )}
 
       <CancelAppointmentModal
         open={cancelModalOpen}
         onOpenChange={setCancelModalOpen}
-        appointmentTitle={selectedAppointment?.title || selectedAppointment?.summary || "Therapy Session"}
+        appointmentTitle={selectedAppointment?.title || selectedAppointment?.summary || tr("Therapy Session")}
         appointmentDate={selectedAppointment ? formatAppointmentDate(getStartDateTime(selectedAppointment) || "") : ""}
         isRecurring={!!(selectedAppointment?.recurrence || selectedAppointment?.recurringEventId)}
         recurrenceDescription={selectedAppointment?.recurrence ? getRecurrenceDescription(selectedAppointment.recurrence) || undefined : undefined}

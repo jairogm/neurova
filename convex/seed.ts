@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 /**
@@ -6,7 +6,7 @@ import { v } from "convex/values";
  * payment methods, invoices) for the signed-in therapist, matching the
  * NEUROVA.dc.html design prototype. Dev-mode helper — run from /debug.
  */
-export const seedDemoData = mutation({
+export const seedDemoData = internalMutation({
   args: { force: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();

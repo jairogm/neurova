@@ -1,4 +1,6 @@
 "use client";
+import { useLocale } from "next-intl";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -22,15 +24,17 @@ import { toast } from "sonner";
 
 type DeleteTarget = { id: string; type: "patient" | "record"; label: string };
 
-function deletedLabel(value?: number) {
+function deletedLabel(locale: string, value?: number) {
   if (!value) return "today";
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(value).toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 const restoreClass = "rounded-lg border border-border bg-card px-[11px] py-[7px] text-[11.5px] font-bold text-primary transition-colors hover:border-primary hover:bg-primary/10";
 const deleteClass = "rounded-lg border border-[#d2574f] bg-[#f8e5e3] px-[11px] py-[7px] text-[11.5px] font-bold text-[#d2574f] transition-colors hover:bg-[#f3d3d0] dark:border-[#e0726a] dark:bg-[#3a1f1d] dark:text-[#e0726a]";
 
 export default function TrashPage() {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const trashData = useQuery(api.trash.listTrash);
   const restorePatient = useMutation(api.trash.restorePatient);
   const restoreRecord = useMutation(api.trash.restoreRecord);
@@ -49,10 +53,10 @@ export default function TrashPage() {
     try {
       if (type === "patient") await restorePatient({ id: id as Id<"patients"> });
       else await restoreRecord({ id: id as Id<"medical_history_notes"> });
-      toast.success(`${type === "patient" ? "Patient" : "Record"} restored`);
+      toast.success(`${type === "patient" ? tr("Patient") : tr("Record")} ${tr("restored")}`);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to restore item";
-      toast.error(message.includes("Cannot restore record") ? "Restore the patient before restoring this record." : message);
+      const message = error instanceof Error ? error.message : tr("Failed to restore item");
+      toast.error(message.includes("Cannot restore record") ? tr("Restore the patient before restoring this record.") : message);
     }
   };
 
@@ -61,9 +65,9 @@ export default function TrashPage() {
     try {
       if (target.type === "patient") await deletePatient({ id: target.id as Id<"patients"> });
       else await deleteRecord({ id: target.id as Id<"medical_history_notes"> });
-      toast.success(`${target.type === "patient" ? "Patient" : "Record"} permanently deleted`);
+      toast.success(`${target.type === "patient" ? tr("Patient") : tr("Record")} ${tr("permanently deleted")}`);
     } catch {
-      toast.error("Failed to delete item");
+      toast.error(tr("Failed to delete item"));
     } finally {
       setTarget(null);
     }
@@ -77,15 +81,15 @@ export default function TrashPage() {
       <div className="mb-[18px] flex items-center gap-[13px]">
         <span className="flex size-[42px] flex-none items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]"><Trash2 size={20} strokeWidth={1.9} /></span>
         <div>
-          <h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">Trash</h1>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">Deleted patients and records stay here before permanent removal.</p>
+          <h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">{tr("Trash")}</h1>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">{tr("Deleted patients and records stay here before permanent removal.")}</p>
         </div>
       </div>
 
       <div id="trash-tabs" className="grid items-start gap-[18px] lg:grid-cols-2">
         <section id="trash-table" className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-[18px] py-[15px]">
-            <h2 className="text-[15px] font-extrabold text-foreground">Patients</h2>
+            <h2 className="text-[15px] font-extrabold text-foreground">{tr("Patients")}</h2>
             <span className="font-mono text-xs text-muted-foreground">{trashData === undefined ? "—" : patients.length}</span>
           </div>
           {trashData === undefined ? (
@@ -95,17 +99,17 @@ export default function TrashPage() {
               <div className="flex size-9 flex-none items-center justify-center rounded-[11px] text-xs font-bold text-white" style={{ background: avatarColorFor(patient.avatar_color, index) }}>{initialsFor(patient.name)}</div>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13px] font-extrabold text-foreground">{patient.name}</div>
-                <div className="text-[11.5px] text-muted-foreground">Deleted {deletedLabel(patient.deleted_at)}</div>
+                <div className="text-[11.5px] text-muted-foreground">{tr("Deleted")} {deletedLabel(locale, patient.deleted_at)}</div>
               </div>
-              <button id={index === 0 ? "trash-restore-btn" : undefined} type="button" className={restoreClass} onClick={() => restore(patient._id, "patient")}>Restore</button>
-              <button id={index === 0 ? "trash-delete-btn" : undefined} type="button" className={deleteClass} onClick={() => setTarget({ id: patient._id, type: "patient", label: patient.name })}>Delete</button>
+              <button id={index === 0 ? "trash-restore-btn" : undefined} type="button" className={restoreClass} onClick={() => restore(patient._id, "patient")}>{tr("Restore")}</button>
+              <button id={index === 0 ? "trash-delete-btn" : undefined} type="button" className={deleteClass} onClick={() => setTarget({ id: patient._id, type: "patient", label: patient.name })}>{tr("Delete")}</button>
             </div>
-          )) : <div className="px-6 py-[34px] text-center text-[13px] text-muted-foreground">No deleted patients.</div>}
+          )) : <div className="px-6 py-[34px] text-center text-[13px] text-muted-foreground">{tr("No deleted patients.")}</div>}
         </section>
 
         <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-[18px] py-[15px]">
-            <h2 className="text-[15px] font-extrabold text-foreground">Records</h2>
+            <h2 className="text-[15px] font-extrabold text-foreground">{tr("Records")}</h2>
             <span className="font-mono text-xs text-muted-foreground">{trashData === undefined ? "—" : records.length}</span>
           </div>
           {trashData === undefined ? (
@@ -114,25 +118,25 @@ export default function TrashPage() {
             <div key={record._id} className="flex items-center gap-3 border-b border-border px-[18px] py-[13px] last:border-0">
               <div className="flex size-9 flex-none items-center justify-center rounded-[11px] bg-primary/10 text-[13px] font-extrabold text-primary">N</div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-extrabold text-foreground">{record.title || "Untitled record"}</div>
-                <div className="truncate text-[11.5px] text-muted-foreground">{record.patientName} · deleted {deletedLabel(record.deleted_at)}</div>
+                <div className="truncate text-[13px] font-extrabold text-foreground">{record.title || tr("Untitled record")}</div>
+                <div className="truncate text-[11.5px] text-muted-foreground">{record.patientName} {tr("· deleted")} {deletedLabel(locale, record.deleted_at)}</div>
               </div>
-              <button type="button" className={restoreClass} onClick={() => restore(record._id, "record")}>Restore</button>
-              <button type="button" className={deleteClass} onClick={() => setTarget({ id: record._id, type: "record", label: record.title || "this record" })}>Delete</button>
+              <button type="button" className={restoreClass} onClick={() => restore(record._id, "record")}>{tr("Restore")}</button>
+              <button type="button" className={deleteClass} onClick={() => setTarget({ id: record._id, type: "record", label: record.title || tr("this record") })}>{tr("Delete")}</button>
             </div>
-          )) : <div className="px-6 py-[34px] text-center text-[13px] text-muted-foreground">No deleted records.</div>}
+          )) : <div className="px-6 py-[34px] text-center text-[13px] text-muted-foreground">{tr("No deleted records.")}</div>}
         </section>
       </div>
 
       <AlertDialog open={Boolean(target)} onOpenChange={(open) => { if (!open) setTarget(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2 text-foreground"><span className="flex size-9 items-center justify-center rounded-[10px] bg-[#f8e5e3] text-[#d2574f]"><AlertTriangle size={17} /></span>Delete forever?</AlertDialogTitle>
-            <AlertDialogDescription>{target?.label} will be permanently removed. This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle className="flex items-center gap-2 text-foreground"><span className="flex size-9 items-center justify-center rounded-[10px] bg-[#f8e5e3] text-[#d2574f]"><AlertTriangle size={17} /></span>{tr("Delete forever?")}</AlertDialogTitle>
+            <AlertDialogDescription>{target?.label} {tr("will be permanently removed. This action cannot be undone.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={permanentlyDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">Delete forever</AlertDialogAction>
+            <AlertDialogCancel>{tr("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={permanentlyDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">{tr("Delete forever")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

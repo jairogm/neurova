@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "NEUROVA | A calmer command center for your practice",
   description:
-    "Practice management for mental-health clinicians: scheduling, patients, notes, payments, and clinician-reviewed AI assistance.",
+    "Practice management for mental-health clinicians: scheduling, patients, notes, payments, and clinical records.",
 };
 
 export default async function Home() {

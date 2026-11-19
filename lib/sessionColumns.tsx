@@ -1,11 +1,11 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { useState } from "react";
 
 import {
@@ -19,12 +19,13 @@ import { Session, PaymentStatus } from "./types";
 
 // Payment status cell component
 function PaymentStatusCell({ session }: { session: Session }) {
+  const tr = useWorkspaceText();
   const [isUpdating, setIsUpdating] = useState(false);
   const updatePayment = useMutation(api.sessions.updatePayment);
 
   const handleStatusChange = async (status: PaymentStatus) => {
     if (!session.id) {
-      toast.error("Session ID is missing");
+      toast.error(tr("Session ID is missing"));
       return;
     }
 
@@ -34,10 +35,10 @@ function PaymentStatusCell({ session }: { session: Session }) {
         id: session.id,
         payment_status: status,
       });
-      toast.success("Payment status updated");
+      toast.success(tr("Payment status updated"));
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to update payment: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to update payment: ") + message);
     } finally {
       setIsUpdating(false);
     }
@@ -70,34 +71,27 @@ function PaymentStatusCell({ session }: { session: Session }) {
       <SelectContent>
         <SelectItem value="pending">
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            Pending
-          </span>
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>{tr("Pending")}</span>
         </SelectItem>
         <SelectItem value="paid">
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            Paid
-          </span>
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>{tr("Paid")}</span>
         </SelectItem>
         <SelectItem value="partially_paid">
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            Partially Paid
-          </span>
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>{tr("Partially Paid")}</span>
         </SelectItem>
         <SelectItem value="refunded">
           <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-500"></span>
-            Refunded
-          </span>
+            <span className="w-2 h-2 rounded-full bg-red-500"></span>{tr("Refunded")}</span>
         </SelectItem>
       </SelectContent>
     </Select>
   );
 }
 
-export const sessionColumns: ColumnDef<Session>[] = [
+export function getSessionColumns(tr: (s: string) => string, locale: string): ColumnDef<Session>[] {
+  return [
   {
     accessorKey: "scheduled_date",
     header: ({ column }) => {
@@ -107,7 +101,7 @@ export const sessionColumns: ColumnDef<Session>[] = [
           className="flex items-center gap-1.5 uppercase"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Date & Time
+          {tr("Date & Time")}
           <ArrowUpDown size={12} />
         </button>
       );
@@ -118,20 +112,20 @@ export const sessionColumns: ColumnDef<Session>[] = [
 
       // Check if date is valid
       if (isNaN(date.getTime())) {
-        return <span className="text-muted-foreground">Invalid date</span>;
+        return <span className="text-muted-foreground">{tr("Invalid date")}</span>;
       }
 
       return (
         <div className="flex flex-col font-mono">
-          <span className="font-semibold text-foreground">{format(date, "MMM dd, yyyy")}</span>
-          <span className="text-[11px] text-muted-foreground">{format(date, "hh:mm a")}</span>
+          <span className="font-semibold text-foreground">{date.toLocaleDateString(locale, {month:"short", day:"numeric", year:"numeric"})}</span>
+          <span className="text-[11px] text-muted-foreground">{date.toLocaleTimeString(locale, {hour:"numeric", minute:"2-digit"})}</span>
         </div>
       );
     },
   },
   {
     accessorKey: "duration",
-    header: "Duration",
+    header: tr("Duration"),
     cell: ({ row }) => {
       const duration = row.getValue("duration") as number;
       return <span className="font-mono text-foreground/80">{duration} min</span>;
@@ -139,7 +133,8 @@ export const sessionColumns: ColumnDef<Session>[] = [
   },
   {
     accessorKey: "payment_status",
-    header: "Payment",
+    header: tr("Payment"),
     cell: ({ row }) => <PaymentStatusCell session={row.original} />,
   },
 ];
+}

@@ -1,4 +1,6 @@
 "use client";
+import { useLocale } from "next-intl";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -17,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTutorial } from "@/hooks/useTutorial";
-import { columns } from "@/lib/columns";
+import { getColumns } from "@/lib/columns";
 import { avatarColorFor, initialsFor, statusToneFor } from "@/lib/nv";
 import type { Patient } from "@/lib/types";
 import { useMutation, useQuery } from "convex/react";
@@ -29,16 +31,18 @@ import { toast } from "sonner";
 const filters = ["all", "active", "intake", "paused", "discharged"] as const;
 type Filter = typeof filters[number];
 
-function shortDate(value?: string) {
+function shortDate(locale: string, value?: string) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
   const today = new Date();
-  if (date.toDateString() === today.toDateString()) return `Today ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  if (date.toDateString() === today.toDateString()) return `${locale === "es" ? "Hoy" : "Today"} ${date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 function PatientsContent() {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const router = useRouter();
   const searchParams = useSearchParams();
   const data = useQuery(api.patients.list);
@@ -87,9 +91,9 @@ function PatientsContent() {
     if (!deleteTarget?._id) return;
     try {
       await softDeletePatient({ id: deleteTarget._id as Id<"patients"> });
-      toast.success("Patient moved to trash");
+      toast.success(tr("Patient moved to trash"));
     } catch {
-      toast.error("Failed to delete patient");
+      toast.error(tr("Failed to delete patient"));
     } finally {
       setDeleteTarget(null);
     }
@@ -99,18 +103,18 @@ function PatientsContent() {
     <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-5 sm:py-[22px] wide:px-[30px] wide:py-[26px]">
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div id="patients-search" className="relative min-w-[240px] max-w-[380px] flex-1">
-          <label htmlFor="patients-search-input" className="sr-only">Search patients</label>
+          <label htmlFor="patients-search-input" className="sr-only">{tr("Search patients")}</label>
           <Search size={16} strokeWidth={2} className="absolute left-[13px] top-1/2 -translate-y-1/2 text-[var(--nv-faint)]" />
-          <Input id="patients-search-input" type="search" placeholder="Search by name, focus, email…" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-[42px] rounded-[11px] pl-[38px] text-[13.5px]" />
+          <Input id="patients-search-input" type="search" placeholder={tr("Search by name, focus, email…")} value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className="h-[42px] rounded-[11px] pl-[38px] text-[13.5px]" />
         </div>
 
         <div id="patients-view-toggle" className="ml-auto flex items-center rounded-[10px] border border-border bg-secondary p-[3px]">
-          <button type="button" onClick={() => setView("table")} aria-label="Table view" className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "table" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><List size={16} /></button>
-          <button type="button" onClick={() => setView("cards")} aria-label="Card view" className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "cards" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><LayoutGrid size={16} /></button>
+          <button type="button" onClick={() => setView("table")} aria-label={tr("Table view")} className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "table" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><List size={16} /></button>
+          <button type="button" onClick={() => setView("cards")} aria-label={tr("Card view")} className={`flex h-[30px] w-8 items-center justify-center rounded-[7px] ${view === "cards" ? "bg-card text-primary shadow-sm" : "text-muted-foreground"}`}><LayoutGrid size={16} /></button>
         </div>
 
-        {tutorialCompleted && <Button variant="ghost" size="icon" onClick={replayTutorial} aria-label="Replay tutorial" className="size-10 text-muted-foreground"><HelpCircle size={16} /></Button>}
-        <Button id="add-patient-btn" onClick={() => setAddOpen(true)} className="h-[42px] rounded-[11px] px-[15px]"><Plus size={15} strokeWidth={2.4} />Add patient</Button>
+        {tutorialCompleted && <Button variant="ghost" size="icon" onClick={replayTutorial} aria-label={tr("Replay tutorial")} className="size-10 text-muted-foreground"><HelpCircle size={16} /></Button>}
+        <Button id="add-patient-btn" onClick={() => setAddOpen(true)} className="h-[42px] rounded-[11px] px-[15px]"><Plus size={15} strokeWidth={2.4} />{tr("Add patient")}</Button>
       </div>
 
       <div id="patients-filters" className="mb-4 flex flex-wrap gap-2">
@@ -118,7 +122,7 @@ function PatientsContent() {
           const active = filter === item;
           return (
             <button key={item} type="button" onClick={() => setFilter(item)} className={`flex items-center gap-2 rounded-full border px-[13px] py-[7px] text-[12.5px] font-bold capitalize transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground/80 hover:border-primary/50"}`}>
-              {item} <span className="font-mono text-[11px] opacity-70">{counts[item]}</span>
+              {tr(item.charAt(0).toUpperCase() + item.slice(1))} <span className="font-mono text-[11px] opacity-70">{counts[item]}</span>
             </button>
           );
         })}
@@ -126,7 +130,7 @@ function PatientsContent() {
 
       <div id="patients-table">
         {view === "table" ? (
-          <DataTable columns={columns} data={filteredData} loading={data === undefined} onRowClick={(patient) => router.push(`/patients/${(patient as Patient).id}`)} />
+          <DataTable columns={getColumns(tr, locale)} data={filteredData} loading={data === undefined} onRowClick={(patient) => router.push(`/patients/${(patient as Patient).id}`)} />
         ) : data === undefined ? (
           <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">{Array.from({ length: 6 }).map((_, index) => <div key={index} className="h-48 animate-pulse rounded-2xl border border-border bg-card" />)}</div>
         ) : filteredData.length ? (
@@ -138,11 +142,11 @@ function PatientsContent() {
                   <div className="mb-[13px] flex items-center justify-between">
                     <div className="flex size-11 items-center justify-center rounded-[13px] text-[15px] font-bold text-white" style={{ background: avatarColorFor(patient.avatar_color, index) }}>{initialsFor(patient.name)}</div>
                     <div className="flex items-center gap-[7px]">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tone.label}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tr(tone.label)}</span>
                       <button
                         type="button"
-                        aria-label={`Delete ${patient.name}`}
-                        title="Delete patient"
+                        aria-label={`${tr("Delete")} ${patient.name}`}
+                        title={tr("Delete patient")}
                         onClick={(event) => { event.stopPropagation(); setDeleteTarget(patient as Patient); }}
                         className="flex size-7 items-center justify-center rounded-lg border border-border bg-card text-[var(--nv-faint)] transition-colors hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]"
                       >
@@ -151,17 +155,17 @@ function PatientsContent() {
                     </div>
                   </div>
                   <div className="text-[15px] font-extrabold text-foreground">{patient.name}</div>
-                  <div className="mb-3.5 truncate text-[12.5px] text-muted-foreground">{patient.focus || patient.email || "General care"}</div>
+                  <div className="mb-3.5 truncate text-[12.5px] text-muted-foreground">{patient.focus || patient.email || tr("General care")}</div>
                   <div className="flex justify-between border-t border-border pt-[13px] text-[11.5px]">
-                    <div><div className="text-[var(--nv-faint)]">Next</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{shortDate(patient.next_session)}</div></div>
-                    <div className="text-right"><div className="text-[var(--nv-faint)]">Sessions</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{patient.session_count || 0}</div></div>
+                    <div><div className="text-[var(--nv-faint)]">{tr("Next")}</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{shortDate(locale, patient.next_session)}</div></div>
+                    <div className="text-right"><div className="text-[var(--nv-faint)]">{tr("Sessions")}</div><div className="mt-0.5 font-mono font-semibold text-foreground/80">{patient.session_count || 0}</div></div>
                   </div>
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center text-sm text-muted-foreground shadow-sm">No patients match your filters.</div>
+          <div className="rounded-2xl border border-border bg-card px-6 py-14 text-center text-sm text-muted-foreground shadow-sm">{tr("No patients match your filters.")}</div>
         )}
       </div>
 
@@ -171,14 +175,12 @@ function PatientsContent() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-3">
-              <span className="flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]"><AlertTriangle size={20} strokeWidth={2} /></span>
-              Move to trash?
-            </AlertDialogTitle>
-            <AlertDialogDescription>Delete {deleteTarget?.name}? This moves the patient to Trash.</AlertDialogDescription>
+              <span className="flex size-[42px] items-center justify-center rounded-[13px] bg-[#f8e5e3] text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]"><AlertTriangle size={20} strokeWidth={2} /></span>{tr("Move to trash?")}</AlertDialogTitle>
+            <AlertDialogDescription>{tr("Delete")} {deleteTarget?.name}{tr("? This moves the patient to Trash.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">Move to trash</AlertDialogAction>
+            <AlertDialogCancel>{tr("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">{tr("Move to trash")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -26,15 +27,15 @@ import { toast } from "sonner";
 
 import { avatarColorFor, initialsFor, statusToneFor } from "@/lib/nv";
 
-function formatShortDate(value?: string, fallback = "—") {
+function formatShortDate(locale: string, value?: string, fallback = "—") {
   if (!value) return fallback;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return fallback;
   const today = new Date();
   if (date.toDateString() === today.toDateString()) {
-    return `Today ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    return `${locale === "es" ? "Hoy" : "Today"} ${date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
   }
-  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  return date.toLocaleDateString(locale, { month: "short", day: "numeric" });
 }
 
 function formatCurrency(value = 0) {
@@ -42,6 +43,7 @@ function formatCurrency(value = 0) {
 }
 
 function ActionsCell({ patient }: { patient: Patient }) {
+  const tr = useWorkspaceText();
   const router = useRouter();
   const softDeletePatient = useMutation(api.trash.softDeletePatient);
   const [editOpen, setEditOpen] = useState(false);
@@ -50,15 +52,15 @@ function ActionsCell({ patient }: { patient: Patient }) {
 
   const confirmDelete = async () => {
     if (!patient._id) {
-      toast.error("Patient record is missing its database ID");
+      toast.error(tr("Patient record is missing its database ID"));
       return;
     }
     try {
       await softDeletePatient({ id: patient._id as Id<"patients">, cascade: deleteRecords });
-      toast.success("Patient moved to trash");
+      toast.success(tr("Patient moved to trash"));
     } catch (error) {
       console.error(error);
-      toast.error("Failed to delete patient");
+      toast.error(tr("Failed to delete patient"));
     } finally {
       setDeleteOpen(false);
     }
@@ -69,13 +71,13 @@ function ActionsCell({ patient }: { patient: Patient }) {
   return (
     <>
       <div className="flex justify-end gap-1.5" onClick={(event) => event.stopPropagation()}>
-        <Button id="action-records" variant="outline" size="icon" className={actionClass} onClick={() => router.push(`/patients/${patient.id}?tab=notes`)} title="Open notes and records">
+        <Button id="action-records" variant="outline" size="icon" className={actionClass} onClick={() => router.push(`/patients/${patient.id}?tab=notes`)} title={tr("Open notes and records")}>
           <FolderOpen size={14} strokeWidth={2} />
         </Button>
-        <Button id="action-edit" variant="outline" size="icon" className={actionClass} onClick={() => setEditOpen(true)} title="Edit patient">
+        <Button id="action-edit" variant="outline" size="icon" className={actionClass} onClick={() => setEditOpen(true)} title={tr("Edit patient")}>
           <Pencil size={14} strokeWidth={2} />
         </Button>
-        <Button id="action-delete" variant="outline" size="icon" className={`${actionClass} hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]`} onClick={() => setDeleteOpen(true)} title="Delete patient">
+        <Button id="action-delete" variant="outline" size="icon" className={`${actionClass} hover:border-[#d2574f] hover:bg-[#f8e5e3] hover:text-[#d2574f]`} onClick={() => setDeleteOpen(true)} title={tr("Delete patient")}>
           <Trash2 size={14} strokeWidth={2} />
         </Button>
       </div>
@@ -90,18 +92,17 @@ function ActionsCell({ patient }: { patient: Patient }) {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent onClick={(event) => event.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Move to trash?</AlertDialogTitle>
+            <AlertDialogTitle>{tr("Move to trash?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {patient.name} will remain recoverable for 30 days.
-            </AlertDialogDescription>
+              {patient.name} {tr("will remain recoverable for 30 days.")}</AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex items-center gap-2 rounded-[10px] bg-secondary p-3">
             <Checkbox id={`cascade-${patient.id}`} checked={deleteRecords} onCheckedChange={(checked) => setDeleteRecords(Boolean(checked))} />
-            <Label htmlFor={`cascade-${patient.id}`} className="text-[12.5px]">Also move associated medical records</Label>
+            <Label htmlFor={`cascade-${patient.id}`} className="text-[12.5px]">{tr("Also move associated medical records")}</Label>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">Move to trash</AlertDialogAction>
+            <AlertDialogCancel>{tr("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-[#d2574f] text-white hover:bg-[#b94741]">{tr("Move to trash")}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -109,12 +110,13 @@ function ActionsCell({ patient }: { patient: Patient }) {
   );
 }
 
-export const columns: ColumnDef<Patient>[] = [
+export function getColumns(tr: (s: string) => string, locale: string): ColumnDef<Patient>[] {
+  return [
   {
     accessorKey: "name",
     header: ({ column }) => (
       <button type="button" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")} className="flex items-center gap-1.5 uppercase">
-        Patient <ArrowUpDown size={12} />
+        {tr("Patient")} <ArrowUpDown size={12} />
       </button>
     ),
     cell: ({ row }) => {
@@ -126,7 +128,7 @@ export const columns: ColumnDef<Patient>[] = [
           </div>
           <div className="min-w-0">
             <div className="truncate text-[13.5px] font-bold text-foreground">{patient.name}</div>
-            <div className="max-w-[210px] truncate text-[11.5px] text-muted-foreground">{patient.focus || patient.email || "General care"}</div>
+            <div className="max-w-[210px] truncate text-[11.5px] text-muted-foreground">{patient.focus || patient.email || tr("General care")}</div>
           </div>
         </div>
       );
@@ -134,30 +136,30 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: tr("Status"),
     cell: ({ row }) => {
       const tone = statusToneFor(row.original.status);
-      return <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tone.label}</span>;
+      return <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${tone.className}`}>{tr(tone.label)}</span>;
     },
   },
   {
     accessorKey: "next_session",
-    header: "Next session",
-    cell: ({ row }) => <span className="font-mono text-[12.5px] text-foreground/80">{formatShortDate(row.original.next_session)}</span>,
+    header: tr("Next session"),
+    cell: ({ row }) => <span className="font-mono text-[12.5px] text-foreground/80">{formatShortDate(locale, row.original.next_session)}</span>,
   },
   {
     accessorKey: "last_seen",
-    header: "Last seen",
-    cell: ({ row }) => <span className="font-mono text-[12.5px] text-muted-foreground">{formatShortDate(row.original.last_seen)}</span>,
+    header: tr("Last seen"),
+    cell: ({ row }) => <span className="font-mono text-[12.5px] text-muted-foreground">{formatShortDate(locale, row.original.last_seen)}</span>,
   },
   {
     accessorKey: "session_count",
-    header: "Sessions",
+    header: tr("Sessions"),
     cell: ({ row }) => <span className="font-mono text-[13px] text-foreground/80">{row.original.session_count || 0}</span>,
   },
   {
     accessorKey: "outstanding_balance",
-    header: () => <div className="text-right">Balance</div>,
+    header: () => <div className="text-right">{tr("Balance")}</div>,
     cell: ({ row }) => {
       const state = row.original.balance_state || ((row.original.outstanding_balance || 0) > 0 ? "pending" : "ok");
       const colorClass = state === "overdue"
@@ -170,7 +172,8 @@ export const columns: ColumnDef<Patient>[] = [
   },
   {
     id: "actions",
-    header: () => <div className="text-right">Actions</div>,
+    header: () => <div className="text-right">{tr("Actions")}</div>,
     cell: ({ row }) => <ActionsCell patient={row.original} />,
   },
 ];
+}

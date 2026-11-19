@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
@@ -12,6 +14,8 @@ export function SessionList({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSelectSession: (session: any) => void; // pass full session object
 }) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const hasSessions = Object.keys(sessionsByMonth).length > 0;
 
   if (!hasSessions) {
@@ -19,15 +23,13 @@ export function SessionList({
       <div className="flex flex-col items-center justify-center h-full w-72 text-center text-muted-foreground p-4 border rounded-md bg-muted/20">
         <Image
           src="/assets/empty-sessions.svg" // optional illustration
-          alt="No sessions"
+          alt={tr("No sessions")}
           width={80}
           height={80}
           className="mb-3 opacity-60"
         />
-        <p className="font-medium text-sm">No sessions found</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Any sessions you create for this patient will appear here.
-        </p>
+        <p className="font-medium text-sm">{tr("No sessions found")}</p>
+        <p className="text-xs text-muted-foreground mt-1">{tr("Any sessions you create for this patient will appear here.")}</p>
       </div>
     );
   }
@@ -42,10 +44,10 @@ export function SessionList({
           {sessions.map((session) => {
             const date = new Date(session.date);
             const day = date
-              .toLocaleDateString("en-CO", { weekday: "short" })
+              .toLocaleDateString(locale, { weekday: "short" })
               .toUpperCase();
             const dayNum = date.getDate();
-            const time = date.toLocaleTimeString("en-CO", {
+            const time = date.toLocaleTimeString(locale, {
               hour: "numeric",
               minute: "2-digit",
               hour12: true,
@@ -69,14 +71,14 @@ export function SessionList({
                     {session.title}
                   </h4>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {session.description || session.content?.blocks?.[0]?.data?.text?.slice(0, 100) || "No content preview"}
+                    {session.description || session.content?.blocks?.[0]?.data?.text?.slice(0, 100) || tr("No content preview")}
                   </p>
                   <span className="text-[11px] text-primary mt-1 font-bold">{time}</span>
                 </div>
                 {session.thumbnail && (
                   <Image
                     src={session.thumbnail}
-                    alt="session image"
+                    alt={tr("session image")}
                     width={64}
                     height={64}
                     className="rounded-md shrink-0"

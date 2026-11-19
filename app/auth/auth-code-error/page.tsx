@@ -1,3 +1,5 @@
+import { getLocale } from "next-intl/server";
+import { workspaceText } from "@/i18n/workspace";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +9,7 @@ export default async function AuthCodeError({
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
+  const tr = workspaceText(await getLocale());
   const params = await searchParams;
   const errorMessage = params.error;
 
@@ -15,27 +18,21 @@ export default async function AuthCodeError({
       <div className="w-full max-w-sm">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Authentication Error</CardTitle>
-            <CardDescription>
-              There was an error during the authentication process.
-            </CardDescription>
+            <CardTitle className="text-2xl">{tr("Authentication Error")}</CardTitle>
+            <CardDescription>{tr("There was an error during the authentication process.")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">
-                The authentication process could not be completed. Please try signing in again.
-              </p>
+              <p className="text-sm text-muted-foreground">{tr("The authentication process could not be completed. Please try signing in again.")}</p>
               {errorMessage && (
                 <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                   <p className="text-sm text-red-800">
-                    <strong>Error:</strong> {decodeURIComponent(errorMessage)}
+                    <strong>{tr("Error:")}</strong> {decodeURIComponent(errorMessage)}
                   </p>
                 </div>
               )}
               <Button asChild>
-                <Link href="/auth/login">
-                  Try Again
-                </Link>
+                <Link href="/auth/login">{tr("Try Again")}</Link>
               </Button>
             </div>
           </CardContent>

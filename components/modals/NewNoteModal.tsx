@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import {
@@ -24,6 +25,7 @@ interface NewNoteModalProps {
 }
 
 export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteModalProps) {
+  const tr = useWorkspaceText();
   const router = useRouter();
   const patients = useQuery(api.patients.list) || [];
   const createNote = useMutation(api.medical_history_notes.create);
@@ -45,7 +47,7 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
     let cancelled = false;
     createEditor({
       holder: "new-note-editor",
-      placeholder: "Write the session note… Type / for blocks",
+      placeholder: tr("Write the session note… Type / for blocks"),
       minHeight: 180,
     })
       .then((editor) => {
@@ -55,7 +57,7 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
         }
         editorRef.current = editor;
       })
-      .catch(() => toast.error("Failed to load the editor"));
+      .catch(() => toast.error(tr("Failed to load the editor")));
     return () => {
       cancelled = true;
       destroyEditor(editorRef.current);
@@ -68,7 +70,7 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
 
   const save = async () => {
     if (!selected?.id) {
-      toast.error("Please select a patient");
+      toast.error(tr("Please select a patient"));
       return;
     }
     setSaving(true);
@@ -77,16 +79,16 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
       const text = output ? editorPlainText(output).trim() : "";
       await createNote({
         patient_id: selected.id,
-        title: title.trim() || "Untitled note",
-        description: text.slice(0, 120) || "New clinical note created from the records workspace.",
+        title: title.trim() || tr("Untitled note"),
+        description: text.slice(0, 120) || tr("New clinical note created from the records workspace."),
         date: dateISO || new Date().toISOString().slice(0, 10),
         content: output ?? "",
       });
-      toast.success("Note saved");
+      toast.success(tr("Note saved"));
       onOpenChange(false);
       router.push(`/patients/${selected.id}?tab=notes`);
     } catch {
-      toast.error("Failed to save note");
+      toast.error(tr("Failed to save note"));
     } finally {
       setSaving(false);
     }
@@ -96,23 +98,23 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[760px] max-w-[94vw] gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-[22px] py-5 pr-12 text-left">
-          <DialogTitle className="text-[17px] font-extrabold text-foreground">New note</DialogTitle>
-          <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">Select the patient, then write the clinical record.</DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold text-foreground">{tr("New note")}</DialogTitle>
+          <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">{tr("Select the patient, then write the clinical record.")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 p-[22px]">
           <div className="grid gap-[13px] sm:grid-cols-[1.35fr_.65fr]">
             <div>
-              <label className="mb-[7px] block text-xs font-bold text-foreground/80" htmlFor="note-patient">Patient</label>
-              <div className="relative flex items-center gap-[11px] overflow-hidden rounded-[11px] border border-border bg-secondary px-[13px] py-[11px] transition-colors hover:border-primary">
+              <label className="mb-[7px] block text-xs font-bold text-foreground/80" htmlFor="note-patient">{tr("Patient")}</label>
+              <div className="relative flex h-14 items-center gap-[11px] overflow-hidden rounded-[11px] border border-border bg-secondary px-[13px] transition-colors hover:border-primary">
                 <div className="flex size-8 flex-none items-center justify-center rounded-[9px] text-xs font-bold text-white" style={{ background: avatarColorFor(selected?.avatar_color, selectedIndex) }}>
                   {selected ? initialsFor(selected.name) : "—"}
                 </div>
-                <span className="text-[13.5px] font-bold text-foreground">{selected?.name ?? "Select a patient"}</span>
+                <span className="min-w-0 truncate text-[13.5px] font-bold text-foreground">{selected?.name ?? tr("Select a patient")}</span>
                 <ChevronDown size={16} strokeWidth={2} className="ml-auto flex-none text-[var(--nv-faint)]" />
                 <select
                   id="note-patient"
-                  aria-label="Patient"
+                  aria-label={tr("Patient")}
                   value={selected?.id ?? ""}
                   onChange={(event) => setPatientId(event.target.value)}
                   className="absolute inset-0 size-full cursor-pointer opacity-0"
@@ -124,13 +126,13 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
               </div>
             </div>
             <div>
-              <label className="mb-[7px] block text-xs font-bold text-foreground/80" htmlFor="note-date">Date</label>
+              <label className="mb-[7px] block text-xs font-bold text-foreground/80" htmlFor="note-date">{tr("Date")}</label>
               <input
                 id="note-date"
                 type="date"
                 value={dateISO}
                 onChange={(event) => setDateISO(event.target.value)}
-                className="w-full rounded-[10px] border border-border bg-secondary px-3 py-2.5 font-mono text-[13px] text-foreground outline-none focus:border-primary"
+                className="h-14 w-full min-w-0 rounded-[11px] border border-border bg-secondary px-3 font-mono text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -140,14 +142,14 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
           <div className="rounded-2xl border border-border bg-card">
             <div className="flex items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
               <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
-              <span className="text-[11.5px] text-muted-foreground">for blocks · select text to format</span>
-              <span className="ml-auto text-[11.5px] text-muted-foreground">Draft</span>
+              <span className="text-[11.5px] text-muted-foreground">{tr("for blocks · select text to format")}</span>
+              <span className="ml-auto text-[11.5px] text-muted-foreground">{tr("Draft")}</span>
             </div>
             <div className="px-[22px] py-5">
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Note title"
+                placeholder={tr("Note title")}
                 className="mb-3 w-full border-0 bg-transparent text-[21px] font-extrabold tracking-[-.01em] text-foreground outline-none placeholder:text-muted-foreground"
               />
               <div id="new-note-editor" className="nv-editor min-h-[210px] text-sm leading-[1.65] text-foreground/80" />
@@ -156,12 +158,9 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
         </div>
 
         <div className="flex justify-end gap-2.5 px-[22px] pb-[22px]">
-          <button type="button" onClick={() => onOpenChange(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">
-            Cancel
-          </button>
+          <button type="button" onClick={() => onOpenChange(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">{tr("Cancel")}</button>
           <button type="button" onClick={save} disabled={saving} className="flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2.5 text-[13px] font-bold text-primary-foreground shadow-[0_4px_14px_-4px_rgba(11,90,95,.4)] transition-colors hover:bg-[#0b7693] disabled:opacity-60">
-            {saving && <Loader2 size={14} className="animate-spin" />}Save note
-          </button>
+            {saving && <Loader2 size={14} className="animate-spin" />}{tr("Save note")}</button>
         </div>
       </DialogContent>
     </Dialog>

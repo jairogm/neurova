@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useState, useEffect } from "react";
 import { useMutation } from "convex/react";
@@ -35,6 +36,7 @@ export function UpdatePaymentModal({
   open,
   onOpenChange,
 }: UpdatePaymentModalProps) {
+  const tr = useWorkspaceText();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>("pending");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,7 +53,7 @@ export function UpdatePaymentModal({
     e.preventDefault();
 
     if (!session.id) {
-      toast.error("Session ID is missing");
+      toast.error(tr("Session ID is missing"));
       return;
     }
 
@@ -62,11 +64,11 @@ export function UpdatePaymentModal({
         payment_status: paymentStatus,
       });
 
-      toast.success("Payment updated successfully");
+      toast.success(tr("Payment updated successfully"));
       onOpenChange(false);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to update payment: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to update payment: ") + message);
     } finally {
       setIsSubmitting(false);
     }
@@ -76,25 +78,23 @@ export function UpdatePaymentModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="text-[17px] font-extrabold">Update payment</DialogTitle>
-          <DialogDescription>
-            Update payment status for this session
-          </DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold">{tr("Update payment")}</DialogTitle>
+          <DialogDescription>{tr("Update payment status for this session")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* Payment Status */}
           <div className="space-y-2">
-            <Label>Payment Status *</Label>
+            <Label>{tr("Payment Status *")}</Label>
             <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as PaymentStatus)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="partially_paid">Partially Paid</SelectItem>
-                <SelectItem value="refunded">Refunded</SelectItem>
+                <SelectItem value="pending">{tr("Pending")}</SelectItem>
+                <SelectItem value="paid">{tr("Paid")}</SelectItem>
+                <SelectItem value="partially_paid">{tr("Partially Paid")}</SelectItem>
+                <SelectItem value="refunded">{tr("Refunded")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -104,11 +104,9 @@ export function UpdatePaymentModal({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
+            >{tr("Cancel")}</Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Updating..." : "Update Payment"}
+              {isSubmitting ? tr("Updating...") : tr("Update Payment")}
             </Button>
           </DialogFooter>
         </form>

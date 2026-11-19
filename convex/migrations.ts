@@ -1,7 +1,7 @@
-import { mutation } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-export const importPatients = mutation({
+export const importPatients = internalMutation({
   args: {
     data: v.array(v.any()), // Accepting any temporarily, but adhering to schema structure in logic
   },
@@ -20,7 +20,7 @@ export const importPatients = mutation({
   },
 });
 
-export const importTherapists = mutation({
+export const importTherapists = internalMutation({
   args: {
     data: v.array(v.any()),
   },
@@ -39,7 +39,7 @@ export const importTherapists = mutation({
   },
 });
 
-export const importSessions = mutation({
+export const importSessions = internalMutation({
   args: {
     data: v.array(v.any()),
   },
@@ -58,7 +58,7 @@ export const importSessions = mutation({
   },
 });
 
-export const importNotes = mutation({
+export const importNotes = internalMutation({
   args: {
     data: v.array(v.any()),
   },
@@ -77,7 +77,7 @@ export const importNotes = mutation({
   },
 });
 
-export const importTherapistPatients = mutation({
+export const importTherapistPatients = internalMutation({
   args: {
     data: v.array(v.any()),
   },
