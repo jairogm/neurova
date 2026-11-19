@@ -8,7 +8,7 @@ type Write = () => Promise<unknown>;
 // Keep writes ordered across note changes. Failed writes stay at the front
 // until the clinician retries, preserving the order of subsequent edits.
 export function useNoteSaveQueue() {
-  const queue = useRef<Write[]>([]);
+  const queue = useRef<{ key: string; write: Write }[]>([]);
   const running = useRef<Promise<boolean> | null>(null);
   const [state, setState] = useState<"saved" | "saving" | "failed">("saved");
   const flush = useCallback(function drain(): Promise<boolean> {
@@ -18,7 +18,7 @@ export function useNoteSaveQueue() {
     running.current = Promise.resolve().then(async () => {
       try {
         while (queue.current.length) {
-          await queue.current[0]();
+          await queue.current[0].write();
           queue.current.shift();
         }
         setState("saved");
@@ -33,8 +33,12 @@ export function useNoteSaveQueue() {
     });
     return running.current;
   }, []);
-  const enqueue = useCallback((write: Write) => {
-    queue.current.push(write);
+  const enqueue = useCallback((key: string, write: Write) => {
+    // While one snapshot saves, keep just the latest pending snapshot of
+    // each field on each record. Never replace the write already in flight.
+    const pending = queue.current.find((item, index) => index > 0 && item.key === key);
+    if (pending) pending.write = write;
+    else queue.current.push({ key, write });
     void flush();
   }, [flush]);
 

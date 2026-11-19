@@ -525,7 +525,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     function capture() {
       if (!editor || cancelled) return;
       const snapshot = editor.save();
-      enqueue(async () => {
+      enqueue(noteKey + ":content", async () => {
         const output = await snapshot;
         const serialized = JSON.stringify(output.blocks);
         if (serialized === lastSnapshot) return;
@@ -568,7 +568,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
   const scheduleSave = (next: { title?: string; dateISO?: string }) => {
     if (!active) return;
     const id = String(active.id ?? active._id);
-    enqueue(() => updateNote({ id, ...(next.title !== undefined ? { title: next.title || "Untitled note" } : {}), ...(next.dateISO !== undefined ? { date: next.dateISO } : {}) }));
+    enqueue(id + (next.title !== undefined ? ":title" : ":date"), () => updateNote({ id, ...(next.title !== undefined ? { title: next.title || "Untitled note" } : {}), ...(next.dateISO !== undefined ? { date: next.dateISO } : {}) }));
   };
 
   const addNote = async () => {
@@ -624,6 +624,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       setAiDraft(data.draft);
       setAiState("ready");
     } catch (error) {
+      if (editorRef.current !== editor) return;
       toast.error(error instanceof Error ? error.message : "AI summary failed");
       setAiState("idle");
     }
