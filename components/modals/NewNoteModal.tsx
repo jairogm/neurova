@@ -106,11 +106,11 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
           <div className="grid gap-[13px] sm:grid-cols-[1.35fr_.65fr]">
             <div>
               <label className="mb-[7px] block text-xs font-bold text-foreground/80" htmlFor="note-patient">{tr("Patient")}</label>
-              <div className="relative flex items-center gap-[11px] overflow-hidden rounded-[11px] border border-border bg-secondary px-[13px] py-[11px] transition-colors hover:border-primary">
+              <div className="relative flex h-14 items-center gap-[11px] overflow-hidden rounded-[11px] border border-border bg-secondary px-[13px] transition-colors hover:border-primary">
                 <div className="flex size-8 flex-none items-center justify-center rounded-[9px] text-xs font-bold text-white" style={{ background: avatarColorFor(selected?.avatar_color, selectedIndex) }}>
                   {selected ? initialsFor(selected.name) : "—"}
                 </div>
-                <span className="text-[13.5px] font-bold text-foreground">{selected?.name ?? tr("Select a patient")}</span>
+                <span className="min-w-0 truncate text-[13.5px] font-bold text-foreground">{selected?.name ?? tr("Select a patient")}</span>
                 <ChevronDown size={16} strokeWidth={2} className="ml-auto flex-none text-[var(--nv-faint)]" />
                 <select
                   id="note-patient"
@@ -132,7 +132,7 @@ export function NewNoteModal({ open, onOpenChange, defaultPatientId }: NewNoteMo
                 type="date"
                 value={dateISO}
                 onChange={(event) => setDateISO(event.target.value)}
-                className="w-full rounded-[10px] border border-border bg-secondary px-3 py-2.5 font-mono text-[13px] text-foreground outline-none focus:border-primary"
+                className="h-14 w-full min-w-0 rounded-[11px] border border-border bg-secondary px-3 font-mono text-[13px] text-foreground outline-none focus:border-primary"
               />
             </div>
           </div>
