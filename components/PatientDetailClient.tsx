@@ -1,5 +1,6 @@
 "use client";
 
+import { NoteToolbar, DraftReview, PaymentStatus } from "@/components/ClinicalControls";
 import { useNoteSaveQueue } from "@/hooks/useNoteSaveQueue";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -675,7 +676,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
         {/* No overflow-hidden here: the EditorJS block popover must be able to
             overlay the card edge instead of being clipped. */}
         <div id="note-editor" className={cardClass}>
-          <div className="nv-note-toolbar rounded-t-[15px]">
+          <NoteToolbar>
             <div className="flex items-center gap-2">
               <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
               <span className="hidden text-[11.5px] text-muted-foreground sm:inline">for blocks · select text to format</span>
@@ -699,15 +700,9 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
                 <Trash2 size={14} strokeWidth={2} />
               </button>
             )}
-          </div>
+          </NoteToolbar>
           {aiState === "ready" && active && (
-            <div className="nv-draft-review">
-              <label>Review summary draft<textarea value={aiDraft} onChange={e => setAiDraft(e.target.value)} /></label>
-              <div className="nv-actions">
-                <button type="button" onClick={approveAi} disabled={!aiDraft.trim()}>Approve &amp; insert</button>
-                <button type="button" onClick={() => setAiState("idle")}>Discard</button>
-              </div>
-            </div>
+            <DraftReview draft={aiDraft} edit={setAiDraft} approve={approveAi} discard={() => setAiState("idle")} />
           )}
           {active ? (
             <div className="px-[26px] py-[22px]">
@@ -799,18 +794,7 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
             <div className="flex items-center justify-end gap-2">
               <span className="font-mono text-xs font-bold text-foreground">{formatCOP(amount)}</span>
               <div className="relative">
-                <select
-                  aria-label="Payment status"
-                  title="Payment status"
-                  value={["paid", "unpaid", "waived", "overdue"].includes(payStatus) ? payStatus : "unpaid"}
-                  onChange={(event) => setPayment(session, event.target.value)}
-                  className="nv-payment-status" data-status={payStatus}
-                >
-                  <option value="paid">Paid</option>
-                  <option value="unpaid">Unpaid</option>
-                  <option value="waived">Waived</option>
-                  {payStatus === "overdue" && <option value="overdue">Overdue</option>}
-                </select>
+                <PaymentStatus value={["paid", "unpaid", "waived", "overdue"].includes(payStatus) ? payStatus : "unpaid"} change={value => void setPayment(session, value)} />
               </div>
             </div>
           </div>
