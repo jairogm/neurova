@@ -43,6 +43,7 @@ export default function Dashboard() {
   const locale = useLocale();
   const tr = useWorkspaceText();
   const { user } = useUser();
+  const therapist = useQuery(api.users.getCurrentUser);
   const stats = useQuery(api.dashboard.getStats);
   const upcomingSessions = useQuery(api.dashboard.getUpcomingSessions);
   const wrapTasks = useQuery(api.dashboard.wrapUpTasks);
@@ -61,7 +62,7 @@ export default function Dashboard() {
     return () => window.clearTimeout(timer);
   }, [shouldShowTutorial, isLoading, startDashboardTour]);
 
-  const firstName = user?.firstName || user?.fullName?.split(" ")[0] || tr("there");
+  const greetingName = therapist?.display_name || user?.firstName || user?.fullName?.split(" ")[0] || tr("there");
   const hour = new Date(now).getHours();
   const greeting = hour < 12 ? tr("Good morning") : hour < 18 ? tr("Good afternoon") : tr("Good evening");
 
@@ -139,7 +140,7 @@ export default function Dashboard() {
       <div className="mb-3 flex items-start justify-between gap-4 wide:mb-[22px]">
         <div>
           <h1 className="m-0 text-[21px] font-extrabold tracking-[-.02em] text-foreground wide:text-[24px]">
-            {firstName ? `${greeting}, ${firstName}` : greeting}
+            {greetingName ? `${greeting}, ${greetingName}` : greeting}
           </h1>
           <p className="mt-0.5 text-[13px] text-muted-foreground wide:mt-1 wide:text-sm">{tr("You have")} <strong className="font-bold text-primary">{stats?.sessionsToday ?? "—"} {tr(stats?.sessionsToday === 1 ? "session" : "sessions")}</strong> {tr("today ·")} {tasksLeft} {tr("tasks left.")}</p>
         </div>

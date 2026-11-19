@@ -53,6 +53,7 @@ export const syncUser = mutation({
 export const updateProfile = mutation({
   args: {
     full_name: v.optional(v.string()),
+    display_name: v.optional(v.string()),
     title: v.optional(v.string()),
     phone: v.optional(v.string()),
     specialization: v.optional(v.string()),
@@ -78,6 +79,7 @@ export const updateProfile = mutation({
 
     await ctx.db.patch(therapist._id, {
       ...args,
+      ...(args.display_name !== undefined && { display_name: args.display_name.trim() || undefined }),
       updated_at: new Date().toISOString(),
     });
     return await ctx.db.get(therapist._id);

@@ -29,7 +29,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [profile, setProfile] = useState({
-    full_name: "", title: "", email: "", phone: "", specialization: "",
+    full_name: "", display_name: "", title: "", email: "", phone: "", specialization: "",
     license_number: "", bio: "", office_address: "",
     emergency_name: "", emergency_phone: "",
   });
@@ -42,6 +42,7 @@ export default function ProfilePage() {
       } catch { /* keep defaults */ }
       setProfile({
         full_name: therapist.full_name || "",
+        display_name: therapist.display_name || "",
         title: therapist.title || "",
         email: therapist.email || "",
         phone: therapist.phone || "",
@@ -57,7 +58,8 @@ export default function ProfilePage() {
     }
   }, [therapist, user]);
 
-  const initials = initialsFor(profile.full_name || profile.email || "NV") || "NV";
+  const displayName = profile.display_name.trim() || profile.full_name;
+  const initials = initialsFor(displayName || profile.email || "NV") || "NV";
 
   const logout = async () => {
     setSigningOut(true);
@@ -89,6 +91,7 @@ export default function ProfilePage() {
     try {
       await updateProfile({
         full_name: profile.full_name,
+        display_name: profile.display_name,
         title: profile.title,
         phone: profile.phone,
         specialization: profile.specialization,
@@ -133,6 +136,10 @@ export default function ProfilePage() {
           <h2 className="mb-4 text-[15px] font-extrabold text-foreground">{tr("Professional details")}</h2>
           <div className="grid gap-[13px] sm:grid-cols-2">
             <div><Label htmlFor="profile-name" className={fieldLabel}>{tr("Name")}</Label><Input id="profile-name" value={profile.full_name} onChange={setField("full_name")} placeholder={tr("Your name")} /></div>
+            <div>
+              <Label htmlFor="profile-display-name" className={fieldLabel}>{tr("Display name (optional)")}</Label>
+              <Input id="profile-display-name" autoComplete="nickname" value={profile.display_name} onChange={setField("display_name")} placeholder={profile.full_name || tr("Your name")} />
+            </div>
             <div><Label htmlFor="profile-title" className={fieldLabel}>{tr("Title")}</Label><Input id="profile-title" value={profile.title} onChange={setField("title")} placeholder={tr("Clinical Psychologist")} /></div>
             <div><Label htmlFor="profile-email" className={fieldLabel}>{tr("Email")}</Label><Input id="profile-email" value={profile.email} disabled className="bg-secondary" /></div>
             <div><Label htmlFor="profile-phone" className={fieldLabel}>{tr("Phone")}</Label><Input id="profile-phone" value={profile.phone} onChange={setField("phone")} placeholder="+1 555 000 0000" /></div>
@@ -155,7 +162,7 @@ export default function ProfilePage() {
                 <AvatarFallback className="bg-[linear-gradient(135deg,#0e96b8,#0b7693)] font-extrabold text-white">{initials}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <div className="truncate text-[13px] font-extrabold text-foreground">{profile.full_name || tr("Therapist")}</div>
+                <div className="truncate text-[13px] font-extrabold text-foreground">{displayName || tr("Therapist")}</div>
                 <div className="truncate text-xs text-muted-foreground">{profile.title || tr("Clinical professional")}</div>
               </div>
             </div>
