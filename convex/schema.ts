@@ -56,6 +56,7 @@ export default defineSchema({
     updated_at: v.string(),
     license_number: v.optional(v.string()),
     full_name: v.optional(v.string()),
+    display_name: v.optional(v.string()),
     phone: v.optional(v.string()),
     specialization: v.optional(v.string()),
     office_address: v.optional(v.string()),

@@ -64,7 +64,7 @@ export default function Navbar() {
   const { subscriptionActive, hasRealSubscription, complimentary, toggleSubscription } = useBillingPrototype();
 
   const therapist = useQuery(api.users.getCurrentUser);
-  const displayName = therapist?.full_name || user?.fullName || user?.primaryEmailAddress?.emailAddress || tr("Your practice");
+  const displayName = therapist?.display_name || therapist?.full_name || user?.fullName || user?.primaryEmailAddress?.emailAddress || tr("Your practice");
   const userRole = therapist?.title || therapist?.specialization || tr("Mental-health professional");
   const initials = displayName
     .split(/\s+/)

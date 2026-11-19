@@ -34,7 +34,7 @@ export function useBillingPrototype() {
 
 const STORAGE_KEY = "nv-billing-prototype";
 
-export function BillingPrototypeProvider({ children }: { children: React.ReactNode }) {
+export function BillingPrototypeProvider({ children, previewAccess }: { children: React.ReactNode; previewAccess: boolean }) {
   const tr = useWorkspaceText();
   const subscription = useQuery(api.billing.getSubscription);
   const [prototypeActive, setPrototypeActive] = useState(true);
@@ -117,7 +117,7 @@ export function BillingPrototypeProvider({ children }: { children: React.ReactNo
   return (
     <BillingPrototypeContext.Provider value={value}>
       {children}
-      {loaded && !subscriptionActive && (
+      {!previewAccess && loaded && !subscriptionActive && (
         <PaywallOverlay
           onActivate={activatePlan}
           busy={redirecting}
