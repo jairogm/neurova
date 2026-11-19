@@ -50,7 +50,7 @@ export function AgendaRow({ session, index, isNext, showDate, onOpen }: AgendaRo
           {tr(tone.label)}
         </span>
       </button>
-      <div className="flex flex-none items-center pr-3.5 sm:pr-4 wide:pr-5">
+      <div className="mr-3.5 flex w-7 flex-none items-center sm:mr-4 wide:mr-5">
         <CancelSessionButton session={session} />
       </div>
     </div>
