@@ -661,8 +661,7 @@
                       <input type="date" value="{{ activeNote.dateISO }}" onInput="{{ activeNote.onDate }}" style="padding:6px 10px; border-radius:8px; border:1px solid var(--nv-border); background:var(--nv-surface-2); color:var(--nv-ink); font-family:'JetBrains Mono',monospace; font-size:12.5px; outline:none;" style-focus="border-color:var(--nv-primary);"/>
                       <span style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--nv-faint);">{{ activeNote.words }}</span>
                     </div>
-                    <p style="margin:0 0 12px; font-size:14px; line-height:1.65; color:var(--nv-text);">{{ activeNote.excerpt }}</p>
-                    <p style="margin:0; font-size:14px; line-height:1.65; color:var(--nv-text);">Mood was stable across the week with no panic episodes reported. Continued cognitive restructuring around catastrophic predictions; client demonstrated improved ability to generate balanced alternatives. Plan: maintain weekly cadence, progress exposure hierarchy to crowded transit.</p>
+                    <label style="display:grid;gap:6px;font-size:13px;font-weight:700;color:var(--nv-muted)">Note text<textarea value="{{ activeNote.body }}" onInput="{{ activeNote.onBody }}" style="min-height:110px;width:100%;padding:10px;border-radius:8px;border:1px solid var(--nv-border);background:var(--nv-surface);color:var(--nv-text);font:inherit;font-weight:400"></textarea></label>
                     <sc-if value="{{ activeNote.approvedSummary }}"><p><strong>Approved summary</strong></p><p>{{ activeNote.approvedSummary }}</p></sc-if>
                   </div>
                 </div>
@@ -1094,7 +1093,7 @@
       <label>Payment<select value="{{ wrapPay }}" onChange="{{ changeWrapPay }}"><option value="Unpaid">Outstanding</option><option value="Paid">Paid</option><option value="Waived">Waived</option></select></label>
       <div class="nv-actions"><button onClick="{{ saveWrap }}">Finish session</button><button onClick="{{ closeWrap }}">Cancel</button></div>
     </sc-if>
-    <sc-if value="{{ wrapDone }}"><p>Session completed</p><div class="nv-actions"><button onClick="{{ wrapSchedule }}">Book next visit</button><button onClick="{{ closeWrap }}">Done</button></div></sc-if>
+    <sc-if value="{{ wrapDone }}"><p>Session completed</p><sc-if value="{{ wrapHasNote }}"><button class="nv-wrap-link" onClick="{{ openWrappedNote }}">Open linked note</button></sc-if><div class="nv-actions"><button onClick="{{ wrapSchedule }}">Book next visit</button><button onClick="{{ closeWrap }}">Done</button></div></sc-if>
   </section></div></sc-if>
 
   <!-- ============ SCHEDULE MODAL ============ -->
@@ -1833,7 +1832,7 @@ class Component extends DCLogic {
 
     const activeCandidate = allNotes.find((n) => n.id === s.activeNote);
     const an = (activeCandidate && activeCandidate.patientId === pe.id ? activeCandidate : null) || notes[0] || { id: '', title: '', dateISO: '', words: '', excerpt: '' };
-    const activeNoteObj = { ...an, dateLabel: an.dateISO ? fmtNote(an.dateISO) : '', hasNote: !!an.id, onTitle: (e) => this.updNote(an.id, { title: e.target.value }), onDate: (e) => this.updNote(an.id, { dateISO: e.target.value }), removeSelf: () => { if (an.id) this.removeNote(an.id); } };
+    const activeNoteObj = { ...an, body:an.content ?? an.excerpt ?? '', onBody:e => {const text=e.target.value;this.updNote(an.id,{content:text,excerpt:text.slice(0,120),words:(text.trim() ? text.trim().split(/\s+/).length : 0)+' words'});}, dateLabel: an.dateISO ? fmtNote(an.dateISO) : '', hasNote: !!an.id, onTitle: (e) => this.updNote(an.id, { title: e.target.value }), onDate: (e) => this.updNote(an.id, { dateISO: e.target.value }), removeSelf: () => { if (an.id) this.removeNote(an.id); } };
 
     // command palette
     const pq = s.paletteQuery.trim().toLowerCase();
@@ -1961,6 +1960,7 @@ class Component extends DCLogic {
       closePalette: () => this.setState({ paletteOpen: false }),
       onPaletteInput: (e) => this.setState({ paletteQuery: e.target.value }),
       hasFollowUp: !!(missingRows.length || dueRows.length), missingRows, dueRows, missingCount:missingRows.length, dueCount:dueRows.length,
+      wrapHasNote:!!(wrap && wrap.wrapNote), openWrappedNote:() => this.setState({wrapId:null,view:'patient',selectedPatientId:wrap.patientId,patientTab:'notes',activeNote:wrap.wrapNote}),
       wrapping:!!wrap, wrapPatient:wrap ? this.findPatient(wrap.patientId).name : '', wrapOptions:wrap ? s.notes.filter(n => n.patientId === wrap.patientId) : [],
       wrapEditing:!s.wrapDone, wrapDone:s.wrapDone, wrapNote:s.wrapNote, wrapText:s.wrapText, wrapPay:s.wrapPay, writeWrap:!s.wrapNote,
       chooseWrapNote:e => this.setState({wrapNote:e.target.value}), changeWrapText:e => this.setState({wrapText:e.target.value}), changeWrapPay:e => this.setState({wrapPay:e.target.value}),

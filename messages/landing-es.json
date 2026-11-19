@@ -111,5 +111,7 @@
   "Try a prewritten example in the demo. Clinical summaries are planned for a future release.": "Prueba un ejemplo preparado en la demo. Los resúmenes clínicos estarán disponibles en una próxima versión.",
   "One monthly plan for patients, scheduling, notes, documents, and payment tracking.": "Un plan mensual para pacientes, agenda, notas, documentos y seguimiento de pagos.",
   "Open the patient chart and write your session note with autosave.": "Abre la ficha del paciente y escribe la nota de sesión con guardado automático.",
-  "Session note · saved": "Nota de sesión · guardada"
+  "Session note · saved": "Nota de sesión · guardada",
+  "Session note": "Nota de sesión",
+  "· saved": "· guardada"
 }

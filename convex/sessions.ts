@@ -360,7 +360,10 @@ export const finish = mutation({
     if (["cancelled", "canceled", "no_show", "no-show", "missed"].includes(session.session_status?.toLowerCase() ?? "")) throw new Error("This session cannot be finished");
     const now = new Date().toISOString();
     let noteId = session.wrap_note_id;
-    if (noteId && (await ctx.db.get(noteId))?.deleted_at !== undefined) noteId = undefined;
+    if (noteId) {
+      const linked = await ctx.db.get(noteId);
+      if (!linked || linked.deleted_at !== undefined) noteId = undefined;
+    }
     if (args.existingNote) {
       const note = await ctx.db.get(args.existingNote);
       if (!note || note.patient_id !== session.patient_id || note.deleted_at !== undefined) throw new Error("Note unavailable");
