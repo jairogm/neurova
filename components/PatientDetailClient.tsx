@@ -1,5 +1,6 @@
 "use client";
 
+import { useNoteSaveQueue } from "@/hooks/useNoteSaveQueue";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { PatientTimeline } from "@/components/PatientDetail/PatientTimeline";
@@ -14,7 +15,6 @@ import {
   goalColorFor,
   initialsFor,
   modeLabel,
-  payToneFor,
   statusToneFor,
 } from "@/lib/nv";
 import type { PatientGoal } from "@/lib/types";
@@ -485,17 +485,17 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     () => [...(notes ?? [])].sort((a, b) => (b.date || b.created_at).localeCompare(a.date || a.created_at)),
     [notes],
   );
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const initialNote = useSearchParams().get("note");
+  const [activeId, setActiveId] = useState<string | null>(initialNote);
   const active = sorted.find((note) => String(note._id) === activeId) ?? sorted[0];
 
   const [title, setTitle] = useState("");
   const [dateISO, setDateISO] = useState("");
   const [words, setWords] = useState(0);
-  const [saveState, setSaveState] = useState<"saved" | "saving">("saved");
+  const { state: saveState, enqueue, retry } = useNoteSaveQueue();
   const [aiState, setAiState] = useState<"idle" | "busy" | "ready">("idle");
   const [aiDraft, setAiDraft] = useState("");
-  const metaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const contentTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const captureContent = useRef<(() => void) | null>(null);
   const loadedId = useRef<string | null>(null);
   const editorRef = useRef<EditorJS | null>(null);
 
@@ -512,7 +512,6 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     setTitle(active.title || "");
     setDateISO((active.date || "").slice(0, 10));
     setWords(active.wordCount ?? 0);
-    setSaveState("saved");
     setAiState("idle");
 
     destroyEditor(editorRef.current);
@@ -522,27 +521,28 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
     // tick later — `cancelled` covers an unmount/note switch in that window.
     let cancelled = false;
     let editor: EditorJS | null = null;
+    let lastSnapshot: string | undefined;
+    function capture() {
+      if (!editor || cancelled) return;
+      const snapshot = editor.save();
+      enqueue(async () => {
+        const output = await snapshot;
+        const serialized = JSON.stringify(output.blocks);
+        if (serialized === lastSnapshot) return;
+        const text = editorPlainText(output).trim();
+        await updateNote({ id: noteKey, content: output, description: text.slice(0, 120) });
+        lastSnapshot = serialized;
+        if (loadedId.current === String(active?._id)) setWords(text ? text.split(/\s+/).length : 0);
+      });
+    }
+    captureContent.current = capture;
     createEditor({
       holder: "editorjs",
       placeholder: "Write the session note… Type / for blocks",
       data: toEditorData(active),
       minHeight: 240,
-      onChange: () => {
-        setSaveState("saving");
-        if (contentTimer.current) clearTimeout(contentTimer.current);
-        contentTimer.current = setTimeout(async () => {
-          if (!editor) return;
-          try {
-            const output = await editor.save();
-            const text = editorPlainText(output).trim();
-            setWords(text ? text.split(/\s+/).filter(Boolean).length : 0);
-            await updateNote({ id: noteKey, content: output, description: text.slice(0, 120) });
-            setSaveState("saved");
-          } catch {
-            toast.error("Failed to save note");
-          }
-        }, 800);
-      },
+      onChange: () => capture(),
+
     })
       .then((instance) => {
         if (cancelled) {
@@ -556,37 +556,19 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
 
     return () => {
       cancelled = true;
+      captureContent.current = null;
+      loadedId.current = null;
+      if (editor) destroyEditor(editor);
+      editorRef.current = null;
     };
-  }, [active, updateNote]);
-
-  useEffect(() => () => {
-    if (metaTimer.current) clearTimeout(metaTimer.current);
-    if (contentTimer.current) clearTimeout(contentTimer.current);
-    destroyEditor(editorRef.current);
-    editorRef.current = null;
-  }, []);
+    // A successful autosave refreshes the note query without replacing its editor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active?._id, enqueue, updateNote]);
 
   const scheduleSave = (next: { title?: string; dateISO?: string }) => {
     if (!active) return;
-    setSaveState("saving");
-    if (metaTimer.current) clearTimeout(metaTimer.current);
-    const noteKey = String(active.id ?? active._id);
-    const payload = {
-      title: next.title ?? title,
-      dateISO: next.dateISO ?? dateISO,
-    };
-    metaTimer.current = setTimeout(async () => {
-      try {
-        await updateNote({
-          id: noteKey,
-          title: payload.title || "Untitled note",
-          date: payload.dateISO,
-        });
-        setSaveState("saved");
-      } catch {
-        toast.error("Failed to save note");
-      }
-    }, 800);
+    const id = String(active.id ?? active._id);
+    enqueue(() => updateNote({ id, ...(next.title !== undefined ? { title: next.title || "Untitled note" } : {}), ...(next.dateISO !== undefined ? { date: next.dateISO } : {}) }));
   };
 
   const addNote = async () => {
@@ -638,6 +620,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.draft) throw new Error(data.error || "AI summary failed");
+      if (editorRef.current !== editor) return;
       setAiDraft(data.draft);
       setAiState("ready");
     } catch (error) {
@@ -691,14 +674,14 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
         {/* No overflow-hidden here: the EditorJS block popover must be able to
             overlay the card edge instead of being clipped. */}
         <div id="note-editor" className={cardClass}>
-          <div className="flex flex-wrap items-center gap-2 rounded-t-[15px] border-b border-border bg-secondary px-3.5 py-2.5">
+          <div className="nv-note-toolbar rounded-t-[15px]">
             <div className="flex items-center gap-2">
               <kbd className="rounded-[7px] border border-border bg-card px-2 py-1 font-mono text-[11px] font-bold text-muted-foreground">/</kbd>
               <span className="hidden text-[11.5px] text-muted-foreground sm:inline">for blocks · select text to format</span>
             </div>
             <div className="ml-auto flex items-center gap-1.5 text-[11.5px] font-bold text-[#15986a] dark:text-[#2ba378]">
               {saveState === "saving" ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
-              {saveState === "saving" ? "Saving…" : "Saved · just now"}
+              {saveState === "failed" ? <button type="button" className="text-destructive underline" onClick={() => void retry()}>Couldn’t save · Retry</button> : saveState === "saving" ? "Saving…" : "Saved"}
             </div>
             <button
               id="ai-assist"
@@ -717,26 +700,11 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
             )}
           </div>
           {aiState === "ready" && active && (
-            <div className="border-b border-[#8acfe0] bg-[linear-gradient(180deg,rgba(14,150,184,.09),rgba(14,150,184,.03))] px-[26px] py-3.5 dark:border-[#1f5664]">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex size-8 flex-none items-center justify-center rounded-[10px] bg-primary text-white">
-                  <Sparkles size={16} strokeWidth={1.9} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[12.5px] font-extrabold text-foreground">AI summary draft</span>
-                    <span className="rounded-full border border-[#8acfe0] bg-card px-[7px] py-0.5 text-[10.5px] font-bold text-primary dark:border-[#1f5664]">Review required</span>
-                  </div>
-                  <div className="mt-1 text-[12.5px] leading-[1.55] text-foreground/80">
-                    {aiDraft}
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button type="button" onClick={approveAi} className="flex items-center gap-1.5 rounded-lg bg-[#15986a] px-[13px] py-2 text-xs font-bold text-white">
-                      <Check size={13} strokeWidth={2.6} />Insert into note
-                    </button>
-                    <button type="button" onClick={() => setAiState("idle")} className="rounded-lg border border-border bg-card px-[13px] py-2 text-xs font-bold text-muted-foreground">Discard</button>
-                  </div>
-                </div>
+            <div className="nv-draft-review">
+              <label>Review summary draft<textarea value={aiDraft} onChange={e => setAiDraft(e.target.value)} /></label>
+              <div className="nv-actions">
+                <button type="button" onClick={approveAi} disabled={!aiDraft.trim()}>Approve &amp; insert</button>
+                <button type="button" onClick={() => setAiState("idle")}>Discard</button>
               </div>
             </div>
           )}
@@ -761,7 +729,7 @@ function NotesTab({ patientId, notes, createNote, updateNote, softDeleteRecord }
               {/* Scroll long notes inside the card; the small horizontal padding
                   keeps the left-side block actions from being clipped. */}
               <div className="-mx-3 max-h-[440px] overflow-y-auto px-3">
-                <div id="editorjs" className="nv-editor min-h-[320px] text-sm leading-[1.65] text-foreground/80" />
+                <div id="editorjs" onInput={() => captureContent.current?.()} className="nv-editor min-h-[320px] text-sm leading-[1.65] text-foreground/80" />
               </div>
             </div>
           ) : (
@@ -817,7 +785,7 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
       {rows.length ? rows.map((session, index) => {
         const status = sessionStatusTone(session.session_status);
         const payStatus = session.payment_status?.toLowerCase() || "unpaid";
-        const pay = payToneFor(payStatus);
+
         const waived = payStatus === "waived";
         const amount = waived ? 0 : Number(session.payment_amount) || 0;
         return (
@@ -835,14 +803,13 @@ function SessionsTab({ sessions, updatePayment }: SessionsTabProps) {
                   title="Payment status"
                   value={["paid", "unpaid", "waived", "overdue"].includes(payStatus) ? payStatus : "unpaid"}
                   onChange={(event) => setPayment(session, event.target.value)}
-                  className={`cursor-pointer appearance-none rounded-full border border-transparent py-1.5 pl-3 pr-[26px] text-[11px] font-bold outline-none transition-shadow focus-visible:ring-2 focus-visible:ring-primary ${pay.className}`}
+                  className="nv-payment-status" data-status={payStatus}
                 >
                   <option value="paid">Paid</option>
                   <option value="unpaid">Unpaid</option>
                   <option value="waived">Waived</option>
                   {payStatus === "overdue" && <option value="overdue">Overdue</option>}
                 </select>
-                <ChevronDown size={12} strokeWidth={2.4} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
               </div>
             </div>
           </div>

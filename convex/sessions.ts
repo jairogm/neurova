@@ -1,11 +1,11 @@
+import { patientAccess } from "./access";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const listByPatient = query({
   args: { patientId: v.string() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    if (!(await patientAccess(ctx, args.patientId))) {
       return [];
     }
 
@@ -29,11 +29,13 @@ export const get = query({
       return null;
     }
 
-    const session = await ctx.db
+    const documentId = ctx.db.normalizeId("sessions", args.id);
+    const session = documentId ? await ctx.db.get(documentId) : await ctx.db
       .query("sessions")
       .filter(q => q.eq(q.field("id"), args.id))
       .first();
 
+    if (!session || !(await patientAccess(ctx, session.patient_id))) return null;
     return session;
   },
 });
@@ -331,5 +333,58 @@ export const removeByEventId = mutation({
     }
 
     console.log(`✅ Deleted ${sessions.length} session(s) for event_id: ${args.eventId}`);
+  },
+});
+
+export const wrapUpDetail = query({
+  args: { id: v.id("sessions") },
+  handler: async (ctx, { id }) => {
+    const session = await ctx.db.get(id);
+    if (!session || !(await patientAccess(ctx, session.patient_id))) return null;
+    const patient = await ctx.db.query("patients").withIndex("by_patient_key", q => q.eq("id", session.patient_id)).unique();
+    const note = session.wrap_note_id ? await ctx.db.get(session.wrap_note_id) : null;
+    return { ...session, patientName: patient!.name, linkedNote: note && !note.deleted_at ? note._id : null };
+  },
+});
+
+export const finish = mutation({
+  args: {
+    id: v.id("sessions"),
+    payment: v.union(v.literal("paid"), v.literal("unpaid"), v.literal("waived")),
+    existingNote: v.optional(v.id("medical_history_notes")),
+    text: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const session = await ctx.db.get(args.id);
+    if (!session || !(await patientAccess(ctx, session.patient_id))) throw new Error("Session unavailable");
+    if (["cancelled", "canceled", "no_show", "no-show", "missed"].includes(session.session_status?.toLowerCase() ?? "")) throw new Error("This session cannot be finished");
+    const now = new Date().toISOString();
+    let noteId = session.wrap_note_id;
+    if (noteId && (await ctx.db.get(noteId))?.deleted_at !== undefined) noteId = undefined;
+    if (args.existingNote) {
+      const note = await ctx.db.get(args.existingNote);
+      if (!note || note.patient_id !== session.patient_id || note.deleted_at !== undefined) throw new Error("Note unavailable");
+      if (noteId && noteId !== note._id) throw new Error("Refresh to see the linked note");
+      noteId = note._id;
+    }
+    const text = args.text?.trim();
+    if (text && !noteId) {
+      if (text.length > 24000) throw new Error("Note is too long");
+      const escaped = text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+      noteId = await ctx.db.insert("medical_history_notes", {
+        id: crypto.randomUUID(), patient_id: session.patient_id, title: "Session note",
+        date: session.scheduled_date.slice(0, 10), created_at: now, updated_at: now,
+        description: text.slice(0, 120),
+        content: JSON.stringify({ blocks: escaped.split(/\n+/).map(line => ({ type: "paragraph", data: { text: line } })) }),
+      });
+    } else if (text && noteId) {
+      // A retry of the same save is harmless. A different draft must never be silently discarded.
+      const saved = await ctx.db.get(noteId);
+      const escaped = text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+      const content = JSON.stringify({ blocks: escaped.split(/\n+/).map(line => ({ type: "paragraph", data: { text: line } })) });
+      if (saved?.content !== content) throw new Error("A note has already been linked. Refresh before editing.");
+    }
+    await ctx.db.patch(session._id, { session_status: "completed", payment_status: args.payment, wrap_note_id: noteId, updated_at: now });
+    return noteId ?? null;
   },
 });

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+<link rel="stylesheet" href="/clinical-controls.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
@@ -311,6 +312,10 @@
             </div>
             </sc-if>
 
+            <sc-if value="{{ hasFollowUp }}"><section class="nv-draft-review"><h2 style="margin:0;font-size:15px">Session follow-up</h2>
+              <details><summary>Awaiting a linked note ({{ missingCount }})</summary><sc-for list="{{ missingRows }}" as="row"><button class="nv-wrap-link" onClick="{{ row.open }}">{{ row.label }}</button></sc-for></details>
+              <details><summary>Outstanding payments ({{ dueCount }})</summary><sc-for list="{{ dueRows }}" as="row"><button class="nv-wrap-link" onClick="{{ row.open }}">{{ row.label }}</button></sc-for></details>
+            </section></sc-if>
             <!-- Today's agenda -->
             <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:18px; box-shadow:var(--nv-shadow); overflow:hidden;">
               <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--nv-border);">
@@ -332,6 +337,7 @@
                         <span style="text-transform:capitalize;">{{ a.mode }}</span> · {{ a.type }}
                       </div>
                     </div>
+                    <button class="nv-wrap-link" onClick="{{ a.finish }}">Finish session</button>
                     <span style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; color:{{ a.tone.fg }}; background:{{ a.tone.bg }};">{{ a.tone.label }}</span>
                   </div>
                 </sc-for>
@@ -635,7 +641,7 @@
               <div style="display:flex; flex-direction:column; gap:16px;">
                 <!-- editor preview -->
                 <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:16px; box-shadow:var(--nv-shadow); overflow:hidden;">
-                  <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--nv-border); background:var(--nv-surface-2);">
+                  <div class="nv-note-toolbar">
                     <div style="display:flex; gap:2px;">
                       <span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:7px; color:var(--nv-muted); font-weight:800; font-size:13px; cursor:pointer;" style-hover="background:var(--nv-inset);">B</span>
                       <span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:7px; color:var(--nv-muted); font-style:italic; font-weight:700; font-size:13px; cursor:pointer;" style-hover="background:var(--nv-inset);">I</span>
@@ -677,11 +683,11 @@
                       <div style="margin-top:14px; display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--nv-primary); font-weight:700;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" style="animation:nv-spin .8s linear infinite;"><path d="M21 12a9 9 0 1 1-6.2-8.5"/></svg> Loading sample draft…</div>
                       </sc-if>
                       <sc-if value="{{ aiReady }}">
-                      <div style="margin-top:13px; padding:14px; border-radius:11px; background:var(--nv-surface); border:1px solid var(--nv-border);">
-                        <label style="display:grid;gap:8px;font-weight:700;color:var(--nv-ink);">Review summary draft<textarea value="{{ aiDraft }}" onInput="{{ editAi }}" style="width:100%;min-height:95px;border:1px solid var(--nv-border);border-radius:8px;padding:10px;font:inherit;font-weight:400;color:var(--nv-text);background:var(--nv-surface);"></textarea></label>
-                        <div style="display:flex; gap:8px; margin-top:13px;">
-                          <button onClick="{{ approveAi }}" style="display:flex; align-items:center; gap:6px; padding:8px 13px; border-radius:8px; border:0; background:var(--nv-success); color:#fff; font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg> Approve &amp; insert</button>
-                          <button onClick="{{ resetAi }}" style="padding:8px 13px; border-radius:8px; border:1px solid var(--nv-border); background:var(--nv-surface); color:var(--nv-muted); font-family:inherit; font-size:12px; font-weight:700; cursor:pointer;">Discard</button>
+                      <div class="nv-draft-review">
+                        <label>Review summary draft<textarea value="{{ aiDraft }}" onInput="{{ editAi }}"></textarea></label>
+                        <div class="nv-actions">
+                          <button onClick="{{ approveAi }}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg> Approve &amp; insert</button>
+                          <button onClick="{{ resetAi }}">Discard</button>
                         </div>
                       </div>
                       </sc-if>
@@ -707,7 +713,7 @@
                   <div><span style="font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; color:{{ se.tone.fg }}; background:{{ se.tone.bg }};">{{ se.statusLabel }}</span></div>
                   <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px;">
                     <span style="font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--nv-ink);">{{ se.amt }}</span>
-                    <select aria-label="Payment status" value="{{ se.pay }}" onChange="{{ se.setPayment }}" style="appearance:none; padding:8px 34px 8px 14px; border:1px solid var(--nv-border); border-radius:20px; font:700 11px inherit; color:{{ se.payToneObj.fg }}; background:{{ se.payToneObj.bg }}; cursor:pointer; background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236c828c' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E&quot;); background-repeat:no-repeat; background-position:right 12px center;"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Waived">Waived</option></select>
+                    <select aria-label="Payment status" value="{{ se.pay }}" onChange="{{ se.setPayment }}" class="nv-payment-status" data-status="{{ se.pay }}"><option value="Paid">Paid</option><option value="Unpaid">Unpaid</option><option value="Waived">Waived</option></select>
                   </div>
                 </div>
               </sc-for>
@@ -1086,6 +1092,17 @@
   </div>
   </sc-if>
 
+  <sc-if value="{{ wrapping }}"><div class="nv-wrap-backdrop"><section role="dialog" aria-label="Finish session" class="nv-draft-review nv-wrap-dialog">
+    <h2 style="margin:0">Finish session</h2><strong>{{ wrapPatient }}</strong>
+    <sc-if value="{{ wrapEditing }}">
+      <label>Session note<select value="{{ wrapNote }}" onChange="{{ chooseWrapNote }}"><option value="">Write a new note</option><sc-for list="{{ wrapOptions }}" as="op"><option value="{{ op.id }}">{{ op.title }}</option></sc-for></select></label>
+      <sc-if value="{{ writeWrap }}"><label>Note text<textarea maxlength="24000" placeholder="Leave blank to finish the note later" value="{{ wrapText }}" onInput="{{ changeWrapText }}"></textarea></label></sc-if>
+      <label>Payment<select value="{{ wrapPay }}" onChange="{{ changeWrapPay }}"><option value="Unpaid">Outstanding</option><option value="Paid">Paid</option><option value="Waived">Waived</option></select></label>
+      <div class="nv-actions"><button onClick="{{ saveWrap }}">Finish session</button><button onClick="{{ closeWrap }}">Cancel</button></div>
+    </sc-if>
+    <sc-if value="{{ wrapDone }}"><p>Session completed</p><div class="nv-actions"><button onClick="{{ wrapSchedule }}">Book next visit</button><button onClick="{{ closeWrap }}">Done</button></div></sc-if>
+  </section></div></sc-if>
+
   <!-- ============ SCHEDULE MODAL ============ -->
   <sc-if value="{{ scheduleOpen }}">
   <div onClick="{{ closeSchedule }}" style="position:fixed; inset:0; z-index:100; background:rgba(10,22,26,.5); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; padding:24px;">
@@ -1139,7 +1156,7 @@
         </div>
 
         <div style="background:var(--nv-surface); border:1px solid var(--nv-border); border-radius:16px; overflow:hidden;">
-          <div style="display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--nv-border); background:var(--nv-surface-2);">
+          <div class="nv-note-toolbar">
             <span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:7px; color:var(--nv-muted); font-weight:800; font-size:13px;">B</span>
             <span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:7px; color:var(--nv-muted); font-style:italic; font-weight:700; font-size:13px;">I</span>
             <span style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:7px; color:var(--nv-muted); font-weight:800; font-size:12px;">H2</span>
@@ -1395,7 +1412,7 @@ class Component extends DCLogic {
   componentDidMount() {
     this._key = (e) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) { e.preventDefault(); this.setState((s) => ({ paletteOpen: !s.paletteOpen, paletteQuery: '' })); }
-      if (e.key === 'Escape') this.setState({ paletteOpen: false, scheduleOpen: false, noteModalOpen: false, addPatientOpen: false, editPatientId: null, confirm: null, np: this.emptyPatientDraft() });
+      if (e.key === 'Escape') this.setState({ wrapId:null, paletteOpen: false, scheduleOpen: false, noteModalOpen: false, addPatientOpen: false, editPatientId: null, confirm: null, np: this.emptyPatientDraft() });
     };
     window.addEventListener('keydown', this._key);
   }
@@ -1789,7 +1806,14 @@ class Component extends DCLogic {
     const monday = new Date(); monday.setHours(0,0,0,0); monday.setDate(monday.getDate() - ((monday.getDay()+6)%7));
     const weekEnd = new Date(monday); weekEnd.setDate(weekEnd.getDate()+7);
     const weekRows = s.sessions.filter(x => new Date(x.date) >= monday && new Date(x.date) < weekEnd);
-    const agenda = s.sessions.filter(x => dayKey(x.date) === (s.view === 'schedule' ? selectedScheduleDate : todayKey)).sort((a,b) => new Date(a.date)-new Date(b.date)).map(x => ({patient:this.findPatient(x.patientId || 'maya'),time:new Date(x.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}),dur:x.dur,type:'Therapy session',mode:x.mode,statusKey:x.statusLabel === 'Completed' ? 'completed' : 'upcoming',tone:this.apptTones[x.statusLabel === 'Completed' ? 'completed' : 'upcoming'],open:() => this.setState({view:'patient',selectedPatientId:x.patientId || 'maya',patientTab:'sessions'})}));
+    const openWrap = (x) => this.setState({wrapId:x.id,wrapText:'',wrapDone:false,wrapNote:s.notes.some(n => n.id === x.wrapNote) ? x.wrapNote : '',wrapPay:x.pay || 'Unpaid'});
+    const wrap = s.sessions.find(x => x.id && x.id === s.wrapId);
+    const followUp = s.sessions.filter(x => x.id && x.statusLabel === 'Completed').map(x => ({
+      missing: !s.notes.some(n => n.id === x.wrapNote), due:x.pay === 'Unpaid' || x.pay === 'Overdue',
+      label:this.findPatient(x.patientId).name + ' · ' + new Date(x.date).toLocaleDateString(), open:() => openWrap(x)
+    }));
+    const missingRows = followUp.filter(x => x.missing), dueRows = followUp.filter(x => x.due);
+    const agenda = s.sessions.filter(x => dayKey(x.date) === (s.view === 'schedule' ? selectedScheduleDate : todayKey)).sort((a,b) => new Date(a.date)-new Date(b.date)).map(x => ({finish:e => {e.stopPropagation();openWrap(x);},patient:this.findPatient(x.patientId || 'maya'),time:new Date(x.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}),dur:x.dur,type:'Therapy session',mode:x.mode,statusKey:x.statusLabel === 'Completed' ? 'completed' : 'upcoming',tone:this.apptTones[x.statusLabel === 'Completed' ? 'completed' : 'upcoming'],open:() => this.setState({view:'patient',selectedPatientId:x.patientId || 'maya',patientTab:'sessions'})}));
     const nextSession = agenda.find((a) => a.statusKey === 'next');
 
     const tlIcon = (type) => {
@@ -1942,6 +1966,17 @@ class Component extends DCLogic {
       openPalette: () => this.setState({ paletteOpen: true, paletteQuery: '' }),
       closePalette: () => this.setState({ paletteOpen: false }),
       onPaletteInput: (e) => this.setState({ paletteQuery: e.target.value }),
+      hasFollowUp: !!(missingRows.length || dueRows.length), missingRows, dueRows, missingCount:missingRows.length, dueCount:dueRows.length,
+      wrapping:!!wrap, wrapPatient:wrap ? this.findPatient(wrap.patientId).name : '', wrapOptions:wrap ? s.notes.filter(n => n.patientId === wrap.patientId) : [],
+      wrapEditing:!s.wrapDone, wrapDone:s.wrapDone, wrapNote:s.wrapNote, wrapText:s.wrapText, wrapPay:s.wrapPay, writeWrap:!s.wrapNote,
+      chooseWrapNote:e => this.setState({wrapNote:e.target.value}), changeWrapText:e => this.setState({wrapText:e.target.value}), changeWrapPay:e => this.setState({wrapPay:e.target.value}),
+      closeWrap:() => this.setState({wrapId:null}), wrapSchedule:() => this.setState({wrapId:null,scheduleOpen:true,schedRecur:'none',scheduleError:'',scheduleDraft:{...s.scheduleDraft,patientId:wrap.patientId}}),
+      saveWrap:() => {
+        if (!wrap) return;
+        const text = s.wrapText.trim();
+        const note = !s.wrapNote && text ? {id:'note-'+crypto.randomUUID(),patientId:wrap.patientId,title:'Session note',dateISO:wrap.date.slice(0,10),content:text,excerpt:text.slice(0,120),words:text.split(/\s+/).length+' words'} : null;
+        this.setState(st => ({wrapDone:true,notes:note ? [note,...st.notes] : st.notes,sessions:st.sessions.map(x => x.id === wrap.id ? {...x,wrapNote:s.wrapNote || (note && note.id),pay:s.wrapPay,status:'active',statusLabel:'Completed',payTone:s.wrapPay === 'Paid' ? 'active' : 'paused'} : x)}));
+      },
       openSchedule: () => this.setState({ scheduleOpen: true, schedRecur:'none', scheduleError: '', scheduleDraft: {...s.scheduleDraft, patientId: s.view === 'patient' ? pe.id : s.scheduleDraft.patientId} }),
       closeSchedule: () => this.setState({ scheduleOpen: false }),
       scheduleDraft: s.scheduleDraft, scheduleError: s.scheduleError, schedMode: s.schedMode, schedRecur:s.schedRecur, onScheduleRecurrence:e => this.setState({schedRecur:e.target.value}),

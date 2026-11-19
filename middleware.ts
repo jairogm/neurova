@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher([
@@ -16,6 +17,12 @@ const isProtectedRoute = createRouteMatcher([
 const BYPASS_AUTH = process.env.BYPASS_AUTH === "true";
 
 export default clerkMiddleware(async (auth, req) => {
+  // This review environment uses a separate database and must not change
+  // a tester's real Google calendar, subscription, or identity account.
+  if (process.env.VERCEL_ENV === "preview" && process.env.VERCEL_GIT_COMMIT_REF === "preview/session-wrap-up" &&
+      /^\/api\/(calendar|billing|account|webhooks|ai)(\/|$)/.test(req.nextUrl.pathname)) {
+    return NextResponse.json({ error: "This integration is disabled in the practice preview." }, { status: 403 });
+  }
   if (!BYPASS_AUTH && isProtectedRoute(req)) {
     // Clerk requires an absolute URL here; a relative path throws
     // "URL is malformed" in the edge runtime. Resolve it against the incoming

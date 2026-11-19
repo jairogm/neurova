@@ -1,3 +1,4 @@
+import { patientAccess } from "./access";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -40,8 +41,7 @@ function wordCountOf(content: unknown): number {
 export const listByPatient = query({
   args: { patientId: v.string() },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
+    if (!(await patientAccess(ctx, args.patientId))) {
       return [];
     }
 
@@ -118,12 +118,13 @@ export const get = query({
       return null;
     }
 
-    const note = await ctx.db
+    const documentId = ctx.db.normalizeId("medical_history_notes", args.id);
+    const note = documentId ? await ctx.db.get(documentId) : await ctx.db
       .query("medical_history_notes")
       .filter(q => q.eq(q.field("id"), args.id))
       .first();
 
-    if (!note) return null;
+    if (!note || note.deleted_at !== undefined || !(await patientAccess(ctx, note.patient_id))) return null;
 
     // Parse content if it's a JSON string
     return {

@@ -5,6 +5,7 @@ import { CommandPaletteProvider } from "@/components/CommandPalette";
 import Navbar from "@/components/navbar";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useTranslations } from "next-intl";
+import "@/public/clinical-controls.css";
 import "driver.js/dist/driver.css";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

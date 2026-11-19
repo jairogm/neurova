@@ -60,7 +60,7 @@ export default function NotesPage() {
             <div className="font-mono text-[12.5px] text-muted-foreground">{note.wordCount ?? 0} words</div>
             <div className="flex justify-end gap-[7px]">
               <Button asChild variant="outline" className="h-[30px] rounded-lg px-3 text-[11.5px] font-bold text-primary shadow-none">
-                <Link href={`/patients/${note.patient_id}?tab=notes`}>Open</Link>
+                <Link href={`/patients/${note.patient_id}?tab=notes&note=${note._id}`}>Open</Link>
               </Button>
               <button
                 type="button"

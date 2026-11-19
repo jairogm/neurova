@@ -45,6 +45,7 @@ export default function Dashboard() {
   const { user } = useUser();
   const stats = useQuery(api.dashboard.getStats);
   const upcomingSessions = useQuery(api.dashboard.getUpcomingSessions);
+  const wrapTasks = useQuery(api.dashboard.wrapUpTasks);
   const tasks = useQuery(api.tasks.list);
   const addTaskMutation = useMutation(api.tasks.add);
   const toggleTask = useMutation(api.tasks.toggle);
@@ -218,6 +219,16 @@ export default function Dashboard() {
             </section>
           )}
 
+          {wrapTasks && wrapTasks.length > 0 && <section className="rounded-2xl border bg-card p-5">
+            <h2 className="mb-3 font-bold">Session follow-up</h2>
+            {(["needsNote", "outstanding"] as const).map(kind => {
+              const rows = wrapTasks.filter(row => row[kind]);
+              if (!rows.length) return null;
+              return <details key={kind} className="border-t py-2"><summary className="cursor-pointer text-sm font-semibold">{rows.length} {kind === "needsNote" ? "awaiting a linked note" : "with outstanding payment"}</summary>
+                {rows.map(row => <Link className="block py-1.5 text-sm text-primary underline" key={row.id} href={`/schedule/${row.id}/finish`}>{row.name} · {new Date(row.date).toLocaleDateString()}</Link>)}
+              </details>;
+            })}
+          </section>}
           <section id="agenda" className="overflow-hidden rounded-[18px] border border-border bg-card shadow-sm">
             <div className="flex items-center justify-between border-b border-border px-4 py-3 wide:px-5 wide:py-4">
               <h2 className="text-sm font-extrabold text-foreground wide:text-[15px]">Today&apos;s agenda</h2>
