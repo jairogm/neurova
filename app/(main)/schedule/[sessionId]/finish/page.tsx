@@ -28,7 +28,7 @@ export default function FinishSession({ params }: { params: Promise<{ sessionId:
   const noteLink = session.linkedNote && <Link className="font-bold text-primary underline" href={`/patients/${session.patient_id}?tab=notes&note=${session.linkedNote}`}>Open linked note</Link>;
   return <div className="mx-auto max-w-2xl px-5 py-9">
     <Link href="/dashboard" className="text-sm text-primary">← Dashboard</Link>
-    <h1 className="mt-5 text-3xl font-bold">{done ? "Session completed" : "Finish session"}</h1>
+    <h1 className="mt-5 text-3xl font-bold">{done ? "Changes saved" : "Session follow-up"}</h1>
     <p className="mb-6 mt-2 text-muted-foreground">{session.patientName} · {new Date(session.scheduled_date).toLocaleString()}</p>
     {done ? <div className="grid justify-items-start gap-4 rounded-2xl border bg-card p-6">
       <p>{value === "unpaid" ? "Payment marked outstanding." : value === "paid" ? "Payment marked paid." : "Payment waived."}</p>
@@ -39,14 +39,14 @@ export default function FinishSession({ params }: { params: Promise<{ sessionId:
       try {
         await finish({ id, payment: value, existingNote: session.linkedNote ?? (selected ? selected as Id<"medical_history_notes"> : undefined), text: selected || session.linkedNote ? undefined : text });
         setDone(true);
-      } catch { setError("Couldn’t finish this session. Your draft is still here. Please retry."); }
+      } catch { setError("Couldn’t save these changes. Your draft is still here. Please retry."); }
       finally { setBusy(false); }
     }}>
       {noteLink || <><label>Session note<select className={field} value={selected} onChange={e => setSelected(e.target.value)}>
         <option value="">Write a new note</option>{notes?.map(n => <option key={n._id} value={n._id}>{n.title || "Untitled"} · {n.date}</option>)}</select></label>
         {!selected && <label>Note text<textarea className={field} value={text} rows={5} maxLength={24000} onChange={e => setText(e.target.value)} placeholder="Leave blank to finish the note later" /></label>}</>}
       <label>Payment<select className={field} value={value} onChange={e => setPayment(e.target.value as typeof value)}><option value="unpaid">Outstanding</option><option value="paid">Paid</option><option value="waived">Waived</option></select></label>
-      {error && <p role="alert">{error}</p>}<Button disabled={busy || notes === undefined}>{busy ? "Saving…" : "Finish session"}</Button>
+      {error && <p role="alert">{error}</p>}<Button disabled={busy || notes === undefined}>{busy ? "Saving…" : "Save changes"}</Button>
     </form>}
   </div>;
 }

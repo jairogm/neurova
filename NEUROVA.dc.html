@@ -337,7 +337,6 @@
                         <span style="text-transform:capitalize;">{{ a.mode }}</span> · {{ a.type }}
                       </div>
                     </div>
-                    <button class="nv-wrap-link" onClick="{{ a.finish }}">Finish session</button>
                     <span style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; color:{{ a.tone.fg }}; background:{{ a.tone.bg }};">{{ a.tone.label }}</span>
                   </div>
                 </sc-for>
@@ -1085,15 +1084,15 @@
   </div>
   </sc-if>
 
-  <sc-if value="{{ wrapping }}"><div class="nv-wrap-backdrop"><section role="dialog" aria-label="Finish session" class="nv-draft-review nv-wrap-dialog">
-    <h2 style="margin:0">Finish session</h2><strong>{{ wrapPatient }}</strong>
+  <sc-if value="{{ wrapping }}"><div class="nv-wrap-backdrop"><section role="dialog" aria-label="Session follow-up" class="nv-draft-review nv-wrap-dialog">
+    <h2 style="margin:0">Session follow-up</h2><strong>{{ wrapPatient }}</strong>
     <sc-if value="{{ wrapEditing }}">
       <label>Session note<select value="{{ wrapNote }}" onChange="{{ chooseWrapNote }}"><option value="">Write a new note</option><sc-for list="{{ wrapOptions }}" as="op"><option value="{{ op.id }}">{{ op.title }}</option></sc-for></select></label>
       <sc-if value="{{ writeWrap }}"><label>Note text<textarea maxlength="24000" placeholder="Leave blank to finish the note later" value="{{ wrapText }}" onInput="{{ changeWrapText }}"></textarea></label></sc-if>
       <label>Payment<select value="{{ wrapPay }}" onChange="{{ changeWrapPay }}"><option value="Unpaid">Outstanding</option><option value="Paid">Paid</option><option value="Waived">Waived</option></select></label>
-      <div class="nv-actions"><button onClick="{{ saveWrap }}">Finish session</button><button onClick="{{ closeWrap }}">Cancel</button></div>
+      <div class="nv-actions"><button onClick="{{ saveWrap }}">Save changes</button><button onClick="{{ closeWrap }}">Cancel</button></div>
     </sc-if>
-    <sc-if value="{{ wrapDone }}"><p>Session completed</p><sc-if value="{{ wrapHasNote }}"><button class="nv-wrap-link" onClick="{{ openWrappedNote }}">Open linked note</button></sc-if><div class="nv-actions"><button onClick="{{ wrapSchedule }}">Book next visit</button><button onClick="{{ closeWrap }}">Done</button></div></sc-if>
+    <sc-if value="{{ wrapDone }}"><p>Changes saved</p><sc-if value="{{ wrapHasNote }}"><button class="nv-wrap-link" onClick="{{ openWrappedNote }}">Open linked note</button></sc-if><div class="nv-actions"><button onClick="{{ wrapSchedule }}">Book next visit</button><button onClick="{{ closeWrap }}">Done</button></div></sc-if>
   </section></div></sc-if>
 
   <!-- ============ SCHEDULE MODAL ============ -->
@@ -1806,7 +1805,7 @@ class Component extends DCLogic {
       label:this.findPatient(x.patientId).name + ' · ' + new Date(x.date).toLocaleDateString(), open:() => openWrap(x)
     }));
     const missingRows = followUp.filter(x => x.missing), dueRows = followUp.filter(x => x.due);
-    const agenda = s.sessions.filter(x => dayKey(x.date) === (s.view === 'schedule' ? selectedScheduleDate : todayKey)).sort((a,b) => new Date(a.date)-new Date(b.date)).map(x => ({finish:e => {e.stopPropagation();openWrap(x);},patient:this.findPatient(x.patientId || 'maya'),time:new Date(x.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}),dur:x.dur,type:'Therapy session',mode:x.mode,statusKey:x.statusLabel === 'Completed' ? 'completed' : 'upcoming',tone:this.apptTones[x.statusLabel === 'Completed' ? 'completed' : 'upcoming'],open:() => this.setState({view:'patient',selectedPatientId:x.patientId || 'maya',patientTab:'sessions'})}));
+    const agenda = s.sessions.filter(x => dayKey(x.date) === (s.view === 'schedule' ? selectedScheduleDate : todayKey)).sort((a,b) => new Date(a.date)-new Date(b.date)).map(x => ({patient:this.findPatient(x.patientId || 'maya'),time:new Date(x.date).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}),dur:x.dur,type:'Therapy session',mode:x.mode,statusKey:x.statusLabel === 'Completed' ? 'completed' : 'upcoming',tone:this.apptTones[x.statusLabel === 'Completed' ? 'completed' : 'upcoming'],open:() => this.setState({view:'patient',selectedPatientId:x.patientId || 'maya',patientTab:'sessions'})}));
     const nextSession = agenda.find((a) => a.statusKey === 'next');
 
     const tlIcon = (type) => {

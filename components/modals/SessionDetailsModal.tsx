@@ -285,7 +285,6 @@ export function SessionDetailsModal({
             </div>
           </div>
 
-          {!isCancelled && status !== "no_show" && <Link href={`/schedule/${session._id}/finish`} className="mx-[22px] mb-4 block rounded-lg bg-primary px-4 py-2.5 text-center text-sm font-bold text-primary-foreground">Finish session</Link>}
           <div className="flex items-center gap-2.5 px-[22px] pb-[22px]">
             {!isCancelled && (
               <button
