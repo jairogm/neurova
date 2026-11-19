@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import { MedicalNotesTable } from "@/components/MedicalNotesTable";
@@ -13,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 
 export default function PatientRecordsPage({ params }: { params: Promise<{ id: string }> }) {
+  const tr = useWorkspaceText();
   const { id: patientId } = use(params);
   const router = useRouter();
   const patient = useQuery(api.patients.get, { id: patientId });
@@ -27,18 +29,18 @@ export default function PatientRecordsPage({ params }: { params: Promise<{ id: s
   }, [currentTourPage, startRecordsTour]);
 
   if (patient === undefined) return <div className="mx-auto max-w-[1280px] px-6 py-8"><Skeleton className="h-[500px] rounded-[18px]" /></div>;
-  if (!patient) return <div className="px-6 py-16 text-center text-sm text-muted-foreground">Patient not found.</div>;
+  if (!patient) return <div className="px-6 py-16 text-center text-sm text-muted-foreground">{tr("Patient not found.")}</div>;
 
   return (
     <div className="mx-auto max-w-[1280px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
       <div className="mb-[22px] flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <Button id="records-back-btn" variant="outline" size="icon" onClick={() => router.push(`/patients/${patientId}`)} className="size-9"><ArrowLeft size={15} /></Button>
-          <div><h1 className="text-[22px] font-extrabold tracking-[-.02em] text-foreground">Notes & records</h1><p className="mt-0.5 text-[12.5px] text-muted-foreground">{patient.name} · Clinical documentation</p></div>
+          <div><h1 className="text-[22px] font-extrabold tracking-[-.02em] text-foreground">{tr("Notes & records")}</h1><p className="mt-0.5 text-[12.5px] text-muted-foreground">{patient.name} {tr("· Clinical documentation")}</p></div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" disabled={notes === undefined} onClick={() => exportPatientMedicalHistoryPDF(patient, notes ?? [])}><FileDown size={15} />Export PDF</Button>
-          <Button id="add-record-btn" onClick={() => setAddOpen(true)}><Plus size={15} />New note</Button>
+          <Button variant="outline" disabled={notes === undefined} onClick={() => exportPatientMedicalHistoryPDF(patient, notes ?? [])}><FileDown size={15} />{tr("Export PDF")}</Button>
+          <Button id="add-record-btn" onClick={() => setAddOpen(true)}><Plus size={15} />{tr("New note")}</Button>
         </div>
       </div>
 

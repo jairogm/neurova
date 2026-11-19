@@ -1,5 +1,7 @@
 "use client";
 
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import type { DriveStep } from "driver.js";
 import { useCallback, useEffect, useRef } from "react";
 import { driver, Driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -14,6 +16,15 @@ import {
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 
 export function useTutorial() {
+  const tr = useWorkspaceText();
+  const tour = useCallback((steps: DriveStep[]) => ({
+    ...driverConfig,
+    progressText: tr(driverConfig.progressText),
+    nextBtnText: tr(driverConfig.nextBtnText),
+    prevBtnText: tr(driverConfig.prevBtnText),
+    doneBtnText: tr(driverConfig.doneBtnText),
+    steps: steps.map(step => ({ ...step, popover: { ...step.popover, title: tr(step.popover?.title ?? ""), description: tr(step.popover?.description ?? "") } })),
+  }), [tr]);
   const router = useRouter();
   const driverRef = useRef<Driver | null>(null);
   const {
@@ -44,8 +55,7 @@ export function useTutorial() {
     setCurrentTourPage("dashboard");
 
     const driverObj = driver({
-      ...driverConfig,
-      steps: dashboardTourSteps,
+      ...tour(dashboardTourSteps),
       onDestroyStarted: () => {
         // User closed the tour (X / Esc / overlay) — treat as skip and
         // persist it so the tour stays gone after a refresh.
@@ -64,7 +74,7 @@ export function useTutorial() {
 
     driverRef.current = driverObj;
     setTimeout(() => driverObj.drive(), 500);
-  }, [router, setCurrentTourPage, dismissTutorialForSession]);
+  }, [tour, router, setCurrentTourPage, dismissTutorialForSession]);
 
   const startPatientsTour = useCallback(() => {
     if (driverRef.current) {
@@ -74,8 +84,7 @@ export function useTutorial() {
     setCurrentTourPage("patients");
 
     const driverObj = driver({
-      ...driverConfig,
-      steps: patientsTourSteps,
+      ...tour(patientsTourSteps),
       onDestroyStarted: () => {
         // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
@@ -94,7 +103,7 @@ export function useTutorial() {
 
     driverRef.current = driverObj;
     setTimeout(() => driverObj.drive(), 500);
-  }, [router, setCurrentTourPage, dismissTutorialForSession]);
+  }, [tour, router, setCurrentTourPage, dismissTutorialForSession]);
 
   const startTrashTour = useCallback(() => {
     if (driverRef.current) {
@@ -104,8 +113,7 @@ export function useTutorial() {
     setCurrentTourPage("trash");
 
     const driverObj = driver({
-      ...driverConfig,
-      steps: trashTourSteps,
+      ...tour(trashTourSteps),
       onDestroyStarted: () => {
         // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
@@ -127,7 +135,7 @@ export function useTutorial() {
 
     driverRef.current = driverObj;
     setTimeout(() => driverObj.drive(), 500);
-  }, [router, setCurrentTourPage, dismissTutorialForSession]);
+  }, [tour, router, setCurrentTourPage, dismissTutorialForSession]);
 
   const startRecordsTour = useCallback(() => {
     if (driverRef.current) {
@@ -137,8 +145,7 @@ export function useTutorial() {
     setCurrentTourPage("records");
 
     const driverObj = driver({
-      ...driverConfig,
-      steps: recordsTourSteps,
+      ...tour(recordsTourSteps),
       onDestroyStarted: () => {
         // User closed the tour — persist the skip so it doesn't reappear.
         driverObj.destroy();
@@ -157,7 +164,7 @@ export function useTutorial() {
 
     driverRef.current = driverObj;
     setTimeout(() => driverObj.drive(), 500);
-  }, [setCurrentTourPage, dismissTutorialForSession, completeTutorial]);
+  }, [tour, setCurrentTourPage, dismissTutorialForSession, completeTutorial]);
 
   const skipTutorial = useCallback(async () => {
     if (driverRef.current) {

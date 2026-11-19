@@ -1,3 +1,4 @@
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ interface ViewPatientModalProps {
 }
 
 export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = false }: ViewPatientModalProps) {
+  const tr = useWorkspaceText();
   const [editMode, setEditMode] = useState(false);
   const updatePatient = useMutation(api.patients.update);
 
@@ -66,12 +68,12 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
       };
 
       await updatePatient({ id: patient.id, updates });
-      toast.success("Patient updated successfully");
+      toast.success(tr("Patient updated successfully"));
       setEditMode(false);
       onOpenChange(false);
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to update patient: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to update patient: ") + message);
     }
   };
 
@@ -79,23 +81,21 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-2xl gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="text-[17px] font-extrabold">{editMode ? "Edit patient" : "Patient information"}</DialogTitle>
+          <DialogTitle className="text-[17px] font-extrabold">{editMode ? tr("Edit patient") : tr("Patient information")}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 p-6">
           {/* Personal Information */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-lg">Personal Information</h3>
+              <h3 className="font-semibold text-lg">{tr("Personal Information")}</h3>
               {!editMode && (
-                <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                  Edit
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>{tr("Edit")}</Button>
               )}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Name</Label>
+                <Label>{tr("Name")}</Label>
                 {editMode ? (
                   <Input value={name} onChange={(e) => setName(e.target.value)} />
                 ) : (
@@ -103,7 +103,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Date of Birth</Label>
+                <Label>{tr("Date of Birth")}</Label>
                 {editMode ? (
                   <Input
                     type="date"
@@ -115,16 +115,16 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Gender</Label>
+                <Label>{tr("Gender")}</Label>
                 {editMode ? (
                   <Select value={gender} onValueChange={setGender}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="male">{tr("Male")}</SelectItem>
+                      <SelectItem value="female">{tr("Female")}</SelectItem>
+                      <SelectItem value="other">{tr("Other")}</SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -132,7 +132,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>National ID</Label>
+                <Label>{tr("National ID")}</Label>
                 {editMode ? (
                   <Input
                     type="number"
@@ -144,7 +144,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{tr("Phone")}</Label>
                 {editMode ? (
                   <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
                 ) : (
@@ -156,7 +156,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Email</Label>
+                <Label>{tr("Email")}</Label>
                 {editMode ? (
                   <Input value={email} onChange={(e) => setEmail(e.target.value)} />
                 ) : (
@@ -164,7 +164,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>City</Label>
+                <Label>{tr("City")}</Label>
                 {editMode ? (
                   <Input value={city} onChange={(e) => setCity(e.target.value)} />
                 ) : (
@@ -172,7 +172,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Occupation</Label>
+                <Label>{tr("Occupation")}</Label>
                 {editMode ? (
                   <Input value={occupation} onChange={(e) => setOccupation(e.target.value)} />
                 ) : (
@@ -180,7 +180,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Language</Label>
+                <Label>{tr("Language")}</Label>
                 {editMode ? (
                   <Input value={language} onChange={(e) => setLanguage(e.target.value)} />
                 ) : (
@@ -192,10 +192,10 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
 
           {/* Emergency Contact */}
           <div>
-            <h3 className="font-semibold text-lg mb-3 text-red-600">Emergency Contact</h3>
+            <h3 className="font-semibold text-lg mb-3 text-red-600">{tr("Emergency Contact")}</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label>Name</Label>
+                <Label>{tr("Name")}</Label>
                 {editMode ? (
                   <Input value={emergencyName} onChange={(e) => setEmergencyName(e.target.value)} />
                 ) : (
@@ -203,7 +203,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{tr("Phone")}</Label>
                 {editMode ? (
                   <Input value={emergencyPhone} onChange={(e) => setEmergencyPhone(e.target.value)} />
                 ) : (
@@ -217,7 +217,7 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
                 )}
               </div>
               <div>
-                <Label>Relationship</Label>
+                <Label>{tr("Relationship")}</Label>
                 {editMode ? (
                   <Input value={emergencyRelationship} onChange={(e) => setEmergencyRelationship(e.target.value)} />
                 ) : (
@@ -230,29 +230,29 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
           {/* Medical History Summary */}
           {!editMode && patient.medical_history && (
             <div>
-              <h3 className="font-semibold text-lg mb-3">Medical History Summary</h3>
+              <h3 className="font-semibold text-lg mb-3">{tr("Medical History Summary")}</h3>
               <div className="space-y-3">
                 {patient.medical_history.expectations && (
                   <div>
-                    <p className="text-sm text-gray-500">Expectations</p>
+                    <p className="text-sm text-gray-500">{tr("Expectations")}</p>
                     <p className="text-sm">{patient.medical_history.expectations}</p>
                   </div>
                 )}
                 {patient.medical_history.mainTopic && (
                   <div>
-                    <p className="text-sm text-gray-500">Main Topic</p>
+                    <p className="text-sm text-gray-500">{tr("Main Topic")}</p>
                     <p className="text-sm">{patient.medical_history.mainTopic}</p>
                   </div>
                 )}
                 {patient.medical_history.symptoms && (
                   <div>
-                    <p className="text-sm text-gray-500">Symptoms</p>
+                    <p className="text-sm text-gray-500">{tr("Symptoms")}</p>
                     <p className="text-sm">{patient.medical_history.symptoms}</p>
                   </div>
                 )}
                 {patient.medical_history.diagnosis && (
                   <div>
-                    <p className="text-sm text-gray-500">Diagnosis</p>
+                    <p className="text-sm text-gray-500">{tr("Diagnosis")}</p>
                     <p className="text-sm">{patient.medical_history.diagnosis}</p>
                   </div>
                 )}
@@ -263,12 +263,8 @@ export function ViewPatientModal({ open, onOpenChange, patient, isEditMode = fal
           {/* Action Buttons */}
           {editMode && (
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setEditMode(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave}>
-                Save Changes
-              </Button>
+              <Button variant="outline" onClick={() => setEditMode(false)}>{tr("Cancel")}</Button>
+              <Button onClick={handleSave}>{tr("Save Changes")}</Button>
             </div>
           )}
         </div>

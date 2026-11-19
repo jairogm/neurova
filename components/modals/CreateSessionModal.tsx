@@ -1,10 +1,11 @@
 "use client";
+import { useLocale } from "next-intl";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 import {
@@ -44,6 +45,8 @@ export function CreateSessionModal({
   open,
   onOpenChange,
 }: CreateSessionModalProps) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [time, setTime] = useState("09:00");
   const [duration, setDuration] = useState("60");
@@ -65,7 +68,7 @@ export function CreateSessionModal({
     e.preventDefault();
 
     if (!selectedDate) {
-      toast.error("Please select a date");
+      toast.error(tr("Please select a date"));
       return;
     }
 
@@ -85,12 +88,12 @@ export function CreateSessionModal({
         payment_status: paymentStatus,
       });
 
-      toast.success("Session created successfully");
+      toast.success(tr("Session created successfully"));
       onOpenChange(false);
       resetForm();
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Unknown error";
-      toast.error("Failed to create session: " + message);
+      const message = error instanceof Error ? error.message : tr("Unknown error");
+      toast.error(tr("Failed to create session: ") + message);
     } finally {
       setIsSubmitting(false);
     }
@@ -100,16 +103,14 @@ export function CreateSessionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-md gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="text-[17px] font-extrabold">Create session</DialogTitle>
-          <DialogDescription>
-            Schedule a new therapy session for this patient
-          </DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold">{tr("Create session")}</DialogTitle>
+          <DialogDescription>{tr("Schedule a new therapy session for this patient")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 p-6">
           {/* Date Picker */}
           <div className="space-y-2">
-            <Label>Date *</Label>
+            <Label>{tr("Date *")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -117,7 +118,7 @@ export function CreateSessionModal({
                   className="w-full justify-start text-left font-normal"
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  {selectedDate ? selectedDate.toLocaleDateString(locale, { dateStyle: "long" }) : tr("Pick a date")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -133,7 +134,7 @@ export function CreateSessionModal({
 
           {/* Time */}
           <div className="space-y-2">
-            <Label htmlFor="time">Time *</Label>
+            <Label htmlFor="time">{tr("Time *")}</Label>
             <Input
               id="time"
               type="time"
@@ -145,50 +146,50 @@ export function CreateSessionModal({
 
           {/* Duration */}
           <div className="space-y-2">
-            <Label htmlFor="duration">Duration (minutes) *</Label>
+            <Label htmlFor="duration">{tr("Duration (minutes) *")}</Label>
             <Select value={duration} onValueChange={setDuration}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="45">45 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
-                <SelectItem value="90">90 minutes</SelectItem>
-                <SelectItem value="120">120 minutes</SelectItem>
+                <SelectItem value="30">{tr("30 minutes")}</SelectItem>
+                <SelectItem value="45">{tr("45 minutes")}</SelectItem>
+                <SelectItem value="60">{tr("60 minutes")}</SelectItem>
+                <SelectItem value="90">{tr("90 minutes")}</SelectItem>
+                <SelectItem value="120">{tr("120 minutes")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Session Status */}
           <div className="space-y-2">
-            <Label>Session Status</Label>
+            <Label>{tr("Session Status")}</Label>
             <Select value={sessionStatus} onValueChange={(value) => setSessionStatus(value as SessionStatus)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="rescheduled">Rescheduled</SelectItem>
-                <SelectItem value="no_show">No Show</SelectItem>
+                <SelectItem value="scheduled">{tr("Scheduled")}</SelectItem>
+                <SelectItem value="completed">{tr("Completed")}</SelectItem>
+                <SelectItem value="cancelled">{tr("Cancelled")}</SelectItem>
+                <SelectItem value="rescheduled">{tr("Rescheduled")}</SelectItem>
+                <SelectItem value="no_show">{tr("No Show")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Payment Status */}
           <div className="space-y-2">
-            <Label>Payment Status</Label>
+            <Label>{tr("Payment Status")}</Label>
             <Select value={paymentStatus} onValueChange={(value) => setPaymentStatus(value as PaymentStatus)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="partially_paid">Partially Paid</SelectItem>
-                <SelectItem value="refunded">Refunded</SelectItem>
+                <SelectItem value="pending">{tr("Pending")}</SelectItem>
+                <SelectItem value="paid">{tr("Paid")}</SelectItem>
+                <SelectItem value="partially_paid">{tr("Partially Paid")}</SelectItem>
+                <SelectItem value="refunded">{tr("Refunded")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -198,11 +199,9 @@ export function CreateSessionModal({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
+            >{tr("Cancel")}</Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Session"}
+              {isSubmitting ? tr("Creating...") : tr("Create Session")}
             </Button>
           </DialogFooter>
         </form>

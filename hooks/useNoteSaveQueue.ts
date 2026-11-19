@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -8,6 +9,7 @@ type Write = () => Promise<unknown>;
 // Keep writes ordered across note changes. Failed writes stay at the front
 // until the clinician retries, preserving the order of subsequent edits.
 export function useNoteSaveQueue() {
+  const tr = useWorkspaceText();
   const queue = useRef<{ key: string; write: Write }[]>([]);
   const running = useRef<Promise<boolean> | null>(null);
   const [state, setState] = useState<"saved" | "saving" | "failed">("saved");
@@ -25,14 +27,14 @@ export function useNoteSaveQueue() {
         return true;
       } catch {
         setState("failed");
-        toast.error("Couldn’t save note", { action: { label: "Retry", onClick: () => { void drain(); } } });
+        toast.error(tr("Couldn’t save note"), { action: { label: tr("Retry"), onClick: () => { void drain(); } } });
         return false;
       } finally {
         running.current = null;
       }
     });
     return running.current;
-  }, []);
+  }, [tr]);
   const enqueue = useCallback((key: string, write: Write) => {
     // While one snapshot saves, keep just the latest pending snapshot of
     // each field on each record. Never replace the write already in flight.

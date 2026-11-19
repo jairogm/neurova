@@ -1,7 +1,8 @@
 "use client";
+import { useLocale } from "next-intl";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { format } from "date-fns";
 
 interface ViewRecordModalProps {
   open: boolean;
@@ -15,9 +16,11 @@ interface ViewRecordModalProps {
 }
 
 export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalProps) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const renderContent = () => {
     if (!note.content || !(note.content as { blocks?: unknown[] }).blocks) {
-      return <p className="text-muted-foreground">No content available</p>;
+      return <p className="text-muted-foreground">{tr("No content available")}</p>;
     }
 
     return (note.content as { blocks: unknown[] }).blocks.map((block: unknown, index: number) => {
@@ -60,10 +63,10 @@ export function ViewRecordModal({ open, onOpenChange, note }: ViewRecordModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[80vh] max-w-3xl gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <DialogTitle className="break-words text-[17px] font-extrabold">{note.title || "Untitled Record"}</DialogTitle>
+          <DialogTitle className="break-words text-[17px] font-extrabold">{note.title || tr("Untitled Record")}</DialogTitle>
           {note.date && (
             <p className="font-mono text-[11.5px] text-muted-foreground">
-              {format(new Date(note.date), "MMMM dd, yyyy")}
+              {new Date(note.date).toLocaleDateString(locale, { dateStyle: "long" })}
             </p>
           )}
         </DialogHeader>

@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import React, { createContext, useContext, useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -41,6 +42,7 @@ export function SessionTimeoutProvider({
   timeoutMinutes = 25, // 25 minutes total session
   warningMinutes = 2   // 2 minute warning (must be less than timeoutMinutes)
 }: SessionTimeoutProviderProps) {
+  const tr = useWorkspaceText();
   const router = useRouter();
   const { isSignedIn, signOut } = useAuth();
 
@@ -93,7 +95,7 @@ export function SessionTimeoutProvider({
       sessionStorage.clear();
 
       // Show logout message
-      toast.info("Session expired for security. Please sign in again.", {
+      toast.info(tr("Session expired for security. Please sign in again."), {
         duration: 5000,
         position: "top-center"
       });
@@ -172,7 +174,7 @@ export function SessionTimeoutProvider({
     setShowWarning(false);
     clearAllTimers();
     resetTimer();
-    toast.success("Session extended successfully", {
+    toast.success(tr("Session extended successfully"), {
       duration: 2000
     });
   };
@@ -269,18 +271,14 @@ export function SessionTimeoutProvider({
                   d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.19-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z"
                   clipRule="evenodd"
                 />
-              </svg>
-              Still there?
-            </DialogTitle>
+              </svg>{tr("Still there?")}</DialogTitle>
             <DialogDescription className="space-y-2">
               <span className="block">
-                You&apos;ve been inactive for a while, so we&apos;ll sign you out in <strong className="font-mono text-amber-600 dark:text-amber-400">
+                {tr("You've been inactive for a while, so we'll sign you out in")} <strong className="font-mono text-amber-600 dark:text-amber-400">
                   {formatTime(remainingTime)}
                 </strong>.
               </span>
-              <span className="block text-sm text-muted-foreground">
-                This helps protect sensitive patient information when devices are left unattended.
-              </span>
+              <span className="block text-sm text-muted-foreground">{tr("This helps protect sensitive patient information when devices are left unattended.")}</span>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col-reverse px-6 py-4 sm:flex-row sm:justify-end sm:space-x-2">
@@ -288,15 +286,11 @@ export function SessionTimeoutProvider({
               variant="outline"
               onClick={handleLogout}
               className="w-full sm:w-auto"
-            >
-              Sign out now
-            </Button>
+            >{tr("Sign out now")}</Button>
             <Button
               onClick={extendSession}
               className="w-full sm:w-auto"
-            >
-              Keep me signed in
-            </Button>
+            >{tr("Keep me signed in")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

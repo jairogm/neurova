@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import {
@@ -74,6 +75,7 @@ export const ScheduleAppointment = ({
   variant?: "outline" | "topbar" | "rail";
   defaultPatientId?: string;
 }) => {
+  const tr = useWorkspaceText();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const patients = useQuery(api.patients.list) || [];
@@ -115,18 +117,18 @@ export const ScheduleAppointment = ({
   const save = async () => {
     const targetId = selectedPatient?.id;
     if (!targetId) {
-      toast.error("Please select a patient");
+      toast.error(tr("Please select a patient"));
       return;
     }
     if (!isValidTime(startTime) || !isValidTime(endTime)) {
-      toast.error("Please enter valid appointment times");
+      toast.error(tr("Please enter valid appointment times"));
       return;
     }
     const parsedStartTime = startTime;
     const parsedEndTime = endTime;
     const duration = durationBetween(parsedStartTime, parsedEndTime);
     if (!duration) {
-      toast.error("End time must be after start time");
+      toast.error(tr("End time must be after start time"));
       return;
     }
     setSaving(true);
@@ -149,7 +151,7 @@ export const ScheduleAppointment = ({
         });
         if (created?.id) createdSessionIds.push(created.id);
       }
-      toast.success("Appointment scheduled");
+      toast.success(tr("Appointment scheduled"));
       setOpen(false);
 
       // Best-effort Google Calendar sync — the session already exists in Convex.
@@ -173,7 +175,7 @@ export const ScheduleAppointment = ({
         })
         .catch((error) => console.warn("Google Calendar sync skipped:", error));
     } catch {
-      toast.error("Failed to schedule appointment");
+      toast.error(tr("Failed to schedule appointment"));
     } finally {
       setSaving(false);
     }
@@ -194,33 +196,33 @@ export const ScheduleAppointment = ({
       >
         {variant !== "rail" && <CalendarIcon className={variant === "outline" ? "text-primary" : "text-current"} size={variant === "topbar" ? 16 : 20} />}
         <span className={variant === "topbar" ? "hidden xl:inline" : undefined}>
-          {variant === "topbar" ? "New appointment" : variant === "rail" ? "Schedule" : "Schedule Appointment"}
+          {variant === "topbar" ? tr("New appointment") : variant === "rail" ? tr("Schedule") : tr("Schedule Appointment")}
         </span>
       </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] w-[520px] max-w-[94vw] gap-0 overflow-y-auto p-0">
         <DialogHeader className="border-b border-border px-[22px] py-5 pr-12 text-left">
-          <DialogTitle className="text-[17px] font-extrabold text-foreground">Schedule appointment</DialogTitle>
-          <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">Syncs to Google Calendar automatically.</DialogDescription>
+          <DialogTitle className="text-[17px] font-extrabold text-foreground">{tr("Schedule appointment")}</DialogTitle>
+          <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">{tr("Syncs to Google Calendar automatically.")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-[18px] p-[22px]">
           <div>
-            <label className={labelClass} htmlFor="appointment-patient">Patient</label>
+            <label className={labelClass} htmlFor="appointment-patient">{tr("Patient")}</label>
             <div className="relative flex items-center gap-[11px] overflow-hidden rounded-[11px] border border-border bg-secondary px-[13px] py-[11px] transition-colors hover:border-primary">
               <div className="flex size-8 flex-none items-center justify-center rounded-[9px] text-xs font-bold text-white" style={{ background: avatarColorFor(selectedPatient?.avatar_color, selectedIndex) }}>
                 {selectedPatient ? initialsFor(selectedPatient.name) : "—"}
               </div>
-              <span className="text-[13.5px] font-bold text-foreground">{selectedPatient?.name ?? "Select a patient"}</span>
+              <span className="text-[13.5px] font-bold text-foreground">{selectedPatient?.name ?? tr("Select a patient")}</span>
               <ChevronDown size={16} strokeWidth={2} className="ml-auto flex-none text-[var(--nv-faint)]" />
               <select
                 id="appointment-patient"
-                aria-label="Patient"
+                aria-label={tr("Patient")}
                 value={selectedPatient?.id ?? ""}
                 onChange={(event) => setPatientId(event.target.value)}
                 className="absolute inset-0 size-full cursor-pointer opacity-0"
               >
-                <option value="" disabled>Select a patient</option>
+                <option value="" disabled>{tr("Select a patient")}</option>
                 {patients.map((patient) => (
                   <option key={patient.id} value={patient.id}>{patient.name}</option>
                 ))}
@@ -230,7 +232,7 @@ export const ScheduleAppointment = ({
 
           <div className="grid grid-cols-1 gap-[13px] sm:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
             <div>
-              <label className={labelClass} htmlFor="appointment-date">Date</label>
+              <label className={labelClass} htmlFor="appointment-date">{tr("Date")}</label>
               <input
                 id="appointment-date"
                 type="date"
@@ -241,7 +243,7 @@ export const ScheduleAppointment = ({
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className={labelClass} htmlFor="appointment-time">Start</label>
+                <label className={labelClass} htmlFor="appointment-time">{tr("Start")}</label>
                 <input
                   id="appointment-time"
                   type="time"
@@ -251,7 +253,7 @@ export const ScheduleAppointment = ({
                 />
               </div>
               <div>
-                <label className={labelClass} htmlFor="appointment-end-time">End</label>
+                <label className={labelClass} htmlFor="appointment-end-time">{tr("End")}</label>
                 <input
                   id="appointment-end-time"
                   type="time"
@@ -264,46 +266,43 @@ export const ScheduleAppointment = ({
           </div>
 
           <div>
-            <span className={labelClass}>Session type</span>
+            <span className={labelClass}>{tr("Session type")}</span>
             <div className="flex gap-2">
               {SESSION_TYPES.map((type) => (
                 <button key={type.key} type="button" onClick={() => setMode(type.key)} className={`flex-1 ${chipBase} ${mode === type.key ? chipOn : chipOff}`}>
-                  {type.label}
+                  {tr(type.label)}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <span className={labelClass}>Recurrence</span>
+            <span className={labelClass}>{tr("Recurrence")}</span>
             <div className="flex flex-wrap gap-2">
               {RECURRENCES.map((item) => (
                 <button key={item.key} type="button" onClick={() => setRecurrence(item.key)} className={`rounded-full border px-[13px] py-2 text-xs font-bold transition-colors ${recurrence === item.key ? chipOn : chipOff}`}>
-                  {item.label}
+                  {tr(item.label)}
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="appointment-notes">Notes <span className="font-medium text-[var(--nv-faint)]">(optional)</span></label>
+            <label className={labelClass} htmlFor="appointment-notes">{tr("Notes")} <span className="font-medium text-[var(--nv-faint)]">{tr("(optional)")}</span></label>
             <textarea
               id="appointment-notes"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
-              placeholder="Add a note for this session…"
+              placeholder={tr("Add a note for this session…")}
               className="min-h-16 w-full resize-y rounded-[11px] border border-border bg-card px-[13px] py-[11px] text-[13px] text-foreground/80 outline-none placeholder:text-muted-foreground focus:border-primary"
             />
           </div>
         </div>
 
         <div className="flex justify-end gap-2.5 px-[22px] pb-[22px]">
-          <button type="button" onClick={() => setOpen(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">
-            Cancel
-          </button>
+          <button type="button" onClick={() => setOpen(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">{tr("Cancel")}</button>
           <button type="button" onClick={save} disabled={saving} className="flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2.5 text-[13px] font-bold text-primary-foreground shadow-[0_4px_14px_-4px_rgba(11,90,95,.4)] transition-colors hover:bg-[#0b7693] disabled:opacity-60">
-            {saving && <Loader2 size={14} className="animate-spin" />}Schedule session
-          </button>
+            {saving && <Loader2 size={14} className="animate-spin" />}{tr("Schedule session")}</button>
         </div>
       </DialogContent>
     </Dialog>

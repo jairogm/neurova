@@ -15,29 +15,29 @@ export function timelineDate(value: string) {
   const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00` : value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
-export function formatTimelineDate(value: string) {
-  return timelineDate(value)?.toLocaleDateString([], { year: "numeric", month: "short", day: "numeric" }) ?? "Date unavailable";
+export function formatTimelineDate(value: string, locale = "en") {
+  return timelineDate(value)?.toLocaleDateString(locale, { year: "numeric", month: "short", day: "numeric" }) ?? (locale === "es" ? "Fecha no disponible" : "Date unavailable");
 }
 
-export function buildPatientTimeline(patient: { created_at: string }, notes: Note[], sessions: Session[], documents: Document[]): TimelineEvent[] {
+export function buildPatientTimeline(patient: { created_at: string }, notes: Note[], sessions: Session[], documents: Document[], tr: (text: string) => string = text => text): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   const validDate = (...values: string[]) => values.find(value => timelineDate(value)) ?? "";
-  if (patient.created_at) events.push({key: "patient", type: "patient", title: "Patient added", description: "Patient profile created", date: patient.created_at, tab: "overview"});
+  if (patient.created_at) events.push({key: "patient", type: "patient", title: tr("Patient added"), description: tr("Patient profile created"), date: patient.created_at, tab: "overview"});
   for (const note of notes) {
     if (note.deleted_at !== undefined) continue;
-    events.push({key: `note-${note._id}`, type: "note", title: note.title || "Clinical note", description: "Clinical note · " + (note.description || "Patient record"), date: validDate(note.date || "", note.created_at), tab: "notes"});
+    events.push({key: `note-${note._id}`, type: "note", title: note.title || tr("Clinical note"), description: tr("Clinical note · ") + (note.description || tr("Patient record")), date: validDate(note.date || "", note.created_at), tab: "notes"});
   }
   for (const session of sessions) {
     const status = (session.session_status || "scheduled").toLowerCase().replaceAll("-", "_");
     const labels: Record<string, string> = {completed: "Completed", complete: "Completed", scheduled: "Scheduled", confirmed: "Confirmed", cancelled: "Cancelled", canceled: "Cancelled", no_show: "No-show", missed: "No-show", in_progress: "In progress"};
     const label = labels[status] || status.replaceAll("_", " ");
-    const mode = session.mode === "video" ? "Video" : session.mode === "phone" ? "Phone" : session.mode === "inperson" ? "In person" : session.mode || "Mode not recorded";
-    events.push({key: `session-${session._id}`, type: "session", title: `${session.session_type || "Therapy session"} · ${label}`, description: `${session.duration ?? 50} min · ${mode}`, date: validDate(session.scheduled_date, session.created_at), tab: "sessions"});
+    const mode = session.mode === "video" ? "Video" : session.mode === "phone" ? "Phone" : session.mode === "inperson" ? "In person" : session.mode || tr("Mode not recorded");
+    events.push({key: `session-${session._id}`, type: "session", title: `${session.session_type || tr("Therapy session")} · ${tr(label)}`, description: `${session.duration ?? 50} min · ${tr(mode)}`, date: validDate(session.scheduled_date, session.created_at), tab: "sessions"});
     if (session.payment_status?.toLowerCase() === "paid") {
       const amount = Number(session.payment_amount);
-      events.push({key: `payment-${session._id}`, type: "payment", title: "Session marked paid", description: `${Number.isFinite(amount) && session.payment_amount != null ? new Intl.NumberFormat("es-CO", {style: "currency", currency: "COP", maximumFractionDigits: 0}).format(amount) : "Amount not recorded"} · Shown on session date`, date: validDate(session.scheduled_date, session.created_at), tab: "sessions"});
+      events.push({key: `payment-${session._id}`, type: "payment", title: tr("Session marked paid"), description: `${Number.isFinite(amount) && session.payment_amount != null ? new Intl.NumberFormat("es-CO", {style: "currency", currency: "COP", maximumFractionDigits: 0}).format(amount) : tr("Amount not recorded")} · ${tr("Shown on session date")}`, date: validDate(session.scheduled_date, session.created_at), tab: "sessions"});
     }
   }
-  for (const document of documents) events.push({key: `document-${document._id}`, type: "document", title: document.kind === "consent" ? "Consent form uploaded" : "Document uploaded", description: document.name, date: document.uploaded_at, tab: "documents"});
+  for (const document of documents) events.push({key: `document-${document._id}`, type: "document", title: document.kind === "consent" ? tr("Consent form uploaded") : tr("Document uploaded"), description: document.name, date: document.uploaded_at, tab: "documents"});
   return events.sort((a, b) => (timelineDate(b.date)?.getTime() ?? -Infinity) - (timelineDate(a.date)?.getTime() ?? -Infinity) || a.key.localeCompare(b.key));
 }

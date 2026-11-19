@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import { CancelAppointmentModal } from "@/components/modals/CancelAppointmentModal";
@@ -26,6 +28,8 @@ const CANCELLED_OR_DONE = ["completed", "complete", "cancelled", "canceled", "no
  * Renders nothing for sessions that are already completed or cancelled.
  */
 export function CancelSessionButton({ session }: { session: CancellableSession }) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const [open, setOpen] = useState(false);
   const [canceling, setCanceling] = useState(false);
   const updateSession = useMutation(api.sessions.update);
@@ -36,7 +40,7 @@ export function CancelSessionButton({ session }: { session: CancellableSession }
   const date = new Date(session.scheduled_date);
   const dateLabel = Number.isNaN(date.getTime())
     ? ""
-    : `${date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+    : `${date.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })} · ${date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`;
 
   const confirm = async () => {
     setCanceling(true);
@@ -47,10 +51,10 @@ export function CancelSessionButton({ session }: { session: CancellableSession }
           console.warn("Google Calendar cancellation skipped:", error),
         );
       }
-      toast.success("Appointment cancelled");
+      toast.success(tr("Appointment cancelled"));
       setOpen(false);
     } catch {
-      toast.error("Failed to cancel appointment");
+      toast.error(tr("Failed to cancel appointment"));
     } finally {
       setCanceling(false);
     }
@@ -60,8 +64,8 @@ export function CancelSessionButton({ session }: { session: CancellableSession }
     <>
       <button
         type="button"
-        title="Cancel appointment"
-        aria-label="Cancel appointment"
+        title={tr("Cancel appointment")}
+        aria-label={tr("Cancel appointment")}
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -75,7 +79,7 @@ export function CancelSessionButton({ session }: { session: CancellableSession }
         <CancelAppointmentModal
           open={open}
           onOpenChange={setOpen}
-          appointmentTitle={`${session.session_type || "Therapy session"}${session.patientName ? ` — ${session.patientName}` : ""}`}
+          appointmentTitle={`${session.session_type || tr("Therapy session")}${session.patientName ? ` — ${session.patientName}` : ""}`}
           appointmentDate={dateLabel}
           onConfirm={confirm}
           isCanceling={canceling}

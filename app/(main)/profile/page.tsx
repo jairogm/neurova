@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { api } from "@/convex/_generated/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 export default function ProfilePage() {
+  const tr = useWorkspaceText();
   const { user } = useUser();
   const { signOut } = useClerk();
   const router = useRouter();
@@ -63,7 +65,7 @@ export default function ProfilePage() {
       await signOut();
       router.push("/auth/login");
     } catch {
-      toast.error("Failed to sign out");
+      toast.error(tr("Failed to sign out"));
       setSigningOut(false);
     }
   };
@@ -77,8 +79,8 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file || !user) return;
     setUploading(true);
-    try { await user.setProfileImage({ file }); toast.success("Profile picture updated"); }
-    catch (error) { toast.error(error instanceof Error ? error.message : "Failed to update picture"); }
+    try { await user.setProfileImage({ file }); toast.success(tr("Profile picture updated")); }
+    catch (error) { toast.error(error instanceof Error ? error.message : tr("Failed to update picture")); }
     finally { setUploading(false); }
   };
 
@@ -95,9 +97,9 @@ export default function ProfilePage() {
         bio: profile.bio,
         emergency_contact: JSON.stringify({ name: profile.emergency_name, phone: profile.emergency_phone }),
       });
-      toast.success("Profile saved");
+      toast.success(tr("Profile saved"));
     } catch {
-      toast.error("Failed to save profile");
+      toast.error(tr("Failed to save profile"));
     } finally {
       setSaving(false);
     }
@@ -110,7 +112,7 @@ export default function ProfilePage() {
   return (
     <div className="mx-auto max-w-[980px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
       <div className="mb-5 flex items-center gap-4">
-        <button type="button" onClick={() => fileInput.current?.click()} className="group relative block flex-none rounded-[20px]" aria-label="Change profile picture">
+        <button type="button" onClick={() => fileInput.current?.click()} className="group relative block flex-none rounded-[20px]" aria-label={tr("Change profile picture")}>
           <Avatar className="size-16 rounded-[20px]">
             <AvatarImage src={user?.imageUrl} alt="" />
             <AvatarFallback className="rounded-[20px] bg-[linear-gradient(135deg,#0e96b8,#0b7693)] text-[22px] font-extrabold text-white">{initials}</AvatarFallback>
@@ -121,64 +123,62 @@ export default function ProfilePage() {
         </button>
         <input ref={fileInput} type="file" accept="image/*" onChange={uploadImage} className="hidden" />
         <div>
-          <h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">Therapist profile</h1>
-          <p className="mt-1 text-[13.5px] text-muted-foreground">Add your professional information for documents, appointments, and patient-facing details.</p>
+          <h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">{tr("Therapist profile")}</h1>
+          <p className="mt-1 text-[13.5px] text-muted-foreground">{tr("Add your professional information for documents, appointments, and patient-facing details.")}</p>
         </div>
       </div>
 
       <div className="grid items-start gap-[18px] lg:grid-cols-[1.1fr_.9fr]">
         <Card className="p-5">
-          <h2 className="mb-4 text-[15px] font-extrabold text-foreground">Professional details</h2>
+          <h2 className="mb-4 text-[15px] font-extrabold text-foreground">{tr("Professional details")}</h2>
           <div className="grid gap-[13px] sm:grid-cols-2">
-            <div><Label htmlFor="profile-name" className={fieldLabel}>Name</Label><Input id="profile-name" value={profile.full_name} onChange={setField("full_name")} placeholder="Your name" /></div>
-            <div><Label htmlFor="profile-title" className={fieldLabel}>Title</Label><Input id="profile-title" value={profile.title} onChange={setField("title")} placeholder="Clinical Psychologist" /></div>
-            <div><Label htmlFor="profile-email" className={fieldLabel}>Email</Label><Input id="profile-email" value={profile.email} disabled className="bg-secondary" /></div>
-            <div><Label htmlFor="profile-phone" className={fieldLabel}>Phone</Label><Input id="profile-phone" value={profile.phone} onChange={setField("phone")} placeholder="+1 555 000 0000" /></div>
-            <div><Label htmlFor="profile-license" className={fieldLabel}>License number</Label><Input id="profile-license" value={profile.license_number} onChange={setField("license_number")} placeholder="PSY-123456" /></div>
-            <div><Label htmlFor="profile-specialty" className={fieldLabel}>Specialization</Label><Input id="profile-specialty" value={profile.specialization} onChange={setField("specialization")} placeholder="CBT, trauma, anxiety" /></div>
+            <div><Label htmlFor="profile-name" className={fieldLabel}>{tr("Name")}</Label><Input id="profile-name" value={profile.full_name} onChange={setField("full_name")} placeholder={tr("Your name")} /></div>
+            <div><Label htmlFor="profile-title" className={fieldLabel}>{tr("Title")}</Label><Input id="profile-title" value={profile.title} onChange={setField("title")} placeholder={tr("Clinical Psychologist")} /></div>
+            <div><Label htmlFor="profile-email" className={fieldLabel}>{tr("Email")}</Label><Input id="profile-email" value={profile.email} disabled className="bg-secondary" /></div>
+            <div><Label htmlFor="profile-phone" className={fieldLabel}>{tr("Phone")}</Label><Input id="profile-phone" value={profile.phone} onChange={setField("phone")} placeholder="+1 555 000 0000" /></div>
+            <div><Label htmlFor="profile-license" className={fieldLabel}>{tr("License number")}</Label><Input id="profile-license" value={profile.license_number} onChange={setField("license_number")} placeholder="PSY-123456" /></div>
+            <div><Label htmlFor="profile-specialty" className={fieldLabel}>{tr("Specialization")}</Label><Input id="profile-specialty" value={profile.specialization} onChange={setField("specialization")} placeholder={tr("CBT, trauma, anxiety")} /></div>
           </div>
-          <div className="mt-[13px]"><Label htmlFor="profile-address" className={fieldLabel}>Office address</Label><Input id="profile-address" value={profile.office_address} onChange={setField("office_address")} placeholder="Practice address" /></div>
-          <div className="mt-[13px]"><Label htmlFor="profile-bio" className={fieldLabel}>Bio</Label><Textarea id="profile-bio" rows={5} value={profile.bio} onChange={setField("bio")} placeholder="Short professional bio" /></div>
+          <div className="mt-[13px]"><Label htmlFor="profile-address" className={fieldLabel}>{tr("Office address")}</Label><Input id="profile-address" value={profile.office_address} onChange={setField("office_address")} placeholder={tr("Practice address")} /></div>
+          <div className="mt-[13px]"><Label htmlFor="profile-bio" className={fieldLabel}>{tr("Bio")}</Label><Textarea id="profile-bio" rows={5} value={profile.bio} onChange={setField("bio")} placeholder={tr("Short professional bio")} /></div>
           <div className="mt-5 flex justify-end">
-            <Button onClick={save} disabled={saving}>{saving && <Loader2 size={14} className="animate-spin" />}Save changes</Button>
+            <Button onClick={save} disabled={saving}>{saving && <Loader2 size={14} className="animate-spin" />}{tr("Save changes")}</Button>
           </div>
         </Card>
 
         <div className="flex flex-col gap-[18px]">
           <Card className="p-5">
-            <h2 className="mb-3.5 text-[15px] font-extrabold text-foreground">Preview</h2>
+            <h2 className="mb-3.5 text-[15px] font-extrabold text-foreground">{tr("Preview")}</h2>
             <div className="flex items-center gap-3 rounded-[13px] border border-border bg-secondary p-[13px]">
               <Avatar className="size-[42px] flex-none rounded-full">
                 <AvatarImage src={user?.imageUrl} alt="" />
                 <AvatarFallback className="bg-[linear-gradient(135deg,#0e96b8,#0b7693)] font-extrabold text-white">{initials}</AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <div className="truncate text-[13px] font-extrabold text-foreground">{profile.full_name || "Therapist"}</div>
-                <div className="truncate text-xs text-muted-foreground">{profile.title || "Clinical professional"}</div>
+                <div className="truncate text-[13px] font-extrabold text-foreground">{profile.full_name || tr("Therapist")}</div>
+                <div className="truncate text-xs text-muted-foreground">{profile.title || tr("Clinical professional")}</div>
               </div>
             </div>
           </Card>
 
           <Card className="p-5">
             <div className="mb-3.5 flex items-center justify-between">
-              <h2 className="text-[15px] font-extrabold text-foreground">Emergency contact</h2>
+              <h2 className="text-[15px] font-extrabold text-foreground">{tr("Emergency contact")}</h2>
               <AlertTriangle size={15} strokeWidth={1.8} className="text-[#d2574f] dark:text-[#e0726a]" />
             </div>
             <div className="flex flex-col gap-3">
-              <div><Label htmlFor="therapist-emergency-name" className="sr-only">Contact name</Label><Input id="therapist-emergency-name" value={profile.emergency_name} onChange={setField("emergency_name")} placeholder="Contact name" /></div>
-              <div><Label htmlFor="therapist-emergency-phone" className="sr-only">Contact phone</Label><Input id="therapist-emergency-phone" value={profile.emergency_phone} onChange={setField("emergency_phone")} placeholder="Contact phone" /></div>
+              <div><Label htmlFor="therapist-emergency-name" className="sr-only">{tr("Contact name")}</Label><Input id="therapist-emergency-name" value={profile.emergency_name} onChange={setField("emergency_name")} placeholder={tr("Contact name")} /></div>
+              <div><Label htmlFor="therapist-emergency-phone" className="sr-only">{tr("Contact phone")}</Label><Input id="therapist-emergency-phone" value={profile.emergency_phone} onChange={setField("emergency_phone")} placeholder={tr("Contact phone")} /></div>
             </div>
           </Card>
 
           {/* Below lg the sidebar (and its account dropdown) is hidden, so this
               is the only place to sign out on phones and tablets. */}
           <Card className="p-5 lg:hidden">
-            <h2 className="mb-1.5 text-[15px] font-extrabold text-foreground">Account</h2>
-            <p className="mb-3.5 text-[13px] text-muted-foreground">Signed in as {profile.email || user?.primaryEmailAddress?.emailAddress || "your account"}.</p>
+            <h2 className="mb-1.5 text-[15px] font-extrabold text-foreground">{tr("Account")}</h2>
+            <p className="mb-3.5 text-[13px] text-muted-foreground">{tr("Signed in as")} {profile.email || user?.primaryEmailAddress?.emailAddress || tr("your account")}.</p>
             <Button variant="outline" className="w-full" onClick={logout} disabled={signingOut}>
-              {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} strokeWidth={1.8} />}
-              Log out
-            </Button>
+              {signingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} strokeWidth={1.8} />}{tr("Log out")}</Button>
           </Card>
         </div>
       </div>

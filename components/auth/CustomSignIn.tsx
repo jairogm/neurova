@@ -1,4 +1,6 @@
 "use client";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useSignIn, useUser } from "@clerk/nextjs";
 import {
@@ -88,6 +90,7 @@ function GoogleIcon() {
 }
 
 export function CustomSignIn() {
+  const tr = useWorkspaceText();
   const { signIn, isLoaded } = useSignIn();
   const { isSignedIn } = useUser();
   const router = useRouter();
@@ -142,22 +145,22 @@ export function CustomSignIn() {
           <div className="mb-6 flex size-[46px] items-center justify-center rounded-[14px] border border-[#c9dcdf] bg-white/80">
             <SlideIcon size={22} strokeWidth={1.8} className="text-[#0b7693]" />
           </div>
-          <h2 className="m-0 text-[34px] font-extrabold leading-[1.18] tracking-[-.02em]">{slide.title}</h2>
-          <p className="mt-4 text-[15px] leading-[1.6] text-[#526770]">{slide.body}</p>
+          <h2 className="m-0 text-[34px] font-extrabold leading-[1.18] tracking-[-.02em]">{tr(slide.title)}</h2>
+          <p className="mt-4 text-[15px] leading-[1.6] text-[#526770]">{tr(slide.body)}</p>
 
           <div className="mt-8 rounded-2xl border border-[#d6e5e6] bg-white/95 p-3.5 backdrop-blur-sm">
             <div className="mb-3 flex items-center gap-2">
               <span className="size-[9px] rounded-full bg-[#3fb6d6]" />
-              <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#526770]">{slide.previewLabel}</span>
+              <span className="text-[11px] font-bold uppercase tracking-[.06em] text-[#526770]">{tr(slide.previewLabel)}</span>
             </div>
             {slide.rows.map((row) => (
-              <div key={row.title} className="flex items-center gap-3 border-t border-[#e2e9eb] py-2.5">
+              <div key={tr(row.title)} className="flex items-center gap-3 border-t border-[#e2e9eb] py-2.5">
                 <div className="flex size-[30px] flex-none items-center justify-center rounded-[9px] text-[11px] font-bold text-[#062623]" style={{ background: row.color }}>{row.tag}</div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12.5px] font-bold text-[#163b45]">{row.title}</div>
-                  <div className="text-[11px] text-[#526770]">{row.sub}</div>
+                  <div className="text-[12.5px] font-bold text-[#163b45]">{tr(row.title)}</div>
+                  <div className="text-[11px] text-[#526770]">{tr(row.sub)}</div>
                 </div>
-                <span className="font-mono text-[11.5px] text-[#526770]">{row.meta}</span>
+                <span className="font-mono text-[11.5px] text-[#526770]">{tr(row.meta)}</span>
               </div>
             ))}
           </div>
@@ -168,7 +171,7 @@ export function CustomSignIn() {
                 key={item.title}
                 type="button"
                 onClick={() => setActiveIndex(index)}
-                aria-label={`Show slide ${index + 1}`}
+                aria-label={`${tr("Show slide")} ${index + 1}`}
                 className={`h-1.5 rounded-full transition-all ${index === activeIndex ? "w-[26px] bg-[#3fb6d6]" : "w-1.5 bg-[#94b7be] hover:bg-[#709aa2]"}`}
               />
             ))}
@@ -177,16 +180,16 @@ export function CustomSignIn() {
       </section>
 
       <section className="flex min-h-dvh w-full flex-none flex-col overflow-auto bg-white px-[18px] py-5 md:min-h-0 md:w-auto md:flex-1 md:px-8 lg:px-12 md:py-10">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-3">
+          <LanguageSwitcher variant="segmented" />
           <Link href="/" className="flex items-center gap-1.5 text-[12.5px] font-bold text-[#6c828c] transition-colors hover:text-[#0e96b8]">
-            <ArrowLeft size={14} /> Back to site
-          </Link>
+            <ArrowLeft size={14} /> {tr("Back to site")}</Link>
         </div>
 
         <div className="my-auto w-full max-w-[380px] self-center py-8">
           <div className="mb-7"><NeurovaMark /></div>
-          <h1 className="text-[34px] leading-[1.2] font-extrabold tracking-[-.02em] text-[#15252c]">Welcome back</h1>
-          <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">Sign in to your NEUROVA practice workspace.</p>
+          <h1 className="text-[34px] leading-[1.2] font-extrabold tracking-[-.02em] text-[#15252c]">{tr("Welcome back")}</h1>
+          <p className="mb-7 mt-2 text-sm leading-6 text-[#6c828c]">{tr("Sign in to your NEUROVA practice workspace.")}</p>
 
           <button
             type="button"
@@ -194,32 +197,28 @@ export function CustomSignIn() {
             disabled={!isLoaded || isLoading}
             className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#cfdadd] bg-white px-3 py-[13px] text-sm font-bold text-[#15252c] shadow-[0_1px_2px_rgba(16,40,46,.04),0_6px_20px_-8px_rgba(16,40,46,.12)] transition-colors hover:border-[#0e96b8] hover:bg-[#f4f7f8] disabled:cursor-wait disabled:opacity-70"
           >
-            {isLoading ? <Loader2 size={19} className="animate-spin text-[#0e96b8]" /> : <GoogleIcon />}
-            Continue with Google
-          </button>
+            {isLoading ? <Loader2 size={19} className="animate-spin text-[#0e96b8]" /> : <GoogleIcon />}{tr("Continue with Google")}</button>
 
           <div className="mt-3.5 flex items-start gap-2.5 rounded-[11px] border border-[#8acfe0] bg-[#e0f1f6] px-3.5 py-3">
             <CalendarDays size={16} strokeWidth={1.8} className="mt-px flex-none text-[#0e96b8]" />
-            <p className="m-0 text-[13px] leading-[1.6] text-[#36474f]">Google sign-in lets NEUROVA sync your <strong className="text-[#15252c]">Google Calendar</strong> so appointments and sessions stay in one place. You can revoke access anytime.</p>
+            <p className="m-0 text-[13px] leading-[1.6] text-[#36474f]">{tr("Google sign-in lets NEUROVA sync your")} <strong className="text-[#15252c]">{tr("Google Calendar")}</strong> {tr("so appointments and sessions stay in one place. You can revoke access anytime.")}</p>
           </div>
 
           <div className="my-[22px] flex items-center gap-3">
             <div className="h-px flex-1 bg-[#e2e9eb]" />
-            <span className="text-[11px] font-bold uppercase tracking-[.08em] text-[#60757d]">More options soon</span>
+            <span className="text-[11px] font-bold uppercase tracking-[.08em] text-[#60757d]">{tr("More options soon")}</span>
             <div className="h-px flex-1 bg-[#e2e9eb]" />
           </div>
 
           <div aria-disabled="true" className="relative flex w-full cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-[#e2e9eb] bg-[#f4f7f8] px-3 py-[13px] text-sm font-bold text-[#60757d]">
-            <Mail size={18} strokeWidth={1.8} /> Continue with Outlook
-            <span className="absolute right-3 rounded-full border border-[#e2e9eb] bg-white px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[.06em] text-[#6c828c]">Soon</span>
+            <Mail size={18} strokeWidth={1.8} /> {tr("Continue with Outlook")}<span className="absolute right-3 rounded-full border border-[#e2e9eb] bg-white px-2 py-0.5 text-[9.5px] font-extrabold uppercase tracking-[.06em] text-[#6c828c]">{tr("Soon")}</span>
           </div>
 
           <p className="mt-7 text-center text-xs leading-[1.6] text-[#60757d]">
-            By continuing you agree to NEUROVA&apos;s <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Terms</Link>, <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">Privacy</Link> &amp; <Link href="/baa" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">BAA</Link>. Protected health information is encrypted in transit and at rest.
-          </p>
+            {tr("By continuing you agree to NEUROVA's")} <Link href="/terms" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">{tr("Terms")}</Link>, <Link href="/privacy" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">{tr("Privacy")}</Link> &amp; <Link href="/baa" className="font-semibold text-[#6c828c] hover:text-[#0e96b8]">{tr("BAA")}</Link>{tr(". Protected health information is encrypted in transit and at rest.")}</p>
         </div>
 
-        <div className="text-center text-xs text-[#60757d]">New to NEUROVA? <Link href="/#workflow" className="font-bold text-[#0b7693]">See how it works</Link></div>
+        <div className="text-center text-xs text-[#60757d]">{tr("New to NEUROVA?")} <Link href="/#workflow" className="font-bold text-[#0b7693]">{tr("See how it works")}</Link></div>
       </section>
       </div>
     </main>

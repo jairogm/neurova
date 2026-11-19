@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import { CancelAppointmentModal } from "@/components/modals/CancelAppointmentModal";
@@ -75,6 +77,8 @@ export function SessionDetailsModal({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const updateSession = useMutation(api.sessions.update);
   const [saving, setSaving] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
@@ -111,7 +115,7 @@ export function SessionDetailsModal({
   const save = async () => {
     const duration = minutesOf(endTime) - minutesOf(startTime);
     if (!dateISO || duration <= 0) {
-      toast.error("End time must be after start time");
+      toast.error(tr("End time must be after start time"));
       return;
     }
     setSaving(true);
@@ -124,10 +128,10 @@ export function SessionDetailsModal({
         mode,
         notes: notes || undefined,
       });
-      toast.success("Session updated");
+      toast.success(tr("Session updated"));
       onOpenChange(false);
     } catch {
-      toast.error("Failed to update session");
+      toast.error(tr("Failed to update session"));
     } finally {
       setSaving(false);
     }
@@ -142,17 +146,17 @@ export function SessionDetailsModal({
           console.warn("Google Calendar cancellation skipped:", error),
         );
       }
-      toast.success("Appointment cancelled");
+      toast.success(tr("Appointment cancelled"));
       setConfirmCancel(false);
       onOpenChange(false);
     } catch {
-      toast.error("Failed to cancel appointment");
+      toast.error(tr("Failed to cancel appointment"));
     } finally {
       setCanceling(false);
     }
   };
 
-  const dateLabel = new Date(session.scheduled_date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  const dateLabel = new Date(session.scheduled_date).toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" });
 
   return (
     <>
@@ -160,28 +164,25 @@ export function SessionDetailsModal({
         <DialogContent className="max-h-[70vh] w-[520px] max-w-[94vw] gap-0 overflow-y-auto p-0">
           <DialogHeader className="border-b border-border px-[22px] py-5 pr-12 text-left">
             <div className="flex items-center gap-2.5">
-              <DialogTitle className="text-[17px] font-extrabold text-foreground">Session details</DialogTitle>
-              <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tone.label}</span>
+              <DialogTitle className="text-[17px] font-extrabold text-foreground">{tr("Session details")}</DialogTitle>
+              <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tr(tone.label)}</span>
             </div>
-            <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">
-              View, reschedule, or update this appointment.
-            </DialogDescription>
+            <DialogDescription className="mt-[3px] text-[12.5px] text-muted-foreground">{tr("View, reschedule, or update this appointment.")}</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-[18px] p-[22px]">
             <div>
-              <span className={labelClass}>Patient</span>
+              <span className={labelClass}>{tr("Patient")}</span>
               <div className="flex items-center gap-[11px] rounded-[11px] border border-border bg-secondary px-[13px] py-[11px]">
                 <div className="flex size-8 flex-none items-center justify-center rounded-[9px] text-xs font-bold text-white" style={{ background: avatarColorFor(session.patientColor ?? undefined, 0) }}>
                   {initialsFor(session.patientName)}
                 </div>
-                <span className="text-[13.5px] font-bold text-foreground">{session.patientName ?? "Patient"}</span>
+                <span className="text-[13.5px] font-bold text-foreground">{session.patientName ?? tr("Patient")}</span>
                 <Link
                   href={`/patients/${session.patient_id}`}
                   onClick={() => onOpenChange(false)}
                   className="ml-auto flex items-center gap-1 text-[11.5px] font-bold text-primary hover:underline"
-                >
-                  Open chart <ArrowUpRight size={12} strokeWidth={2.4} />
+                >{tr("Open chart")} <ArrowUpRight size={12} strokeWidth={2.4} />
                 </Link>
               </div>
             </div>
@@ -193,13 +194,12 @@ export function SessionDetailsModal({
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 rounded-[11px] border border-[#8acfe0] bg-primary/10 px-[13px] py-[11px] text-[13px] font-bold text-primary transition-colors hover:bg-primary/15 dark:border-[#1f5664]"
               >
-                <Video size={15} strokeWidth={2} />Join Google Meet
-              </a>
+                <Video size={15} strokeWidth={2} />{tr("Join Google Meet")}</a>
             )}
 
             <div className="grid grid-cols-1 gap-[13px] sm:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
               <div>
-                <label className={labelClass} htmlFor="session-date">Date</label>
+                <label className={labelClass} htmlFor="session-date">{tr("Date")}</label>
                 <input
                   id="session-date"
                   type="date"
@@ -211,7 +211,7 @@ export function SessionDetailsModal({
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className={labelClass} htmlFor="session-start">Start</label>
+                  <label className={labelClass} htmlFor="session-start">{tr("Start")}</label>
                   <input
                     id="session-start"
                     type="time"
@@ -222,7 +222,7 @@ export function SessionDetailsModal({
                   />
                 </div>
                 <div>
-                  <label className={labelClass} htmlFor="session-end">End</label>
+                  <label className={labelClass} htmlFor="session-end">{tr("End")}</label>
                   <input
                     id="session-end"
                     type="time"
@@ -236,7 +236,7 @@ export function SessionDetailsModal({
             </div>
 
             <div>
-              <span className={labelClass}>Session type</span>
+              <span className={labelClass}>{tr("Session type")}</span>
               <div className="flex gap-2">
                 {SESSION_TYPES.map((type) => (
                   <button
@@ -246,14 +246,14 @@ export function SessionDetailsModal({
                     onClick={() => setMode(type.key)}
                     className={`flex-1 rounded-[10px] border px-3 py-2.5 text-[12.5px] font-bold transition-colors disabled:opacity-60 ${mode === type.key ? chipOn : chipOff}`}
                   >
-                    {type.label}
+                    {tr(type.label)}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <span className={labelClass}>Status</span>
+              <span className={labelClass}>{tr("Status")}</span>
               <div className="flex flex-wrap gap-2">
                 {STATUSES.map((item) => (
                   <button
@@ -263,23 +263,23 @@ export function SessionDetailsModal({
                     onClick={() => setStatus(item.key)}
                     className={`rounded-full border px-[13px] py-2 text-xs font-bold transition-colors disabled:opacity-60 ${status === item.key ? chipOn : chipOff}`}
                   >
-                    {item.label}
+                    {tr(item.label)}
                   </button>
                 ))}
                 {isCancelled && (
-                  <span className="rounded-full border border-[#d2574f] bg-[#f8e5e3] px-[13px] py-2 text-xs font-bold text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">Cancelled</span>
+                  <span className="rounded-full border border-[#d2574f] bg-[#f8e5e3] px-[13px] py-2 text-xs font-bold text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">{tr("Cancelled")}</span>
                 )}
               </div>
             </div>
 
             <div>
-              <label className={labelClass} htmlFor="session-notes">Notes <span className="font-medium text-[var(--nv-faint)]">(optional)</span></label>
+              <label className={labelClass} htmlFor="session-notes">{tr("Notes")} <span className="font-medium text-[var(--nv-faint)]">{tr("(optional)")}</span></label>
               <textarea
                 id="session-notes"
                 value={notes}
                 disabled={isCancelled}
                 onChange={(event) => setNotes(event.target.value)}
-                placeholder="Add a note for this session…"
+                placeholder={tr("Add a note for this session…")}
                 className="min-h-16 w-full resize-y rounded-[11px] border border-border bg-card px-[13px] py-[11px] text-[13px] text-foreground/80 outline-none placeholder:text-muted-foreground focus:border-primary disabled:opacity-60"
               />
             </div>
@@ -292,17 +292,13 @@ export function SessionDetailsModal({
                 onClick={() => setConfirmCancel(true)}
                 className="flex items-center gap-1.5 rounded-[10px] px-2.5 py-2.5 text-[12.5px] font-bold text-[#d2574f] transition-colors hover:bg-[#f8e5e3] dark:text-[#e0726a] dark:hover:bg-[#3a1f1d]"
               >
-                <XCircle size={14} strokeWidth={2} />Cancel appointment
-              </button>
+                <XCircle size={14} strokeWidth={2} />{tr("Cancel appointment")}</button>
             )}
             <div className="ml-auto flex gap-2.5">
-              <button type="button" onClick={() => onOpenChange(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">
-                Close
-              </button>
+              <button type="button" onClick={() => onOpenChange(false)} className="rounded-[10px] border border-border bg-card px-[18px] py-2.5 text-[13px] font-bold text-foreground/80">{tr("Close")}</button>
               {!isCancelled && (
                 <button type="button" onClick={save} disabled={saving} className="flex items-center gap-2 rounded-[10px] bg-primary px-5 py-2.5 text-[13px] font-bold text-primary-foreground shadow-[0_4px_14px_-4px_rgba(11,90,95,.4)] transition-colors hover:bg-[#0b7693] disabled:opacity-60">
-                  {saving && <Loader2 size={14} className="animate-spin" />}Save changes
-                </button>
+                  {saving && <Loader2 size={14} className="animate-spin" />}{tr("Save changes")}</button>
               )}
             </div>
           </div>
@@ -312,7 +308,7 @@ export function SessionDetailsModal({
       <CancelAppointmentModal
         open={confirmCancel}
         onOpenChange={setConfirmCancel}
-        appointmentTitle={`${session.session_type || "Therapy session"}${session.patientName ? ` — ${session.patientName}` : ""}`}
+        appointmentTitle={`${session.session_type || tr("Therapy session")}${session.patientName ? ` — ${session.patientName}` : ""}`}
         appointmentDate={dateLabel}
         onConfirm={cancelSession}
         isCanceling={canceling}

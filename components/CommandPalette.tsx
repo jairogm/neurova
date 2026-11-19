@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import { avatarColorFor, initialsFor } from "@/lib/nv";
@@ -27,6 +29,8 @@ type PaletteItem = {
 };
 
 export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -67,7 +71,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       .map((patient, index) => ({
         key: `p-${patient.id}`,
         label: patient.name,
-        sub: patient.focus || "Patient record",
+        sub: patient.focus || tr("Patient record"),
         kind: "Patient",
         dotText: initialsFor(patient.name),
         dotColor: avatarColorFor(patient.avatar_color, index),
@@ -79,8 +83,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       .slice(0, 3)
       .map((note) => ({
         key: `n-${note._id}`,
-        label: `${note.title || "Untitled record"} — ${note.patientName}`,
-        sub: note.date || "Clinical record",
+        label: `${note.title || tr("Untitled record")} — ${note.patientName}`,
+        sub: note.date || tr("Clinical record"),
         kind: "Note",
         dotText: "N",
         run: () => go(`/patients/${note.patient_id}?tab=notes`),
@@ -93,8 +97,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
         const date = new Date(session.scheduled_date);
         return {
           key: `a-${session._id}`,
-          label: `${session.patientName} — ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-          sub: `${date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })} · ${session.session_type || "Session"}`,
+          label: `${session.patientName} — ${date.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}`,
+          sub: `${date.toLocaleDateString(locale, { weekday: "short", month: "short", day: "numeric" })} · ${session.session_type || tr("Session")}`,
           kind: "Appt",
           dotText: initialsFor(session.patientName),
           dotColor: session.patientColor || undefined,
@@ -103,19 +107,19 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       });
 
     const actionItems: PaletteItem[] = [
-      { key: "act-schedule", label: "Schedule appointment", sub: "Create a new session", kind: "Action", icon: <CalendarPlus size={14} />, run: () => go("/schedule") },
-      { key: "act-add-patient", label: "Add patient", sub: "New patient record", kind: "Action", icon: <UserPlus size={14} />, run: () => go("/patients?new=1") },
-      { key: "act-billing", label: "Open billing", sub: "Plan, payment methods, invoices", kind: "Action", icon: <CreditCard size={14} />, run: () => go("/billing") },
-      { key: "act-dashboard", label: "Go to Dashboard", sub: "Today overview", kind: "Action", icon: <LayoutDashboard size={14} />, run: () => go("/dashboard") },
+      { key: "act-schedule", label: tr("Schedule appointment"), sub: tr("Create a new session"), kind: "Action", icon: <CalendarPlus size={14} />, run: () => go("/schedule") },
+      { key: "act-add-patient", label: tr("Add patient"), sub: tr("New patient record"), kind: "Action", icon: <UserPlus size={14} />, run: () => go("/patients?new=1") },
+      { key: "act-billing", label: tr("Open billing"), sub: tr("Plan, payment methods, invoices"), kind: "Action", icon: <CreditCard size={14} />, run: () => go("/billing") },
+      { key: "act-dashboard", label: tr("Go to Dashboard"), sub: tr("Today overview"), kind: "Action", icon: <LayoutDashboard size={14} />, run: () => go("/dashboard") },
     ].filter((action) => match(action.label));
 
     return [
-      { title: "Patients", items: patientItems },
-      { title: "Notes", items: noteItems },
-      { title: "Appointments", items: apptItems },
-      { title: "Actions", items: actionItems },
+      { title: tr("Patients"), items: patientItems },
+      { title: tr("Notes"), items: noteItems },
+      { title: tr("Appointments"), items: apptItems },
+      { title: tr("Actions"), items: actionItems },
     ].filter((group) => group.items.length);
-  }, [go, notes, patients, query, sessions]);
+  }, [go, notes, patients, query, sessions, tr, locale]);
 
   const value = useMemo(() => ({ open: openPalette }), [openPalette]);
 
@@ -128,7 +132,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
           onClick={() => setOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Command palette"
+          aria-label={tr("Command palette")}
         >
           <div
             className="flex max-h-[64vh] w-[580px] max-w-[92vw] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_24px_60px_-20px_rgba(12,30,36,.35)]"
@@ -140,7 +144,7 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                 autoFocus
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search patients, notes, appointments…"
+                placeholder={tr("Search patients, notes, appointments…")}
                 className="flex-1 border-0 bg-transparent text-[15px] text-foreground outline-none placeholder:text-muted-foreground"
               />
               <span className="rounded-[5px] border border-border px-[7px] py-0.5 font-mono text-[11px] text-[var(--nv-faint)]">ESC</span>
@@ -166,12 +170,12 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                         <span className="block truncate text-[13.5px] font-bold text-foreground">{item.label}</span>
                         <span className="block truncate text-[11.5px] text-muted-foreground">{item.sub}</span>
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-[.05em] text-[var(--nv-faint)]">{item.kind}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-[.05em] text-[var(--nv-faint)]">{tr(item.kind)}</span>
                     </button>
                   ))}
                 </div>
               )) : (
-                <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">No results for “{query}”.</div>
+                <div className="px-4 py-8 text-center text-[13px] text-muted-foreground">{tr("No results for “")}{query}”.</div>
               )}
             </div>
           </div>

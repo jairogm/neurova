@@ -1,4 +1,5 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import {
   Dialog,
@@ -35,6 +36,7 @@ export function CancelAppointmentModal({
   onConfirm,
   isCanceling = false,
 }: CancelAppointmentModalProps) {
+  const tr = useWorkspaceText();
   const [cancelType, setCancelType] = useState<CancelType>("single");
   
   const handleConfirm = () => {
@@ -49,22 +51,19 @@ export function CancelAppointmentModal({
               <AlertTriangle className="size-5 text-[#d2574f]" />
             </div>
             <div>
-              <DialogTitle className="text-[17px] font-extrabold text-foreground">Cancel appointment?</DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                This action cannot be undone
-              </DialogDescription>
+              <DialogTitle className="text-[17px] font-extrabold text-foreground">{tr("Cancel appointment?")}</DialogTitle>
+              <DialogDescription className="text-muted-foreground">{tr("This action cannot be undone")}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
         <div className="space-y-4 px-6 py-5">
           <div>
-            <p className="text-[13px] text-foreground/80">
-              Are you sure you want to cancel{" "}
+            <p className="text-[13px] text-foreground/80">{tr("Are you sure you want to cancel")}{" "}
               <span className="font-semibold text-current">{appointmentTitle}</span>
               {appointmentDate && (
                 <>
-                  {" "}on{" "}
+                  {" "}{tr("on date")}{" "}
                   <span className="font-semibold text-current">{appointmentDate}</span>
                 </>
               )}?
@@ -72,14 +71,14 @@ export function CancelAppointmentModal({
             {isRecurring && (
               <div className="mt-2 flex items-center gap-1 text-[12px] text-primary">
                 <Repeat className="h-4 w-4" />
-                <span>This is a {recurrenceDescription?.toLowerCase() || "recurring"} appointment</span>
+                <span>{tr("This is a")} {recurrenceDescription?.toLowerCase() || "recurring"} {tr("appointment")}</span>
               </div>
             )}
           </div>
 
           {isRecurring && (
             <div className="space-y-3">
-              <p className="text-[12.5px] font-bold text-foreground">What would you like to cancel?</p>
+              <p className="text-[12.5px] font-bold text-foreground">{tr("What would you like to cancel?")}</p>
               <div className="space-y-2">
                 <label className="flex cursor-pointer items-center space-x-3 rounded-[10px] border border-border bg-secondary p-3">
                   <input
@@ -91,8 +90,8 @@ export function CancelAppointmentModal({
                     className="size-4 accent-[#0e96b8]"
                   />
                   <div className="flex-1">
-                    <div className="text-[12.5px] font-bold text-foreground">Just this appointment</div>
-                    <div className="text-[11px] text-muted-foreground">Cancel only this occurrence on {appointmentDate}</div>
+                    <div className="text-[12.5px] font-bold text-foreground">{tr("Just this appointment")}</div>
+                    <div className="text-[11px] text-muted-foreground">{tr("Cancel only this occurrence on")} {appointmentDate}</div>
                   </div>
                 </label>
                 <label className="flex cursor-pointer items-center space-x-3 rounded-[10px] border border-border bg-secondary p-3">
@@ -105,17 +104,15 @@ export function CancelAppointmentModal({
                     className="size-4 accent-[#0e96b8]"
                   />
                   <div className="flex-1">
-                    <div className="text-[12.5px] font-bold text-foreground">This and all future appointments</div>
-                    <div className="text-[11px] text-muted-foreground">Cancel the entire {recurrenceDescription?.toLowerCase() || "recurring"} series</div>
+                    <div className="text-[12.5px] font-bold text-foreground">{tr("This and all future appointments")}</div>
+                    <div className="text-[11px] text-muted-foreground">{tr("Cancel the entire")} {recurrenceDescription?.toLowerCase() || "recurring"} {tr("series")}</div>
                   </div>
                 </label>
               </div>
             </div>
           )}
 
-          <p className="text-[12px] text-muted-foreground">
-            All attendees will be notified about the cancellation.
-          </p>
+          <p className="text-[12px] text-muted-foreground">{tr("All attendees will be notified about the cancellation.")}</p>
         </div>
 
         <DialogFooter className="gap-2 border-t border-border px-6 py-4">
@@ -123,9 +120,7 @@ export function CancelAppointmentModal({
             variant="outline" 
             onClick={() => onOpenChange(false)}
             disabled={isCanceling}
-          >
-            Keep Appointment
-          </Button>
+          >{tr("Keep Appointment")}</Button>
           <Button
             onClick={handleConfirm}
             disabled={isCanceling}
@@ -133,14 +128,10 @@ export function CancelAppointmentModal({
           >
             {isCanceling ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                Canceling...
-              </>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />{tr("Canceling...")}</>
             ) : (
               <>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Cancel Appointment
-              </>
+                <Trash2 className="w-4 h-4 mr-2" />{tr("Cancel Appointment")}</>
             )}
           </Button>
         </DialogFooter>

@@ -1,10 +1,12 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 
 import { useClerk } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
 export function LogoutButton() {
+  const tr = useWorkspaceText();
   const { signOut } = useClerk();
   const router = useRouter();
 
@@ -13,5 +15,5 @@ export function LogoutButton() {
     router.push("/auth/login");
   };
 
-  return <Button onClick={logout}>Logout</Button>;
+  return <Button onClick={logout}>{tr("Logout")}</Button>;
 }

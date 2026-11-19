@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import { CancelSessionButton } from "@/components/CancelSessionButton";
@@ -12,15 +14,13 @@ import { useQuery } from "convex/react";
 import { CalendarCheck2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-function sessionTime(date: Date) {
-  const hours = date.getHours();
-  const hour12 = hours % 12 || 12;
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  const suffix = hours >= 12 ? "PM" : "AM";
-  return `${hour12}:${minutes} ${suffix}`;
+function sessionTime(date: Date, locale: string) {
+  return date.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
 }
 
 export default function SchedulePage() {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const sessions = useQuery(api.dashboard.getWeekSessions);
   const weekSessions = useMemo(() => sessions || [], [sessions]);
   const today = new Date();
@@ -41,7 +41,7 @@ export default function SchedulePage() {
 
   const dayAgenda = weekSessions.filter((session) => new Date(session.scheduled_date).toDateString() === selectedDay);
   const selectedDate = new Date(selectedDay);
-  const dayLabel = selectedDate.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+  const dayLabel = selectedDate.toLocaleDateString(locale, { weekday: "long", month: "short", day: "numeric" });
 
   const videoCount = weekSessions.filter((session) => (session.mode || "video") === "video").length;
   const inPersonCount = weekSessions.length - videoCount;
@@ -66,9 +66,9 @@ export default function SchedulePage() {
               onClick={() => setSelectedDay(day.date.toDateString())}
               className={`min-w-[92px] flex-1 rounded-[14px] border p-[13px] text-center transition-colors ${selected ? "border-primary bg-primary text-white" : day.isToday ? "border-primary bg-card" : "border-border bg-card hover:border-primary/50"}`}
             >
-              <div className={`text-[11px] font-bold uppercase tracking-[.05em] ${selected ? "text-white/[.82]" : "text-[var(--nv-faint)]"}`}>{day.date.toLocaleDateString([], { weekday: "short" })}</div>
+              <div className={`text-[11px] font-bold uppercase tracking-[.05em] ${selected ? "text-white/[.82]" : "text-[var(--nv-faint)]"}`}>{day.date.toLocaleDateString(locale, { weekday: "short" })}</div>
               <div className={`my-[3px] font-mono text-[21px] font-bold ${selected ? "text-white" : "text-foreground"}`}>{day.date.getDate()}</div>
-              <div className={`text-[10.5px] ${selected ? "text-white/[.82]" : "text-[var(--nv-faint)]"}`}>{day.count ? `${day.count} sessions` : "—"}</div>
+              <div className={`text-[10.5px] ${selected ? "text-white/[.82]" : "text-[var(--nv-faint)]"}`}>{day.count ? `${day.count} ${tr(day.count === 1 ? "session" : "sessions")}` : "—"}</div>
             </button>
           );
         })}
@@ -92,31 +92,31 @@ export default function SchedulePage() {
                 onClick={() => setSelectedSession(session as SessionDetails)}
                 className="flex w-full gap-4 border-b border-border px-5 py-3.5 text-left last:border-0 hover:bg-secondary"
               >
-                <div className="w-[68px] flex-none whitespace-nowrap pt-0.5 text-right font-mono text-[13px] font-semibold text-muted-foreground">{sessionTime(date)}</div>
+                <div className="w-[68px] flex-none whitespace-nowrap pt-0.5 text-right font-mono text-[13px] font-semibold text-muted-foreground">{sessionTime(date, locale)}</div>
                 <div className="min-w-0 flex-1 border-l-[3px] pl-3.5" style={{ borderColor: tone.barColor }}>
                   <div className="flex flex-wrap items-center gap-[9px]">
                     <span className="flex size-7 items-center justify-center rounded-lg text-[11px] font-bold text-white" style={{ background: avatarColorFor(session.patientColor, index) }}>{initialsFor(session.patientName)}</span>
                     <span className="text-[13.5px] font-bold text-foreground">{session.patientName}</span>
-                    <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tone.label}</span>
+                    <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tr(tone.label)}</span>
                     <span className="ml-auto"><CancelSessionButton session={session} /></span>
                   </div>
-                  <div className="mt-1 pl-[37px] text-xs text-muted-foreground">{session.session_type || "Therapy session"} · {session.duration || 50} min · {modeLabel(session.mode)}</div>
+                  <div className="mt-1 pl-[37px] text-xs text-muted-foreground">{session.session_type || tr("Therapy session")} · {session.duration || 50} {tr("min ·")} {tr(modeLabel(session.mode))}</div>
                 </div>
               </button>
             );
-          }) : <div className="px-5 py-14 text-center text-sm text-muted-foreground">No sessions on this day.</div>}
+          }) : <div className="px-5 py-14 text-center text-sm text-muted-foreground">{tr("No sessions on this day.")}</div>}
         </Card>
 
         <Card className="rounded-[18px] p-[18px]">
-          <div className="mb-3.5 text-[11px] font-bold uppercase tracking-[.08em] text-muted-foreground">This week</div>
+          <div className="mb-3.5 text-[11px] font-bold uppercase tracking-[.08em] text-muted-foreground">{tr("This week")}</div>
           <div className="space-y-[13px]">
-            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">Total sessions</span><span className="font-mono text-lg font-bold text-foreground">{weekSessions.length}</span></div>
-            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">Video</span><span className="font-mono text-[15px] font-bold text-foreground">{videoCount}</span></div>
-            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">In-person</span><span className="font-mono text-[15px] font-bold text-foreground">{inPersonCount}</span></div>
+            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">{tr("Total sessions")}</span><span className="font-mono text-lg font-bold text-foreground">{weekSessions.length}</span></div>
+            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">{tr("Video")}</span><span className="font-mono text-[15px] font-bold text-foreground">{videoCount}</span></div>
+            <div className="flex items-baseline justify-between"><span className="text-[13px] text-foreground/80">{tr("In-person")}</span><span className="font-mono text-[15px] font-bold text-foreground">{inPersonCount}</span></div>
             <div className="h-px bg-border" />
             <div className="flex items-center gap-[9px] rounded-[11px] bg-primary/10 px-3 py-[11px]">
               <CalendarCheck2 size={17} strokeWidth={1.8} className="flex-none text-primary" />
-              <div className="text-[11.5px] leading-[1.4] text-foreground/80"><strong className="text-foreground">Google Calendar</strong> connected · synced 2 min ago</div>
+              <div className="text-[11.5px] leading-[1.4] text-foreground/80"><strong className="text-foreground">{tr("Google Calendar")}</strong> {tr("connected · synced 2 min ago")}</div>
             </div>
           </div>
         </Card>

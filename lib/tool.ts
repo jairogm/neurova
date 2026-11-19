@@ -33,7 +33,22 @@ export async function createEditor(config: Omit<EditorConfig, "tools"> & Pick<Pa
     import("@editorjs/editorjs"),
     import("./editor-tools"),
   ]);
-  return new EditorJSClass({ tools: EDITOR_TOOLS, ...config });
+  const spanish = document.documentElement.lang === "es";
+  return new EditorJSClass({
+    tools: EDITOR_TOOLS,
+    i18n: spanish ? { messages: {
+      ui: {
+        blockTunes: { toggler: { "Click to tune": "Opciones del bloque", "or drag to move": "o arrastra para mover" } },
+        inlineToolbar: { converter: { "Convert to": "Convertir en" } },
+        toolbar: { toolbox: { Add: "Añadir" } },
+        popover: { Filter: "Filtrar", "Nothing found": "Sin resultados" },
+      },
+      toolNames: { Text: "Texto", Heading: "Encabezado", List: "Lista", Warning: "Advertencia", Image: "Imagen", Delimiter: "Separador", Bold: "Negrita", Italic: "Cursiva", Link: "Enlace", Underline: "Subrayado", "Unordered List": "Lista con viñetas", "Ordered List": "Lista numerada", Checklist: "Lista de tareas" },
+      tools: { link: { "Add a link": "Añadir un enlace" }, warning: { Title: "Título", Message: "Mensaje" } },
+      blockTunes: { delete: { Delete: "Eliminar", "Click to delete": "Confirmar eliminación" }, moveUp: { "Move up": "Subir" }, moveDown: { "Move down": "Bajar" } },
+    } } : undefined,
+    ...config,
+  });
 }
 
 /** Tear an editor down safely — destroy() throws if called before it is ready. */

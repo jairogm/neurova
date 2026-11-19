@@ -19,10 +19,10 @@ export function LanguageSwitcher({ variant = "icon" }: { variant?: "icon" | "seg
 
   const onSelect = (locale: Locale) => {
     if (locale === activeLocale) return;
-    startTransition(() => {
+    startTransition(async () => {
       // Server action persists the cookie and triggers a re-render
       // with the newly selected locale's messages.
-      setUserLocale(locale);
+      await setUserLocale(locale);
     });
   };
 

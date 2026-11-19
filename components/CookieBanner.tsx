@@ -1,11 +1,13 @@
 "use client";
 
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import Link from "next/link";
 
 export function CookieBanner() {
+  const tr = useWorkspaceText();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -28,24 +30,23 @@ export function CookieBanner() {
       <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="text-sm text-gray-600 text-center sm:text-left">
           <p>
-            We use cookies to enhance your experience, analyze site usage, and assist in our marketing efforts.
-            By continuing to visit this site you agree to our use of cookies.
+            {tr("We use cookies to enhance your experience, analyze site usage, and assist in our marketing efforts. By continuing to visit this site you agree to our use of cookies.")}
             <Link href="/privacy" className="font-semibold text-[#096f89] hover:underline ml-1">
-              Learn more
+              {tr("Learn more")}
             </Link>
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">
           <Button variant="outline" size="sm" className="border-slate-300 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:bg-white dark:border-slate-300 dark:hover:bg-slate-100" onClick={handleAccept}>
-            Decline
+            {tr("Decline")}
           </Button>
           <Button className="bg-[#096f89] text-white hover:bg-[#075970]" size="sm" onClick={handleAccept}>
-            Accept All
+            {tr("Accept All")}
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Dismiss" className="h-8 w-8 ml-2 sm:hidden hover:bg-slate-100 hover:text-slate-900"
+            aria-label={tr("Dismiss")} className="h-8 w-8 ml-2 sm:hidden hover:bg-slate-100 hover:text-slate-900"
             onClick={handleAccept}
           >
             <X className="h-4 w-4" />

@@ -1,4 +1,6 @@
 "use client";
+import { useWorkspaceText } from "@/hooks/useWorkspaceText";
+import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -16,6 +18,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function BillingPage() {
+  const locale = useLocale();
+  const tr = useWorkspaceText();
   const { subscriptionActive } = useBillingPrototype();
   const profile = useQuery(api.billing.getProfile);
   const subscription = useQuery(api.billing.getSubscription);
@@ -49,7 +53,7 @@ export default function BillingPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("mp") === "return") {
-      toast.info("Payment authorization received — your plan activates as soon as Mercado Pago confirms it.");
+      toast.info(tr("Payment authorization received — your plan activates as soon as Mercado Pago confirms it."));
       window.history.replaceState(null, "", "/billing");
     }
   }, []);
@@ -61,25 +65,25 @@ export default function BillingPage() {
   const complimentary = Boolean(subscription?.complimentary);
   const planStatus = complimentary || hasRealSubscription ? subscription!.status : subscriptionActive ? "active" : "none";
   const planStatusLabel =
-    complimentary ? "Complimentary"
-    : planStatus === "active" ? "Active"
-    : planStatus === "pending" ? "Confirming…"
-    : planStatus === "past_due" ? "Payment issue"
-    : planStatus === "cancelled" ? "Cancelled"
-    : "Payment required";
+    complimentary ? tr("Complimentary")
+    : planStatus === "active" ? tr("Active")
+    : planStatus === "pending" ? tr("Confirming…")
+    : planStatus === "past_due" ? tr("Payment issue")
+    : planStatus === "cancelled" ? tr("Cancelled")
+    : tr("Payment required");
 
   const renewalLabel = () => {
     if (complimentary) return "—";
     if (hasRealSubscription && subscription?.expiresAt) {
       const date = new Date(subscription.expiresAt);
       if (!Number.isNaN(date.getTime())) {
-        return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        return date.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
       }
     }
-    if (planStatus !== "active") return "Activate to start";
+    if (planStatus !== "active") return tr("Activate to start");
     const date = new Date();
     date.setMonth(date.getMonth() + 1, 23);
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return date.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
   };
 
   const startSubscription = async () => {
@@ -87,10 +91,10 @@ export default function BillingPage() {
     try {
       const res = await fetch("/api/billing/subscribe", { method: "POST" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) throw new Error(data.error || "Could not start the checkout");
+      if (!res.ok || !data.url) throw new Error(tr(data.error || "") || tr("Could not start the checkout"));
       window.location.href = data.url;
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not start the checkout");
+      toast.error(error instanceof Error ? error.message : tr("Could not start the checkout"));
       setSubscribing(false);
     }
   };
@@ -100,11 +104,11 @@ export default function BillingPage() {
     try {
       const res = await fetch("/api/billing/cancel", { method: "POST" });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error || "Could not cancel the subscription");
-      toast.success("Subscription cancelled");
+      if (!res.ok) throw new Error(tr(data.error || "") || tr("Could not cancel the subscription"));
+      toast.success(tr("Subscription cancelled"));
       setCancelOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not cancel the subscription");
+      toast.error(error instanceof Error ? error.message : tr("Could not cancel the subscription"));
     } finally {
       setCancelling(false);
     }
@@ -113,26 +117,26 @@ export default function BillingPage() {
   const saveProfile = async () => {
     try {
       await updateProfile({ billing_email: billingEmail, tax_id: taxId, billing_address: address });
-      toast.success("Billing information saved");
+      toast.success(tr("Billing information saved"));
     } catch {
-      toast.error("Failed to save billing information");
+      toast.error(tr("Failed to save billing information"));
     }
   };
 
   const addMethod = async () => {
     const digits = cardNumber.replace(/\D/g, "");
     if (digits.length < 4) {
-      toast.error("Enter a card number");
+      toast.error(tr("Enter a card number"));
       return;
     }
     const brand = digits.startsWith("4") ? "Visa" : digits.startsWith("5") ? "Mastercard" : "Amex";
     try {
-      await addPaymentMethod({ brand, last4: digits.slice(-4), exp: cardExp || "03/29", name: cardName || "New card" });
-      toast.success("Payment method added");
+      await addPaymentMethod({ brand, last4: digits.slice(-4), exp: cardExp || "03/29", name: cardName || tr("New card") });
+      toast.success(tr("Payment method added"));
       setMethodOpen(false);
       setCardNumber(""); setCardExp(""); setCardName("");
     } catch {
-      toast.error("Failed to add payment method");
+      toast.error(tr("Failed to add payment method"));
     }
   };
 
@@ -140,7 +144,7 @@ export default function BillingPage() {
     <div className="mx-auto max-w-[1180px] px-3.5 py-[18px] sm:px-[22px] sm:py-[22px] xl:px-[30px] xl:py-[26px]">
       <div className="mb-[18px] flex items-center gap-[13px]">
         <span className="flex size-[42px] flex-none items-center justify-center rounded-[13px] bg-primary/10 text-primary"><CreditCard size={20} strokeWidth={1.9} /></span>
-        <div><h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">Billing</h1><p className="mt-1 text-[13.5px] text-muted-foreground">Manage your NEUROVA plan, payment methods, and billing history.</p></div>
+        <div><h1 className="text-[24px] font-extrabold tracking-[-.02em] text-foreground">{tr("Billing")}</h1><p className="mt-1 text-[13.5px] text-muted-foreground">{tr("Manage your NEUROVA plan, payment methods, and billing history.")}</p></div>
       </div>
 
       <div className="grid items-start gap-[18px] lg:grid-cols-[1.05fr_.95fr]">
@@ -149,14 +153,14 @@ export default function BillingPage() {
             <span className="absolute -right-10 -top-12 size-[190px] rounded-full bg-white/10" />
             <div className="relative flex items-start justify-between gap-[18px]">
               <div>
-                <div className="text-[11px] font-extrabold uppercase tracking-[.1em] opacity-80">Current plan</div>
-                <div className="mt-2 text-[24px] font-extrabold tracking-[-.02em]">{complimentary ? "Complimentary" : "Individual therapist"}</div>
-                <div className="mt-1 text-[13px] opacity-85">{complimentary ? "Free — full access" : "50.000 COP / Monthly"}</div>
+                <div className="text-[11px] font-extrabold uppercase tracking-[.1em] opacity-80">{tr("Current plan")}</div>
+                <div className="mt-2 text-[24px] font-extrabold tracking-[-.02em]">{complimentary ? tr("Complimentary") : tr("Individual therapist")}</div>
+                <div className="mt-1 text-[13px] opacity-85">{complimentary ? tr("Free — full access") : tr("50.000 COP / Monthly")}</div>
               </div>
               <span className="rounded-full border border-white/25 bg-white/15 px-[11px] py-1 text-[11px] font-extrabold">{planStatusLabel}</span>
             </div>
             <div className="relative mt-[22px] grid grid-cols-3 gap-2.5">
-              {[["Renews", renewalLabel()], ["Seats", "1 therapist"], ["Currency", "COP"]].map(([label, value]) => (
+              {[[tr("Renews"), renewalLabel()], [tr("Seats"), tr("1 therapist")], [tr("Currency"), "COP"]].map(([label, value]) => (
                 <div key={label} className="rounded-xl border border-white/15 bg-white/10 p-3">
                   <div className="text-[10px] font-extrabold uppercase tracking-[.08em] opacity-70">{label}</div>
                   <div className="mt-1 font-mono text-[12.5px] font-bold">{value}</div>
@@ -165,28 +169,26 @@ export default function BillingPage() {
             </div>
             <div className="relative mt-4 flex flex-wrap items-center gap-2.5">
               {complimentary ? (
-                <span className="text-[12.5px] font-bold opacity-90">This account has free full access — no payment needed.</span>
+                <span className="text-[12.5px] font-bold opacity-90">{tr("This account has free full access — no payment needed.")}</span>
               ) : planStatus === "active" && hasRealSubscription ? (
-                <Button variant="outline" onClick={() => setCancelOpen(true)} className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-                  Cancel plan
-                </Button>
+                <Button variant="outline" onClick={() => setCancelOpen(true)} className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white">{tr("Cancel plan")}</Button>
               ) : planStatus === "pending" ? (
-                <span className="text-[12.5px] font-bold opacity-90">Waiting for Mercado Pago to confirm your payment…</span>
+                <span className="text-[12.5px] font-bold opacity-90">{tr("Waiting for Mercado Pago to confirm your payment…")}</span>
               ) : (
                 <Button onClick={startSubscription} disabled={subscribing} className="bg-white text-[#0b7693] hover:bg-white/90">
-                  {subscribing ? "Redirecting…" : "Subscribe with Mercado Pago"}
+                  {subscribing ? tr("Redirecting…") : tr("Subscribe with Mercado Pago")}
                 </Button>
               )}
               {planStatus === "past_due" && (
-                <span className="text-[12px] opacity-90">Last charge failed — Mercado Pago retries automatically.</span>
+                <span className="text-[12px] opacity-90">{tr("Last charge failed — Mercado Pago retries automatically.")}</span>
               )}
             </div>
           </section>
 
           <Card className="p-5">
             <div className="mb-4 flex items-start justify-between gap-3">
-              <div><h2 className="text-[15px] font-extrabold text-foreground">Payment methods</h2><p className="mt-1 text-[12.5px] text-muted-foreground">Choose which card NEUROVA uses for monthly billing.</p></div>
-              <Button onClick={() => setMethodOpen(true)} className="h-9 px-3"><Plus size={14} />Add method</Button>
+              <div><h2 className="text-[15px] font-extrabold text-foreground">{tr("Payment methods")}</h2><p className="mt-1 text-[12.5px] text-muted-foreground">{tr("Choose which card NEUROVA uses for monthly billing.")}</p></div>
+              <Button onClick={() => setMethodOpen(true)} className="h-9 px-3"><Plus size={14} />{tr("Add method")}</Button>
             </div>
             <div className="space-y-2.5">
               {paymentMethods === undefined ? (
@@ -197,21 +199,21 @@ export default function BillingPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[13.5px] font-extrabold text-foreground">{method.brand} •••• {method.last4}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-extrabold ${method.is_primary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{method.is_primary ? "Default" : "Backup"}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10.5px] font-extrabold ${method.is_primary ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>{method.is_primary ? tr("Default") : tr("Backup")}</span>
                     </div>
-                    <div className="mt-1 text-[11.5px] text-muted-foreground">{method.name} · expires {method.exp}</div>
+                    <div className="mt-1 text-[11.5px] text-muted-foreground">{method.name} {tr("· expires")} {method.exp}</div>
                   </div>
                   {method.is_primary ? (
-                    <span className="rounded-lg border border-border px-2.5 py-1.5 text-[11.5px] font-bold text-muted-foreground">Default</span>
+                    <span className="rounded-lg border border-border px-2.5 py-1.5 text-[11.5px] font-bold text-muted-foreground">{tr("Default")}</span>
                   ) : (
                     <>
-                      <button type="button" onClick={() => setPrimary({ id: method._id as Id<"payment_methods"> })} className="rounded-lg border border-border bg-card px-2.5 py-[7px] text-[11.5px] font-extrabold text-primary transition-colors hover:border-primary">Set default</button>
-                      <button type="button" onClick={() => removeMethod({ id: method._id as Id<"payment_methods"> })} className="rounded-lg border border-[#d2574f] bg-[#f8e5e3] px-2.5 py-[7px] text-[11.5px] font-extrabold text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">Remove</button>
+                      <button type="button" onClick={() => setPrimary({ id: method._id as Id<"payment_methods"> })} className="rounded-lg border border-border bg-card px-2.5 py-[7px] text-[11.5px] font-extrabold text-primary transition-colors hover:border-primary">{tr("Set default")}</button>
+                      <button type="button" onClick={() => removeMethod({ id: method._id as Id<"payment_methods"> })} className="rounded-lg border border-[#d2574f] bg-[#f8e5e3] px-2.5 py-[7px] text-[11.5px] font-extrabold text-[#d2574f] dark:bg-[#3a1f1d] dark:text-[#e0726a]">{tr("Remove")}</button>
                     </>
                   )}
                 </div>
               )) : (
-                <div className="rounded-[13px] border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">No payment methods yet — add your first card.</div>
+                <div className="rounded-[13px] border border-dashed border-border px-4 py-8 text-center text-[12.5px] text-muted-foreground">{tr("No payment methods yet — add your first card.")}</div>
               )}
             </div>
           </Card>
@@ -219,19 +221,19 @@ export default function BillingPage() {
 
         <div className="flex flex-col gap-[18px]">
           <Card className="p-5">
-            <h2 className="mb-4 text-[15px] font-extrabold text-foreground">Billing information</h2>
+            <h2 className="mb-4 text-[15px] font-extrabold text-foreground">{tr("Billing information")}</h2>
             <div className="space-y-[13px]">
-              <div><Label htmlFor="billing-email" className="mb-1.5 block text-xs font-bold">Billing email</Label><Input id="billing-email" value={billingEmail} onChange={(event) => setBillingEmail(event.target.value)} placeholder="billing@email.com" /></div>
-              <div><Label htmlFor="tax-id" className="mb-1.5 block text-xs font-bold">Tax ID / NIT</Label><Input id="tax-id" value={taxId} onChange={(event) => setTaxId(event.target.value)} placeholder="CC or NIT" /></div>
-              <div><Label htmlFor="billing-address" className="mb-1.5 block text-xs font-bold">Billing address</Label><Textarea id="billing-address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder="Billing address" /></div>
-              <div className="flex justify-end"><Button onClick={saveProfile}>Save changes</Button></div>
+              <div><Label htmlFor="billing-email" className="mb-1.5 block text-xs font-bold">{tr("Billing email")}</Label><Input id="billing-email" value={billingEmail} onChange={(event) => setBillingEmail(event.target.value)} placeholder={tr("billing@email.com")} /></div>
+              <div><Label htmlFor="tax-id" className="mb-1.5 block text-xs font-bold">{tr("Tax ID / NIT")}</Label><Input id="tax-id" value={taxId} onChange={(event) => setTaxId(event.target.value)} placeholder={tr("CC or NIT")} /></div>
+              <div><Label htmlFor="billing-address" className="mb-1.5 block text-xs font-bold">{tr("Billing address")}</Label><Textarea id="billing-address" value={address} onChange={(event) => setAddress(event.target.value)} placeholder={tr("Billing address")} /></div>
+              <div className="flex justify-end"><Button onClick={saveProfile}>{tr("Save changes")}</Button></div>
             </div>
           </Card>
 
           <Card className="overflow-hidden">
             <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-[17px]">
-              <div><h2 className="text-[15px] font-extrabold text-foreground">Billing history</h2><p className="mt-1 text-[12.5px] text-muted-foreground">Invoices and receipts for your account.</p></div>
-              <Button variant="outline" className="h-8 px-2.5 text-[11.5px]"><Download size={13} />Download all</Button>
+              <div><h2 className="text-[15px] font-extrabold text-foreground">{tr("Billing history")}</h2><p className="mt-1 text-[12.5px] text-muted-foreground">{tr("Invoices and receipts for your account.")}</p></div>
+              <Button variant="outline" className="h-8 px-2.5 text-[11.5px]"><Download size={13} />{tr("Download all")}</Button>
             </div>
             {invoices === undefined ? (
               <div className="space-y-3 p-5"><Skeleton className="h-12" /><Skeleton className="h-12" /></div>
@@ -240,10 +242,10 @@ export default function BillingPage() {
                 <div className="min-w-0"><div className="text-[13px] font-extrabold text-foreground">{invoice.invoice}</div><div className="mt-0.5 text-[11.5px] text-muted-foreground">{invoice.description}</div></div>
                 <div className="hidden sm:block"><div className="font-mono text-xs text-foreground/80">{invoice.date}</div><div className="mt-0.5 text-[11px] text-[var(--nv-faint)]">{invoice.method}</div></div>
                 <div className="hidden text-right font-mono text-[12.5px] font-extrabold text-foreground sm:block">{invoice.amount}</div>
-                <span className={`rounded-full px-[9px] py-1 text-[11px] font-extrabold ${invoice.status === "Paid" ? "bg-[#e2f1ea] text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]" : "bg-[#f6ecd8] text-[#be7c16] dark:bg-[#33280f] dark:text-[#d29a3a]"}`}>{invoice.status}</span>
+                <span className={`rounded-full px-[9px] py-1 text-[11px] font-extrabold ${invoice.status === "Paid" ? "bg-[#e2f1ea] text-[#15986a] dark:bg-[#11302a] dark:text-[#2ba378]" : "bg-[#f6ecd8] text-[#be7c16] dark:bg-[#33280f] dark:text-[#d29a3a]"}`}>{tr(invoice.status)}</span>
               </div>
             )) : (
-              <div className="px-6 py-10 text-center text-[13px] text-muted-foreground">No invoices yet.</div>
+              <div className="px-6 py-10 text-center text-[13px] text-muted-foreground">{tr("No invoices yet.")}</div>
             )}
           </Card>
         </div>
@@ -252,15 +254,13 @@ export default function BillingPage() {
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
           <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-            <DialogTitle className="text-[17px] font-extrabold">Cancel your plan?</DialogTitle>
-            <DialogDescription>
-              Mercado Pago will stop charging you and your plan ends at the close of the current period. You can subscribe again anytime.
-            </DialogDescription>
+            <DialogTitle className="text-[17px] font-extrabold">{tr("Cancel your plan?")}</DialogTitle>
+            <DialogDescription>{tr("Mercado Pago will stop charging you and your plan ends at the close of the current period. You can subscribe again anytime.")}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="border-t border-border px-6 py-4">
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>Keep plan</Button>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>{tr("Keep plan")}</Button>
             <Button variant="destructive" onClick={cancelSubscription} disabled={cancelling}>
-              {cancelling ? "Cancelling…" : "Cancel subscription"}
+              {cancelling ? tr("Cancelling…") : tr("Cancel subscription")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -268,15 +268,15 @@ export default function BillingPage() {
 
       <Dialog open={methodOpen} onOpenChange={setMethodOpen}>
         <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
-          <DialogHeader className="border-b border-border px-6 py-5 pr-12"><DialogTitle className="text-[17px] font-extrabold">Add payment method</DialogTitle><DialogDescription>Card data is mocked until the payment provider is connected.</DialogDescription></DialogHeader>
+          <DialogHeader className="border-b border-border px-6 py-5 pr-12"><DialogTitle className="text-[17px] font-extrabold">{tr("Add payment method")}</DialogTitle><DialogDescription>{tr("Card data is mocked until the payment provider is connected.")}</DialogDescription></DialogHeader>
           <div className="space-y-4 p-6">
-            <div><Label htmlFor="card-number" className="mb-1.5 block">Card number</Label><Input id="card-number" value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder="4242 4242 4242 4242" /></div>
+            <div><Label htmlFor="card-number" className="mb-1.5 block">{tr("Card number")}</Label><Input id="card-number" value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} placeholder="4242 4242 4242 4242" /></div>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label htmlFor="expiry" className="mb-1.5 block">Expiry</Label><Input id="expiry" value={cardExp} onChange={(event) => setCardExp(event.target.value)} placeholder="MM / YY" /></div>
-              <div><Label htmlFor="card-name" className="mb-1.5 block">Name on card</Label><Input id="card-name" value={cardName} onChange={(event) => setCardName(event.target.value)} placeholder="Cardholder" /></div>
+              <div><Label htmlFor="expiry" className="mb-1.5 block">{tr("Expiry")}</Label><Input id="expiry" value={cardExp} onChange={(event) => setCardExp(event.target.value)} placeholder={tr("MM / YY")} /></div>
+              <div><Label htmlFor="card-name" className="mb-1.5 block">{tr("Name on card")}</Label><Input id="card-name" value={cardName} onChange={(event) => setCardName(event.target.value)} placeholder={tr("Cardholder")} /></div>
             </div>
           </div>
-          <DialogFooter className="border-t border-border px-6 py-4"><Button variant="outline" onClick={() => setMethodOpen(false)}>Cancel</Button><Button onClick={addMethod}>Add method</Button></DialogFooter>
+          <DialogFooter className="border-t border-border px-6 py-4"><Button variant="outline" onClick={() => setMethodOpen(false)}>{tr("Cancel")}</Button><Button onClick={addMethod}>{tr("Add method")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
