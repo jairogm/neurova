@@ -256,8 +256,8 @@ function PatientWorkbench({ id }: { id: string }) {
 
             <div className="mt-4"><ScheduleAppointment variant="rail" defaultPatientId={id} /></div>
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <button type="button" onClick={exportPdf} className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
-                <FileDown size={13} />{tr("Export PDF")}</button>
+              <button type="button" onClick={exportPdf} aria-label={tr("Export PDF")} title={tr("Export PDF")} className="flex whitespace-nowrap h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
+                <FileDown size={13} />{locale === "es" ? "PDF" : tr("Export PDF")}</button>
               <button type="button" onClick={toggleEdit} className="flex h-9 items-center justify-center gap-1.5 rounded-[10px] border border-border bg-card px-2 text-[12.5px] font-bold text-foreground/80 transition-colors hover:border-primary">
                 {editing ? <Check size={13} /> : <Pencil size={13} />}{editing ? tr("Done") : tr("Edit details")}
               </button>

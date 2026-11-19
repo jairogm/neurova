@@ -4,13 +4,13 @@ import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { CancelSessionButton } from "@/components/CancelSessionButton";
+import { AgendaRow } from "@/components/AgendaRow";
 import { SessionDetailsModal, type SessionDetails } from "@/components/modals/SessionDetailsModal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNow } from "@/hooks/useNow";
 import { useTutorial } from "@/hooks/useTutorial";
-import { apptToneFor, avatarColorFor, formatCOP, initialsFor, modeLabel } from "@/lib/nv";
+import { formatCOP, initialsFor, modeLabel } from "@/lib/nv";
 import { useUser } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
 import { Check, ChevronRight, HelpCircle, Plus, Video, X } from "lucide-react";
@@ -231,42 +231,12 @@ export default function Dashboard() {
               <div className="space-y-3 p-5"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div>
             ) : agenda.length ? (
               <div>
-                {agenda.map((session, index) => {
-                  const tone = apptToneFor(session.session_status, session._id === nextSession?._id);
-                  const date = safeDate(session.scheduled_date);
-                  const isToday = date?.toDateString() === new Date(now).toDateString();
-                  return (
-                    <div
-                      key={session._id}
-                      className="flex w-full items-stretch border-b border-border transition-colors last:border-b-0 hover:bg-secondary"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setSelectedSession(session as SessionDetails)}
-                        className="flex min-w-0 flex-1 items-center gap-3 px-3.5 py-2.5 text-left sm:px-4 wide:gap-3.5 wide:px-5 wide:py-3.5"
-                      >
-                        <div className="w-[68px] flex-none text-right wide:w-[72px]">
-                          <div className="whitespace-nowrap font-mono text-[13px] font-semibold text-foreground wide:text-sm">{sessionTime(session.scheduled_date, locale)}</div>
-                          <div className="text-[10.5px] text-[var(--nv-faint)]">{isToday ? `${session.duration || 50} min` : date?.toLocaleDateString(locale, { weekday: "short", day: "numeric" })}</div>
-                        </div>
-                        <div className="w-px self-stretch bg-border" />
-                        <div className="flex size-8 flex-none items-center justify-center rounded-[10px] text-xs font-bold text-white wide:size-[34px]" style={{ background: avatarColorFor(session.patientColor, index) }}>
-                          {initialsFor(session.patientName)}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-[13.5px] font-bold text-foreground">{session.patientName}</div>
-                          <div className="truncate text-xs text-muted-foreground">{tr(modeLabel(session.mode))} · {session.session_type || tr("Therapy session")}</div>
-                        </div>
-                        <span className={`hidden rounded-full px-2.5 py-1 text-[11px] font-bold sm:inline ${tone.className}`}>
-                          {tr(tone.label)}
-                        </span>
-                      </button>
-                      <div className="flex flex-none items-center pr-3.5 sm:pr-4 wide:pr-5">
-                        <CancelSessionButton session={session} />
-                      </div>
-                    </div>
-                  );
-                })}
+                {agenda.map((session, index) => (
+                  <AgendaRow key={session._id} session={session} index={index}
+                    isNext={session._id === nextSession?._id}
+                    showDate={safeDate(session.scheduled_date)?.toDateString() !== new Date(now).toDateString()}
+                    onOpen={setSelectedSession} />
+                ))}
               </div>
             ) : (
               <div className="px-5 py-10 text-center text-sm text-muted-foreground">{tr("No sessions today. Use “New appointment” to schedule one.")}</div>

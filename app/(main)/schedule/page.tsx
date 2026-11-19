@@ -3,20 +3,15 @@ import { useWorkspaceText } from "@/hooks/useWorkspaceText";
 import { useLocale } from "next-intl";
 
 import { api } from "@/convex/_generated/api";
-import { CancelSessionButton } from "@/components/CancelSessionButton";
+import { AgendaRow } from "@/components/AgendaRow";
 import { ScheduleAppointment } from "@/components/modals/ScheduleAppointment";
 import { SessionDetailsModal, type SessionDetails } from "@/components/modals/SessionDetailsModal";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apptToneFor, avatarColorFor, initialsFor, modeLabel } from "@/lib/nv";
 import { useNow } from "@/hooks/useNow";
 import { useQuery } from "convex/react";
 import { CalendarCheck2 } from "lucide-react";
 import { useMemo, useState } from "react";
-
-function sessionTime(date: Date, locale: string) {
-  return date.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
-}
 
 export default function SchedulePage() {
   const locale = useLocale();
@@ -82,29 +77,10 @@ export default function SchedulePage() {
           </div>
           {sessions === undefined ? (
             <div className="space-y-3 p-5"><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
-          ) : dayAgenda.length ? dayAgenda.map((session, index) => {
-            const date = new Date(session.scheduled_date);
-            const tone = apptToneFor(session.session_status, session._id === nextUpId);
-            return (
-              <button
-                key={session._id}
-                type="button"
-                onClick={() => setSelectedSession(session as SessionDetails)}
-                className="flex w-full gap-4 border-b border-border px-5 py-3.5 text-left last:border-0 hover:bg-secondary"
-              >
-                <div className="w-[68px] flex-none whitespace-nowrap pt-0.5 text-right font-mono text-[13px] font-semibold text-muted-foreground">{sessionTime(date, locale)}</div>
-                <div className="min-w-0 flex-1 border-l-[3px] pl-3.5" style={{ borderColor: tone.barColor }}>
-                  <div className="flex flex-wrap items-center gap-[9px]">
-                    <span className="flex size-7 items-center justify-center rounded-lg text-[11px] font-bold text-white" style={{ background: avatarColorFor(session.patientColor, index) }}>{initialsFor(session.patientName)}</span>
-                    <span className="text-[13.5px] font-bold text-foreground">{session.patientName}</span>
-                    <span className={`rounded-full px-[9px] py-[3px] text-[11px] font-bold ${tone.className}`}>{tr(tone.label)}</span>
-                    <span className="ml-auto"><CancelSessionButton session={session} /></span>
-                  </div>
-                  <div className="mt-1 pl-[37px] text-xs text-muted-foreground">{session.session_type || tr("Therapy session")} · {session.duration || 50} {tr("min ·")} {tr(modeLabel(session.mode))}</div>
-                </div>
-              </button>
-            );
-          }) : <div className="px-5 py-14 text-center text-sm text-muted-foreground">{tr("No sessions on this day.")}</div>}
+          ) : dayAgenda.length ? dayAgenda.map((session, index) => (
+            <AgendaRow key={session._id} session={session} index={index}
+              isNext={session._id === nextUpId} onOpen={setSelectedSession} />
+          )) : <div className="px-5 py-14 text-center text-sm text-muted-foreground">{tr("No sessions on this day.")}</div>}
         </Card>
 
         <Card className="rounded-[18px] p-[18px]">
